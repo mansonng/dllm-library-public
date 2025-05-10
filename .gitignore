@@ -6,9 +6,11 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
+dllm-libray-firebase-adminsdk.json
 
 # Firebase cache
 .firebase/
+
 
 # Firebase config
 
@@ -46,6 +48,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+dist/
 
 # Optional npm cache directory
 .npm

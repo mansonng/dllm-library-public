@@ -72,8 +72,25 @@ async function startApolloServer() {
         '/graphql',
         cors<cors.CorsRequest>(),
         express.json(),
+        /*
         expressMiddleware(server, {
             context: async ({ req }) => ({ token: req.headers.token }),
+        })
+        */
+        expressMiddleware(server, {
+          context: async ({ req }) => {
+            const token = req.headers.authorization || '';
+            let user = null;
+            if (token) {
+              try {
+                // Replace with admin.auth().verifyIdToken(token) for production
+                user = { uid: 'sample-uid', email: 'user@example.com' };
+              } catch (error) {
+                console.error('Auth error:', error);
+              }
+            }
+            return { user };
+          },
         }));
 
     await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));

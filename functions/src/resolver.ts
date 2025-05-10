@@ -1,6 +1,13 @@
 import * as admin from 'firebase-admin';
 
-admin.initializeApp();
+var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
+
+
+const projectId = process.env.GCLOUD_PROJECT || 'dllm-libray';
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+}
+);
 
 const db = admin.firestore();
 
@@ -50,7 +57,7 @@ export const resolvers = {
       _: any,
       { latitude, longitude, radiusKm, category, status, keyword, limit = 20, offset = 0 }: any
     ): Promise<Item[]> => {
-      let query = db.collection('items').where('location', '!=', null);
+      let query = db.collection('items').orderBy('id');
       if (category) query = query.where('category', 'array-contains-any', category);
       if (status) query = query.where('status', '==', status);
       if (keyword) query = query.where('name', '>=', keyword).where('name', '<=', keyword + '\uf8ff');

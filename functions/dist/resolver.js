@@ -35,7 +35,11 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
 const admin = __importStar(require("firebase-admin"));
-admin.initializeApp();
+var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
+const projectId = process.env.GCLOUD_PROJECT || 'dllm-libray';
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 const db = admin.firestore();
 exports.resolvers = {
     Query: {
@@ -49,7 +53,7 @@ exports.resolvers = {
             return { ...data };
         },
         itemsByLocation: async (_, { latitude, longitude, radiusKm, category, status, keyword, limit = 20, offset = 0 }) => {
-            let query = db.collection('items').where('location', '!=', null);
+            let query = db.collection('items').orderBy('id');
             if (category)
                 query = query.where('category', 'array-contains-any', category);
             if (status)
