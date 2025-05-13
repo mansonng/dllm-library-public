@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { auth } from './firebase';
 import { Button, Box, Typography, List, ListItem } from '@mui/material';
-import { User, EmailAuthProvider, signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
+import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 
   // Adds messages only in a dev environment
@@ -39,6 +39,23 @@ const App: React.FC = () => {
   }, []);
 
   const signIn = async () => {
+    /*
+    const provider = new EmailAuthProvider();
+    await signInWithPopup(auth, provider);
+    */
+    const email = prompt('Enter your email:');
+    const password = prompt('Enter your password:');
+    if (email && password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        console.log('Account created successfully');
+      } catch (error) {
+        console.error('Error creating account:', error);
+      }
+    }   
+  };
+
+  const signUp = async () => {
     /*
     const provider = new EmailAuthProvider();
     await signInWithPopup(auth, provider);
@@ -97,7 +114,10 @@ const App: React.FC = () => {
           )}
         </>
       ) : (
-        <Button onClick={signIn}>Sign In with Email</Button>
+        <>
+        <Button onClick={signUp}>Sign up with Email</Button>
+        <Button onClick={signIn}>Sign In</Button>
+        </>
       )}
     </Box>
   );
