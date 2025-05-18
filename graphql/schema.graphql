@@ -34,7 +34,6 @@ type User {
   address: String # 可選地區，如 "London, UK"
   contactMethods: [ContactMethod!] # 其他聯繫方式
   createdAt: String!
-  items: [Item!] # 用戶上載的藏品
 }
 
 type ContactMethod {
@@ -104,6 +103,14 @@ type Query {
     limit: Int,
     offset: Int
   ): [Item!]! # 基於當前位置的搜尋
+  itemsByUser(
+    userId: ID!,
+    category: [String!],
+    status: ItemStatus,
+    keyword: String,
+    limit: Int,
+    offset: Int
+  ): [Item!]! # 基於User的搜尋  
 
   # 交易相關
   transaction(id: ID!): Transaction

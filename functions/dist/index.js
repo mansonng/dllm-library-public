@@ -91,20 +91,21 @@ async function startApolloServer() {
         context: async ({ req }) => {
             const token = req.headers.authorization?.split(' ')[1] || ''; // Extract the token from the "Authorization" header
             console.log('Token:', token);
-            let user = null;
+            let loginUser = null;
             if (token) {
                 try {
                     // Replace with admin.auth().verifyIdToken(token) for production
                     // user = { uid: 'sample-uid', email: 'user@example.com' };
                     let decodedId = await admin.auth().verifyIdToken(token);
-                    user = { uid: decodedId.uid, email: decodedId.email };
+                    loginUser = { uid: decodedId.uid, email: decodedId.email };
                     console.log('Decoded ID:', decodedId);
                 }
                 catch (error) {
                     console.error('Auth error:', error);
                 }
             }
-            return { user };
+            console.log('user', loginUser);
+            return { loginUser };
         },
     }));
     await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));

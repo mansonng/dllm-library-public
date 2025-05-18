@@ -160,6 +160,7 @@ export type Query = {
   item?: Maybe<Item>;
   items: Array<Item>;
   itemsByLocation: Array<Item>;
+  itemsByUser: Array<Item>;
   me?: Maybe<User>;
   transaction?: Maybe<Transaction>;
   transactions: Array<Transaction>;
@@ -192,6 +193,16 @@ export type QueryItemsByLocationArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   radiusKm: Scalars['Float']['input'];
   status?: InputMaybe<ItemStatus>;
+};
+
+
+export type QueryItemsByUserArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ItemStatus>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -241,7 +252,6 @@ export type User = {
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  items?: Maybe<Array<Item>>;
   location?: Maybe<Location>;
   nickname?: Maybe<Scalars['String']['output']>;
 };
@@ -401,6 +411,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   item?: Resolver<Maybe<ResolversTypes['Item']>, ParentType, ContextType, RequireFields<QueryItemArgs, 'id'>>;
   items?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType, Partial<QueryItemsArgs>>;
   itemsByLocation?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType, RequireFields<QueryItemsByLocationArgs, 'latitude' | 'longitude' | 'radiusKm'>>;
+  itemsByUser?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType, RequireFields<QueryItemsByUserArgs, 'userId'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   transaction?: Resolver<Maybe<ResolversTypes['Transaction']>, ParentType, ContextType, RequireFields<QueryTransactionArgs, 'id'>>;
   transactions?: Resolver<Array<ResolversTypes['Transaction']>, ParentType, ContextType, Partial<QueryTransactionsArgs>>;
@@ -424,7 +435,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  items?: Resolver<Maybe<Array<ResolversTypes['Item']>>, ParentType, ContextType>;
   location?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType>;
   nickname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

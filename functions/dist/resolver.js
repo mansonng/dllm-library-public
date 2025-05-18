@@ -43,14 +43,16 @@ admin.initializeApp({
 const db = admin.firestore();
 exports.resolvers = {
     Query: {
-        me: async (_, __, { user }) => {
-            console.log(user);
-            if (!user)
+        me: async (_, __, { loginUser }) => {
+            console.log(loginUser);
+            if (!loginUser)
                 throw new Error('Not authenticated');
-            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userDoc = await db.collection('users').doc(loginUser.uid).get();
+            console.log(userDoc.data());
             if (!userDoc.exists)
                 return null;
             const data = userDoc.data();
+            console.log(data);
             return { ...data };
         },
         itemsByLocation: async (_, { latitude, longitude, radiusKm, category, status, keyword, limit = 20, offset = 0 }) => {
@@ -79,24 +81,49 @@ exports.resolvers = {
             });
             return filteredItems;
         },
+        itemsByUser: async (_, { userId, category, status, keyword, limit = 20, offset = 0 }) => {
+            let query = db.collection('items').where('ownerId', '==', userId).orderBy('id');
+            if (category)
+                query = query.where('category', 'array-contains-any', category);
+            if (status)
+                query = query.where('status', '==', status);
+            if (keyword)
+                query = query.where('name', '>=', keyword).where('name', '<=', keyword + '\uf8ff');
+            const snapshot = await query.limit(limit).offset(offset).get();
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return items;
+        },
+        user: async (_, { id }) => {
+            const userDoc = await db.collection('users').doc(id).get();
+            if (!userDoc.exists)
+                return null;
+            console.log(userDoc.data());
+            const data = userDoc.data();
+            console.log(data);
+            return { ...data };
+        }
     },
     Mutation: {
-        createUser: async (_, { nickname, address }, { user }) => {
-            if (!user)
+        createUser: async (_, { nickname, address }, { loginUser }) => {
+            if (!loginUser)
                 throw new Error('Not authenticated');
+            let location = {
+                latitude: 0,
+                longitude: 0,
+            };
             const userData = {
-                id: user.uid,
-                email: user.email,
+                id: loginUser.uid,
+                email: loginUser.email,
                 nickname: nickname || undefined,
-                location: undefined, // require to resolve from google map base on address
+                location: location, // require to resolve from google map base on address
                 address: address || undefined,
                 createdAt: new Date().toISOString(),
             };
-            await db.collection('users').doc(user.uid).set(userData);
+            await db.collection('users').doc(loginUser.uid).set(userData);
             return userData;
         },
-        updateUser: async (_, { nickname, contactMethods, address }, { user }) => {
-            if (!user)
+        updateUser: async (_, { nickname, contactMethods, address }, { loginUser }) => {
+            if (!loginUser)
                 throw new Error('Not authenticated');
             const updates = {
                 nickname: nickname || undefined,
@@ -104,16 +131,16 @@ exports.resolvers = {
                 location: undefined, // require to resolve from google map base on address
                 address: address || undefined,
             };
-            await db.collection('users').doc(user.uid).update(updates);
-            const updatedDoc = await db.collection('users').doc(user.uid).get();
+            await db.collection('users').doc(loginUser.uid).update(updates);
+            const updatedDoc = await db.collection('users').doc(loginUser.uid).get();
             return { ...updatedDoc.data() };
         },
-        createItem: async (_, args, { user }) => {
-            if (!user)
+        createItem: async (_, args, { loginUser }) => {
+            if (!loginUser)
                 throw new Error('Not authenticated');
             const itemData = {
                 id: '',
-                ownerId: user.uid,
+                ownerId: loginUser.uid,
                 name: args.name,
                 description: args.description || undefined,
                 condition: args.condition,
@@ -130,10 +157,4 @@ exports.resolvers = {
             return { ...itemData };
         },
     },
-    User: {
-        items: async (parent) => {
-            const snapshot = await db.collection('items').where('ownerId', '==', parent.id).get();
-            return snapshot.docs.map(doc => ({ ...doc.data() }));
-        },
-    }
 };
