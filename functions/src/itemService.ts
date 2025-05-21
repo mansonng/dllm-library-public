@@ -10,6 +10,12 @@ import {
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 
+type ItemModel = Omit<Item, 'id'> & {
+  geohash?: string;
+};
+  
+
+
 
 export class ItemService {
   constructor() {}
@@ -25,7 +31,7 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
-    let query = db.collection("items").orderBy("id");
+    let query = db.collection("items").orderBy("createdAt", "desc");
     if (category)
       query = query.where("category", "array-contains-any", category);
     if (status) query = query.where("status", "==", status);
@@ -51,6 +57,7 @@ export class ItemService {
           Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distance = R * c;
+      console.log(`distance:` + distance + " " + item.location.latitude + " " + item.location.longitude);
       return distance <= radiusKm;
     });
     return filteredItems;
@@ -104,7 +111,12 @@ export class ItemService {
     publishedYear: number,
     language: Language
   ): Promise<Item> {
-    const itemData = {
+    let hash = null;
+    if (owner?.location) {
+      hash = geofire.geohashForLocation([owner.location.latitude, owner.location.longitude]);
+    }
+
+    const itemData: ItemModel = {
       ownerId: owner.id,
       name: name,
       description: description || undefined,
@@ -117,12 +129,9 @@ export class ItemService {
       //location: undefined,  // require to get from user service 's location
       createdAt: new Date().toISOString(),
       location: owner?.location || undefined,
+      geohash: hash || undefined,
     };
     const docRef = await db.collection("items").add(itemData);
-    if (owner?.location) {
-      const hash = geofire.geohashForLocation([owner.location.latitude, owner.location.longitude]);
-      await docRef.set({ geohash: hash }, { merge: true });
-    }
     const rv = {id: docRef.id, ...itemData } as Item; // Set the ID after adding to Firestore
     return rv
   }

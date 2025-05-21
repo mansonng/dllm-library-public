@@ -8,6 +8,9 @@ import { ItemService } from "./itemService";
 import { MapService } from "./mapService";
 import * as geofire from "geofire-common";
 
+type UserModel = User & {
+  geohash?: string;
+};
 export class UserService {
   constructor(private itemService: ItemService,
     private mapService: MapService = new MapService()  // geofire.geohashForLocation is a function that takes a location and returns a geohash
@@ -51,22 +54,17 @@ export class UserService {
       // require to resolve from google map base on address
     }
 
-    const userData: User = {
+    const userData: UserModel = {
       id: loginUser.uid,
       email: loginUser.email,
       nickname: nickname || undefined,
       location: location, // require to resolve from google map base on address
       address: address || undefined,
       createdAt: new Date().toISOString(),
+      geohash: g || undefined,
     };
     await db.collection("users").doc(loginUser.uid).set(userData);
-    if (g) {
-      await db
-        .collection("users")
-        .doc(loginUser.uid)
-        .update({ geohash: g });
-    }    
-    return userData;
+    return userData as User;
   }
 
   async updateUser(
@@ -86,19 +84,14 @@ export class UserService {
       }
       // require to resolve from google map base on address
     }
-    const updates: Partial<User> = {
+    const updates: Partial<UserModel> = {
       nickname: nickname || undefined,
       contactMethods: contactMethods || undefined,
       location: location, // require to resolve from google map base on address
       address: address || undefined,
+      geohash: g || undefined,
     };
     await db.collection("users").doc(loginUser.uid).update(updates);
-    if (g) {
-      await db
-        .collection("users")
-        .doc(loginUser.uid)
-        .update({ geohash: g });
-    }
     const updatedDoc = await db.collection("users").doc(loginUser.uid).get();
     return { ...(updatedDoc.data() as User) };
   }
