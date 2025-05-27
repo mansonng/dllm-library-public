@@ -4,6 +4,7 @@ import { auth } from "./firebase";
 import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
 import Map from "./components/Map";
+import News from "./News";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -32,6 +33,7 @@ const ME_QUERY = gql`
       createdAt
       email
       id
+      role
       nickname
       location {
         latitude
@@ -54,6 +56,7 @@ interface User {
   address: string;
   createdAt: string;
   email: string;
+  role: string;
   nickname: string;
   location: {
     latitude: number;
@@ -67,6 +70,11 @@ interface AppProps {
 
 const App: React.FC<AppProps> = ({ user }) => {
   const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  const [maplocation, setMapLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
@@ -89,6 +97,10 @@ const App: React.FC<AppProps> = ({ user }) => {
         latitude: meOutput.data.me.location.latitude,
         longitude: meOutput.data.me.location.longitude,
       });
+      setMapLocation({
+        latitude: meOutput.data.me.location.latitude,
+        longitude: meOutput.data.me.location.longitude,
+      });
     } else {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
@@ -106,51 +118,60 @@ const App: React.FC<AppProps> = ({ user }) => {
   };
 
   return (
-    <Box p={4}>
-      <Button onClick={signOut}>Sign Out</Button>
-
-      {meOutput.loading && <Typography>Loading...</Typography>}
-      {meOutput.error && (
-        <Typography>Error: {meOutput.error.message}</Typography>
-      )}
-      {meOutput.data && meOutput.data.me ? (
-        <>
-          <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
-          <Button onClick={getLocation}>Display nearby items</Button>
-          {location && (
-            <>
-              <Map
-                open={location != null}
-                closeEvent={(event, reason) => setLocation(null)}
-                location={location}
-              />
-              <Box mt={2}>
-                <Typography variant="h6">Items within 10km</Typography>
-                {itemsByLocationOutput.loading && (
-                  <Typography>Loading...</Typography>
+    <>
+      <Box p={4}>
+        {user && (
+          <>
+            <Button onClick={signOut}>Sign Out</Button>
+            {meOutput.data && meOutput.data.me ? (
+              <>
+                {/* display user with nickname and address */}
+                <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
+                <Button onClick={getLocation}>Display nearby items</Button>
+                {location && (
+                  <>
+                    <Map
+                      open={maplocation != null}
+                      closeEvent={(event, reason) => setMapLocation(null)}
+                      location={maplocation}
+                    />
+                  </>
                 )}
-                {itemsByLocationOutput.error && (
-                  <Typography>
-                    Error: {itemsByLocationOutput.error.message}
-                  </Typography>
-                )}
-                {itemsByLocationOutput.data && (
-                  <List>
-                    {itemsByLocationOutput.data.itemsByLocation.map((item) => (
-                      <ListItem key={item.id}>
-                        {item.name} ({item.condition}, {item.status})
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </Box>
-            </>
-          )}
-        </>
-      ) : (
-        <Typography>Please add a box to create user</Typography>
-      )}
-    </Box>
+              </>
+            ) : (
+              <Typography>TODO: Please add a box to create user</Typography>
+            )}
+          </>
+        )}
+        {itemsByLocationOutput.data ? (
+          <Box mt={2}>
+            <Typography variant="h6">Items within 10km</Typography>
+            <List>
+              {itemsByLocationOutput.data.itemsByLocation.map((item) => (
+                <ListItem key={item.id}>
+                  {item.name} ({item.condition}, {item.status})
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        ) : (
+          <>
+          {/* me should pass into to News object. if user is Admin, there should be botton to add News */}
+          <News />
+          </>
+        )}
+      </Box>
+      <Box mt={2}>
+        {itemsByLocationOutput.loading && <Typography>Loading...</Typography>}
+        {itemsByLocationOutput.error && (
+          <Typography>Error: {itemsByLocationOutput.error.message}</Typography>
+        )}
+        {meOutput.loading && <Typography>Loading user...</Typography>}
+        {meOutput.error && (
+          <Typography>Error: {meOutput.error.message}</Typography>
+        )}
+      </Box>
+    </>
   );
 };
 

@@ -59,18 +59,15 @@ const BaseApp: React.FC = () => {
   return (
     <Box p={4}>
       <Typography variant="h4">無大台香港典藏館</Typography>
-      {user ? (
-        <>
-          <ApolloProvider client={client}>
-            <App user={user} />
-          </ApolloProvider>
-        </>
-      ) : (
+      { user ? (<></>):
         <>
           <Button onClick={signUp}>Sign up with Email</Button>
           <Button onClick={signIn}>Sign In</Button>
         </>
-      )}
+      }
+      <ApolloProvider client={client}>
+        <App user={user} />
+      </ApolloProvider>
     </Box>
   );
 };
