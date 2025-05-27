@@ -1,0 +1,499 @@
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+const defaultOptions = {} as const;
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+};
+
+export type ContactMethod = {
+  __typename?: 'ContactMethod';
+  isPublic: Scalars['Boolean']['output'];
+  type: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type ContactMethodInput = {
+  isPublic: Scalars['Boolean']['input'];
+  type: Scalars['String']['input'];
+  value: Scalars['String']['input'];
+};
+
+export type Item = {
+  __typename?: 'Item';
+  category: Array<Scalars['String']['output']>;
+  condition: ItemCondition;
+  createdAt: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  language: Language;
+  location?: Maybe<Location>;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  publishedYear?: Maybe<Scalars['Int']['output']>;
+  status: ItemStatus;
+  transactions?: Maybe<Array<Transaction>>;
+};
+
+export enum ItemCondition {
+  Fair = 'FAIR',
+  Good = 'GOOD',
+  New = 'NEW',
+  Poor = 'POOR'
+}
+
+export enum ItemStatus {
+  Available = 'AVAILABLE',
+  Exchangeable = 'EXCHANGEABLE',
+  Gift = 'GIFT',
+  Reserved = 'RESERVED',
+  Transferred = 'TRANSFERRED'
+}
+
+export enum Language {
+  En = 'EN',
+  ZhHk = 'ZH_HK'
+}
+
+export type Location = {
+  __typename?: 'Location';
+  latitude: Scalars['Float']['output'];
+  longitude: Scalars['Float']['output'];
+};
+
+export type LocationInput = {
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  cancelTransaction: Scalars['Boolean']['output'];
+  createItem: Item;
+  createNewsPost: NewsPost;
+  createTransaction: Transaction;
+  createUser: User;
+  deleteItem: Scalars['Boolean']['output'];
+  deleteUser: Scalars['Boolean']['output'];
+  hideNewsPost: Scalars['Boolean']['output'];
+  updateItem: Item;
+  updateNewsPost: NewsPost;
+  updateTransaction: Transaction;
+  updateUser: User;
+};
+
+
+export type MutationCancelTransactionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateItemArgs = {
+  category: Array<Scalars['String']['input']>;
+  condition: ItemCondition;
+  description?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  language: Language;
+  name: Scalars['String']['input'];
+  publishedYear?: InputMaybe<Scalars['Int']['input']>;
+  status: ItemStatus;
+};
+
+
+export type MutationCreateNewsPostArgs = {
+  content: Scalars['String']['input'];
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title: Scalars['String']['input'];
+};
+
+
+export type MutationCreateTransactionArgs = {
+  itemId: Scalars['ID']['input'];
+  status: TransactionStatus;
+};
+
+
+export type MutationCreateUserArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  nickname?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationDeleteItemArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteUserArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationHideNewsPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationUpdateItemArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  condition?: InputMaybe<ItemCondition>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  publishedYear?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ItemStatus>;
+};
+
+
+export type MutationUpdateNewsPostArgs = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateTransactionArgs = {
+  id: Scalars['ID']['input'];
+  status: TransactionStatus;
+};
+
+
+export type MutationUpdateUserArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  contactMethods?: InputMaybe<Array<ContactMethodInput>>;
+  nickname?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type NewsPost = {
+  __typename?: 'NewsPost';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  isVisible: Scalars['Boolean']['output'];
+  relatedItems?: Maybe<Array<Item>>;
+  tags?: Maybe<Array<Scalars['String']['output']>>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  user: User;
+};
+
+export type Query = {
+  __typename?: 'Query';
+  item?: Maybe<Item>;
+  items: Array<Item>;
+  itemsByLocation: Array<Item>;
+  itemsByUser: Array<Item>;
+  me?: Maybe<User>;
+  newsPost?: Maybe<NewsPost>;
+  newsRecentPosts: Array<NewsPost>;
+  recentAddedItems: Array<Item>;
+  transaction?: Maybe<Transaction>;
+  transactions: Array<Transaction>;
+  user?: Maybe<User>;
+  users: Array<User>;
+};
+
+
+export type QueryItemArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryItemsArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ItemStatus>;
+};
+
+
+export type QueryItemsByLocationArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  latitude: Scalars['Float']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  longitude: Scalars['Float']['input'];
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  radiusKm: Scalars['Float']['input'];
+  status?: InputMaybe<ItemStatus>;
+};
+
+
+export type QueryItemsByUserArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ItemStatus>;
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QueryNewsPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryNewsRecentPostsArgs = {
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryRecentAddedItemsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryTransactionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTransactionsArgs = {
+  itemId?: InputMaybe<Scalars['ID']['input']>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryUserArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryUsersArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum Role {
+  Admin = 'ADMIN',
+  Moderator = 'MODERATOR',
+  User = 'USER'
+}
+
+export type Transaction = {
+  __typename?: 'Transaction';
+  borrower?: Maybe<User>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  item: Item;
+  status: TransactionStatus;
+  updatedAt: Scalars['String']['output'];
+};
+
+export enum TransactionStatus {
+  Approved = 'APPROVED',
+  Cancelled = 'CANCELLED',
+  Completed = 'COMPLETED',
+  Pending = 'PENDING'
+}
+
+export type User = {
+  __typename?: 'User';
+  address?: Maybe<Scalars['String']['output']>;
+  contactMethods?: Maybe<Array<ContactMethod>>;
+  createdAt: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
+  isVerified: Scalars['Boolean']['output'];
+  location?: Maybe<Location>;
+  nickname?: Maybe<Scalars['String']['output']>;
+  role: Role;
+};
+
+export type ItemsByLocationQueryVariables = Exact<{
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+  radiusKm: Scalars['Float']['input'];
+}>;
+
+
+export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, category: Array<string> }> };
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: string, email: string, id: string, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+
+export type NewsRecentPostsQueryVariables = Exact<{
+  tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: string, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', name: string }> | null, user: { __typename?: 'User', isVerified: boolean, nickname?: string | null } }> };
+
+
+export const ItemsByLocationDocument = gql`
+    query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
+  itemsByLocation(latitude: $latitude, longitude: $longitude, radiusKm: $radiusKm) {
+    id
+    name
+    condition
+    status
+    category
+  }
+}
+    `;
+
+/**
+ * __useItemsByLocationQuery__
+ *
+ * To run a query within a React component, call `useItemsByLocationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useItemsByLocationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useItemsByLocationQuery({
+ *   variables: {
+ *      latitude: // value for 'latitude'
+ *      longitude: // value for 'longitude'
+ *      radiusKm: // value for 'radiusKm'
+ *   },
+ * });
+ */
+export function useItemsByLocationQuery(baseOptions: Apollo.QueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables> & ({ variables: ItemsByLocationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+      }
+export function useItemsByLocationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
+export function useItemsByLocationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
+export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocationQuery>;
+export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
+export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
+export type ItemsByLocationQueryResult = Apollo.QueryResult<ItemsByLocationQuery, ItemsByLocationQueryVariables>;
+export const MeDocument = gql`
+    query Me {
+  me {
+    address
+    createdAt
+    email
+    id
+    role
+    nickname
+    location {
+      latitude
+      longitude
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+      }
+export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
+export function useMeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
+export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const NewsRecentPostsDocument = gql`
+    query NewsRecentPosts($tags: [String!]) {
+  newsRecentPosts(tags: $tags) {
+    id
+    title
+    content
+    images
+    relatedItems {
+      name
+    }
+    createdAt
+    tags
+    user {
+      isVerified
+      nickname
+    }
+  }
+}
+    `;
+
+/**
+ * __useNewsRecentPostsQuery__
+ *
+ * To run a query within a React component, call `useNewsRecentPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNewsRecentPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNewsRecentPostsQuery({
+ *   variables: {
+ *      tags: // value for 'tags'
+ *   },
+ * });
+ */
+export function useNewsRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+      }
+export function useNewsRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
+export function useNewsRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
+export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPostsQuery>;
+export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
+export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
+export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
