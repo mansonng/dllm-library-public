@@ -51,7 +51,10 @@ export class ItemService {
       radiusKm
     );
     const filteredItems = (await items).map((item) => {
-      item = { ...item, id: item.id };
+      item = { ...item, id: item.id,
+          createdAt: item.created.seconds * 1000,
+          updatedAt: item.updated.seconds * 1000,
+      };
       return item as Item;
     });
     return filteredItems;

@@ -353,11 +353,19 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: any, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
 export type NewsRecentPostsQueryVariables = Exact<{
-  tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', name: string }> | null, user: { __typename?: 'User', isVerified: boolean, nickname?: string | null } }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
+
+export type NewsPostQueryVariables = Exact<{
+  newsPostId: Scalars['ID']['input'];
+}>;
+
+
+export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -468,21 +476,13 @@ export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const NewsRecentPostsDocument = gql`
-    query NewsRecentPosts($tags: [String!]) {
-  newsRecentPosts(tags: $tags) {
+    query NewsRecentPosts($limit: Int, $offset: Int) {
+  newsRecentPosts(limit: $limit, offset: $offset) {
     id
     title
-    content
     images
-    relatedItems {
-      name
-    }
     createdAt
     tags
-    user {
-      isVerified
-      nickname
-    }
   }
 }
     `;
@@ -499,7 +499,8 @@ export const NewsRecentPostsDocument = gql`
  * @example
  * const { data, loading, error } = useNewsRecentPostsQuery({
  *   variables: {
- *      tags: // value for 'tags'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -519,6 +520,62 @@ export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPost
 export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
 export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
 export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
+export const NewsPostDocument = gql`
+    query NewsPost($newsPostId: ID!) {
+  newsPost(id: $newsPostId) {
+    id
+    title
+    content
+    images
+    relatedItems {
+      id
+      name
+      category
+      status
+    }
+    createdAt
+    updatedAt
+    tags
+    user {
+      id
+      nickname
+    }
+  }
+}
+    `;
+
+/**
+ * __useNewsPostQuery__
+ *
+ * To run a query within a React component, call `useNewsPostQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNewsPostQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNewsPostQuery({
+ *   variables: {
+ *      newsPostId: // value for 'newsPostId'
+ *   },
+ * });
+ */
+export function useNewsPostQuery(baseOptions: Apollo.QueryHookOptions<NewsPostQuery, NewsPostQueryVariables> & ({ variables: NewsPostQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+      }
+export function useNewsPostLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsPostQuery, NewsPostQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+        }
+export function useNewsPostSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsPostQuery, NewsPostQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+        }
+export type NewsPostQueryHookResult = ReturnType<typeof useNewsPostQuery>;
+export type NewsPostLazyQueryHookResult = ReturnType<typeof useNewsPostLazyQuery>;
+export type NewsPostSuspenseQueryHookResult = ReturnType<typeof useNewsPostSuspenseQuery>;
+export type NewsPostQueryResult = Apollo.QueryResult<NewsPostQuery, NewsPostQueryVariables>;
 export const CreateNewsPostDocument = gql`
     mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
   createNewsPost(
