@@ -19,9 +19,11 @@ type UserModel = Omit<User, "createdAt" > & {
 
 export class UserService {
   private mapService: MapService;
+  private itemService: ItemService;
 
-  constructor(private itemService: ItemService) {
+  constructor(itemService: ItemService) {
     this.mapService = createMapService();
+    this.itemService = itemService;
   }
 
   async me(loginUser: LoginUser | null): Promise<User | null> {
@@ -78,25 +80,63 @@ export class UserService {
 
   async updateUser(
     loginUser: LoginUser | null,
-    nickname: string,
-    address: string,
-    contactMethods: ContactMethod[]
+    nickname?: string | null,
+    address?: string | null,
+    contactMethods?: ContactMethod[] | null
   ): Promise<User> {
     if (!loginUser) throw new Error("Not authenticated");
-    let resolvedLocation: Location | undefined | null = undefined;
 
-    if (address) {
-      resolvedLocation = await this.mapService.resolveLocationAndGeohash(address);
+    const userRef = db.collection("users").doc(loginUser.uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      throw new Error("User not found");
     }
-    const updates: Partial<UserModel> = {
-      nickname: nickname || undefined,
-      contactMethods: contactMethods || undefined,
-      location: resolvedLocation ? { latitude: resolvedLocation.latitude, longitude: resolvedLocation.longitude } : undefined,
-      address: address || undefined,
-      geohash: resolvedLocation?.geohash || undefined,
-    };
-    await db.collection("users").doc(loginUser.uid).update(updates);
-    const updatedDoc = await db.collection("users").doc(loginUser.uid).get();
-    return { ...(updatedDoc.data() as User) };
+
+    const updates: { [key: string]: any } = {};
+
+    if (nickname != null) {
+      updates.nickname = nickname;
+    }
+
+    if (contactMethods != null) {
+      updates.contactMethods = contactMethods;
+    }
+
+    if (address != null) {
+      const oldAddress = userDoc.data()?.address;
+
+      if (address !== oldAddress) {
+        let resolvedLocation = await this.mapService.resolveLocationAndGeohash(address);
+
+        await this.itemService.updateUserItemsLocation(
+          loginUser.uid,
+          resolvedLocation
+        );
+
+        if (resolvedLocation) {
+          updates.address = address;
+          updates.location = {
+            latitude: resolvedLocation.latitude,
+            longitude: resolvedLocation.longitude,
+            geohash: resolvedLocation.geohash,
+          };
+          updates.geohash = resolvedLocation.geohash;
+        } else {
+          updates.address = null;
+          updates.location = null;
+          updates.geohash = null;
+        }
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      console.debug("update: ", updates)
+      await userRef.update(updates);
+    }
+
+    const updatedDoc = await userRef.get();
+    const data = updatedDoc.data() as UserModel;
+    return { createdAt: data.created.seconds * 1000, ...data } as User;
   }
 }
