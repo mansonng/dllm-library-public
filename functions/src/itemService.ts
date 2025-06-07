@@ -181,4 +181,43 @@ export class ItemService {
     } as Item; // Set the ID after adding to Firestore
     return rv;
   }
+
+  async updateUserItemsLocation(
+    userId: string,
+    location: Location | null
+  ): Promise<void> {
+    if (!userId) {
+      console.warn("Cannot update items: Missing user ID");
+      return;
+    }
+
+    if (!location) {
+      console.debug(`Skipping location update for user ${userId}: No location provided`);
+      return;
+    }
+
+    const query = db.collection("items").where("ownerId", "==", userId);
+    const itemsSnapshot = await query.get();
+
+    if (itemsSnapshot.empty) {
+      console.debug(`No items found for user ${userId}`);
+      return;
+    }
+
+    const updateData: any = {
+      updated: Timestamp.now(),
+      location: location,
+      geohash: geofire.geohashForLocation([
+        location.latitude,
+        location.longitude,
+      ])
+    };
+
+    const batch = db.batch();
+    itemsSnapshot.docs.forEach((doc) => {
+      batch.update(doc.ref, updateData);
+    });
+    await batch.commit();
+    console.log(`Updated location for ${itemsSnapshot.size} items belonging to user ${userId}`);
+  }
 }
