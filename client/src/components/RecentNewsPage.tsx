@@ -1,0 +1,87 @@
+import React, { useState } from "react";
+import { Box, Typography, List, IconButton } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import { useNewsRecentPostsQuery, NewsRecentPostsQueryVariables, User, Role } from "../generated/graphql";
+import { CreateNewsPostMutation } from "../generated/graphql";
+import NewsForm from "./NewsForm";
+import NewsSummary from "./NewsSummary";
+import NewsDetail from "./NewsDetail";
+
+interface RecentNewsPageProps {
+  user: User | undefined;
+  onBack: () => void;
+  onNewsCreated: (data: CreateNewsPostMutation) => void;
+}
+
+const RecentNewsPage: React.FC<RecentNewsPageProps> = ({ 
+  user, 
+  onBack, 
+  onNewsCreated 
+}) => {
+  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
+
+  const { data, loading, error, refetch } = useNewsRecentPostsQuery({
+    variables: { tags: ["Testing"], limit: 20, offset: 0 } as NewsRecentPostsQueryVariables,
+  });
+
+  const handleNewsCreated = (data: CreateNewsPostMutation) => {
+    onNewsCreated(data);
+    refetch();
+  };
+
+  const handleNewsItemClick = (newsId: string) => {
+    setSelectedNewsId(newsId);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedNewsId(null);
+  };
+
+  return (
+    <Box>
+      {/* Header with back button */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2, p: 2 }}>
+        <IconButton onClick={onBack} sx={{ mr: 1 }}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h5" sx={{ flexGrow: 1 }}>
+          All News
+        </Typography>
+        {user?.role === Role.Admin && <NewsForm onNewsCreated={handleNewsCreated} />}
+      </Box>
+
+      {/* All news list */}
+      {data && (
+        <List>
+          {data.newsRecentPosts.map((news) => (
+            <NewsSummary 
+              key={news.id}
+              news={news} 
+              onClick={handleNewsItemClick}
+            />
+          ))}
+        </List>
+      )}
+      
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+          <Typography>Loading all news...</Typography>
+        </Box>
+      )}
+      
+      {error && (
+        <Box sx={{ p: 2 }}>
+          <Typography color="error">Error: {error.message}</Typography>
+        </Box>
+      )}
+
+      <NewsDetail 
+        newsId={selectedNewsId}
+        open={!!selectedNewsId}
+        onClose={handleCloseDialog}
+      />
+    </Box>
+  );
+};
+
+export default RecentNewsPage;
