@@ -69,22 +69,13 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
   
   return (
     <Box>
-      <Button variant="contained" onClick={() => setOpen(true)}>
+      {/* <Button variant="contained" onClick={() => setOpen(true)}>
         Create User
-      </Button>
+      </Button> */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle sx={{ textAlign: "center" }}>Create User</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            <TextField
-              label="Email"
-              type="email"
-              fullWidth
-              margin="normal"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
             <TextField
               label="Address"
               type="text"
@@ -105,10 +96,20 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
             {loading && <CircularProgress sx={{ display: "block", mx: "auto", my: 2 }} />}
           </DialogContent>
           <DialogActions sx={{ flexDirection: "column", alignItems: "stretch", gap: 1 }}>
-            <Button onClick={() => setOpen(false)} fullWidth>
+            <Button 
+              onClick={() => setOpen(false)} 
+              fullWidth 
+              sx={{ mt: 2 }}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="contained" fullWidth disabled={loading}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              fullWidth 
+              disabled={loading}
+              sx={{ mt: 1 }}
+            >
               Submit
             </Button>
           </DialogActions>
