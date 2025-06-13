@@ -7,7 +7,7 @@ import { User, Item } from "../generated/graphql";
 import Map from "../components/Map";
 import { Link } from "react-router";
 import { useOutletContext } from 'react-router-dom';
-import CreateUser from "./components/UserProfile";
+import CreateUser from "../components/UserProfile";
 
 
 const ITEMS_QUERY = gql`

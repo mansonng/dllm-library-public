@@ -92,7 +92,7 @@ const BaseApp: React.FC = () => {
 
   return (
     <Box p={4}>
-      <Typography variant="h4" mb={2}>無大台香港典藏館</Typography>
+      {/* <Typography variant="h4" mb={2}>無大台香港典藏館</Typography> */}
       {!user && (
         <>
           <Box mb={2}>

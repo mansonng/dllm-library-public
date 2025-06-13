@@ -34,7 +34,7 @@ interface UserProps {
 }
 
 const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [nickname, setNickname] = useState("");
