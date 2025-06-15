@@ -3,13 +3,10 @@ import { auth } from "./firebase";
 import {
   Button,
   Box,
-  Typography,
   TextField,
   Dialog,
   DialogTitle,
   DialogContent,
-  Container,
-  ListItem,
 } from "@mui/material";
 import {
   User as fireUser,

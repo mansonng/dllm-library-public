@@ -1,32 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useQuery, gql } from "@apollo/client";
-import { auth } from "./firebase";
-import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
-import { User, Item } from "./generated/graphql"; // Adjust the import path as necessary
-import Map from "./components/Map";
+import { User } from "./generated/graphql"; // Adjust the import path as necessary
 import { createRouter } from "./Router";
 import { RouterProvider } from "react-router";
-
-const ITEMS_QUERY = gql`
-  query ItemsByLocation(
-    $latitude: Float!
-    $longitude: Float!
-    $radiusKm: Float!
-  ) {
-    itemsByLocation(
-      latitude: $latitude
-      longitude: $longitude
-      radiusKm: $radiusKm
-    ) {
-      id
-      name
-      condition
-      status
-      category
-    }
-  }
-`;
 
 const ME_QUERY = gql`
   query Me {

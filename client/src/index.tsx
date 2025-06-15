@@ -1,27 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import BaseApp from './BaseApp';
-import * as serviceWorker from './serviceWorker';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import BaseApp from "./BaseApp";
+import * as serviceWorker from "./serviceWorker";
+import "./index.css";
 
-
-
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-root.render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-      <BaseApp/>
-  </React.StrictMode>          
+    <BaseApp />
+  </React.StrictMode>
 );
 
 // Register the Service Worker for PWA features
 serviceWorker.register({
-  onSuccess: () => console.log('Service Worker registered successfully'),
+  onSuccess: () => console.log("Service Worker registered successfully"),
   onUpdate: (registration) => {
-    console.log('New Service Worker version available');
+    console.log("New Service Worker version available");
     // Optionally prompt user to reload
     const waitingWorker = registration.waiting;
     if (waitingWorker) {
-      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      waitingWorker.postMessage({ type: "SKIP_WAITING" });
       window.location.reload();
     }
   },

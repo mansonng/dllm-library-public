@@ -5,7 +5,6 @@ import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import Map from "../components/Map";
-import { Link } from "react-router";
 import { useOutletContext } from "react-router-dom";
 import CreateUser from "../components/UserProfile";
 
@@ -25,25 +24,6 @@ const ITEMS_QUERY = gql`
       condition
       status
       category
-    }
-  }
-`;
-
-const ME_QUERY = gql`
-  query Me {
-    me {
-      address
-      createdAt
-      email
-      id
-      isVerified
-      isActive
-      role
-      nickname
-      location {
-        latitude
-        longitude
-      }
     }
   }
 `;
@@ -96,8 +76,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const [userFormOpen, setUserFormOpen] = useState(false);
-
   const signOut = async () => {
     await auth.signOut();
   };
@@ -133,7 +111,7 @@ const HomePage: React.FC = () => {
             <>
               <Map
                 open={maplocation != null}
-                closeEvent={(event, reason) => setMapLocation(null)}
+                closeEvent={() => setMapLocation(null)}
                 location={maplocation}
               />
             </>
