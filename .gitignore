@@ -8,6 +8,10 @@ firebase-debug.log*
 firebase-debug.*.log*
 dllm-libray-firebase-adminsdk.json
 
+# Generated code
+functions/dist/
+functions/src/generated/
+
 # Firebase cache
 .firebase/
 
