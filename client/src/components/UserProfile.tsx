@@ -15,6 +15,10 @@ import {
   CreateUserMutation,
   CreateUserMutationVariables,
 } from "../generated/graphql";
+import { googleMapsApiKey } from "../../../functions/src/platform";
+// import { LoadScript, Autocomplete as GoogleAutocomplete } from "@react-google-maps/api";
+import Map from "../components/Map";
+
 
 export const CREATE_USER_MUTATION = gql`
   mutation CreateUser($email: String!, $address: String, $nickname: String) {
@@ -41,6 +45,7 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
   const [address, setAddress] = useState("");
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState<Error | null>(null);
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   const [createUser, { data, loading, error: mutationError }] = useMutation<
     CreateUserMutation,
@@ -66,20 +71,19 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
     });
   };
 
+  const handlePlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      setAddress(place.formatted_address || "");
+    }
+  };
+
   return (
     <Box>
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle sx={{ textAlign: "center" }}>Create User</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            <TextField
-              label="Address"
-              type="text"
-              fullWidth
-              margin="normal"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
             <TextField
               label="Nickname"
               type="text"
@@ -88,6 +92,17 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
             />
+            <TextField
+              label="Address"
+              type="text"
+              fullWidth
+              margin="normal"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Search address"
+            />
+            {/* <Map open={true} closeEvent={() => setOpen(true)} location={address} /> */}
+
             {error && <Alert severity="error">{error.message}</Alert>}
             {loading && (
               <CircularProgress sx={{ display: "block", mx: "auto", my: 2 }} />
@@ -109,6 +124,7 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
             </Button>
           </DialogActions>
         </form>
+
       </Dialog>
       {data && (
         <Alert severity="success" sx={{ mt: 2 }}>
