@@ -62,12 +62,8 @@ async function GenerateSignedUrlForUpload(
   const cfg: GetSignedUrlConfig = {
     version: "v4",
     action: "write",
-    //contentType: contentType,
-    contentType: "application/octet-stream",
+    contentType: contentType,
     expires: expires,
-    extensionHeaders: {
-      "x-goog-content-length-range": "0,52428800", // 50MB max
-    },
   };
   const bucket = admin.storage().bucket(serviceAccount.bucket_name);
   const gsUrl = `gs://${bucket.name}/${fullPath}`;
@@ -81,4 +77,40 @@ async function GenerateSignedUrlForUpload(
   return { expires, signedUrl: signedUrls[0], gsUrl };
 }
 
-export { getLoginUserFromToken, LoginUser, db, GenerateSignedUrlForUpload };
+async function GetPublicUrlForGSFile(gsFileUrl: string): Promise<string> {
+  // get the bucket name from gsfilePath
+  if (!gsFileUrl.startsWith("gs://")) {
+    throw new Error(`Invalid gsFilePath: ${gsFileUrl}`);
+  }
+  const parts = gsFileUrl.split("/");
+  if (parts.length < 3) {
+    throw new Error(`Invalid gsFilePath: ${gsFileUrl}`);
+  }
+  const bucketName = parts[2];
+  if (!bucketName) {
+    throw new Error(`Invalid bucket name in gsFilePath: ${gsFileUrl}`);
+  }
+  const gsFilePath = parts.slice(3).join("/");
+  if (!gsFilePath) {
+    throw new Error(`Invalid gsFilePath: ${gsFileUrl}`);
+  }
+  const bucket = admin.storage().bucket(bucketName);
+  const file = bucket.file(gsFilePath);
+
+  const [exists] = await file.exists();
+  if (!exists) {
+    throw new Error(`File does not exist: ${gsFilePath}`);
+  }
+  await file.makePublic();
+  // Get the public URL for the file
+  const publicUrl = `https://storage.googleapis.com/${bucketName}/${gsFilePath}`;
+  return publicUrl;
+}
+
+export {
+  getLoginUserFromToken,
+  LoginUser,
+  db,
+  GenerateSignedUrlForUpload,
+  GetPublicUrlForGSFile,
+};

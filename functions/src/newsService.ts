@@ -1,4 +1,4 @@
-import { db, LoginUser } from "./platform";
+import { db, GetPublicUrlForGSFile } from "./platform";
 import { NewsPost, Role, User } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { UserService } from "./userService";
@@ -12,6 +12,7 @@ type NewsModel = Omit<
   userId: string;
   created: Timestamp;
   updated: Timestamp;
+  gsImageUrls?: string[];
 };
 
 export class NewsService {
@@ -66,8 +67,8 @@ export class NewsService {
     let rv = {
       id: newsId,
       user,
-//      createdAt: newsModel.created.toDate().toISOString(),
-//      updatedAt: newsModel.updated.toDate().toISOString(),
+      //      createdAt: newsModel.created.toDate().toISOString(),
+      //      updatedAt: newsModel.updated.toDate().toISOString(),
       createdAt: newsModel.created.seconds * 1000,
       updatedAt: newsModel.updated.seconds * 1000,
       ...newsModel,
@@ -94,11 +95,38 @@ export class NewsService {
       throw new Error("Only admin can create news");
     }
     const now = new Timestamp(Math.ceil(Date.now() / 1000), 0);
+    let gsImageUrls: string[] | null = null;
+    let publicImageUrls: string[] | null = null;
+    if (images && images.length > 0) {
+      for (const image of images) {
+        console.debug(`Processing image: ${image}`);
+        if (image.startsWith("gs://")) {
+          try {
+            const publicUrl = await GetPublicUrlForGSFile(image);
+            console.debug(`Public URL for image ${image}: ${publicUrl}`);
+            if (!gsImageUrls) gsImageUrls = [];
+            if (!publicImageUrls) publicImageUrls = [];
+            publicImageUrls.push(publicUrl);
+            gsImageUrls.push(image);
+          } catch (error) {
+            console.error(
+              `Failed to get public URL for image ${image}:`,
+              error
+            );
+          }
+        } else {
+          if (!publicImageUrls) publicImageUrls = [];
+          publicImageUrls.push(image);
+        }
+      }
+    }
+
     const newsData: NewsModel = {
       userId: owner.id,
       title: title,
       content: content,
-      images: images || [],
+      images: publicImageUrls || [],
+      gsImageUrls: gsImageUrls || [],
       relatedItemIds: relatedItemIds || [],
       isVisible: true,
       tags: tags || [],

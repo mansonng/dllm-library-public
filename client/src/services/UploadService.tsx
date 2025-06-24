@@ -113,9 +113,9 @@ export class GCSUploadService {
       });
 
       xhr.open("PUT", signedUrl);
-      //xhr.setRequestHeader("Content-Type", file.type);
+      xhr.setRequestHeader("Content-Type", file.type);
 
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      //xhr.setRequestHeader("Content-Type", "application/octet-stream");
       // Set timeout (5 minutes)
       xhr.timeout = 5 * 60 * 1000;
 

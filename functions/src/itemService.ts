@@ -1,4 +1,4 @@
-import { db, LoginUser } from "./platform";
+import { db, GetPublicUrlForGSFile } from "./platform";
 import {
   Item,
   Location,
@@ -18,6 +18,7 @@ type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
   created: Timestamp;
   updated: Timestamp;
+  gsImageUrls?: string[];
 };
 
 export class ItemService {
@@ -158,6 +159,31 @@ export class ItemService {
         owner.location.longitude,
       ]);
     }
+    let gsImageUrls: string[] | null = null;
+    let publicImageUrls: string[] | null = null;
+    if (images && images.length > 0) {
+      for (const image of images) {
+        console.debug(`Processing image: ${image}`);
+        if (image.startsWith("gs://")) {
+          try {
+            const publicUrl = await GetPublicUrlForGSFile(image);
+            console.debug(`Public URL for image ${image}: ${publicUrl}`);
+            if (!gsImageUrls) gsImageUrls = [];
+            if (!publicImageUrls) publicImageUrls = [];
+            publicImageUrls.push(publicUrl);
+            gsImageUrls.push(image);
+          } catch (error) {
+            console.error(
+              `Failed to get public URL for image ${image}:`,
+              error
+            );
+          }
+        } else {
+          if (!publicImageUrls) publicImageUrls = [];
+          publicImageUrls.push(image);
+        }
+      }
+    }
 
     const itemData: ItemModel = {
       ownerId: owner.id,
@@ -166,7 +192,8 @@ export class ItemService {
       condition: condition,
       category: category,
       status: status,
-      images: images || [],
+      images: publicImageUrls || undefined,
+      gsImageUrls: gsImageUrls || undefined,
       publishedYear: publishedYear || undefined,
       language: language,
       created: Timestamp.now(),
