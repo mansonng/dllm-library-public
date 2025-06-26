@@ -4,7 +4,6 @@ import {
   Button,
   TextField,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Box,
@@ -20,7 +19,6 @@ import {
   Language,
 } from "../generated/graphql";
 
-
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
     $name: String!
@@ -33,12 +31,12 @@ const CREATE_ITEM_MUTATION = gql`
     $status: ItemStatus!
   ) {
     createItem(
+      name: $name
       category: $category
       condition: $condition
       description: $description
       images: $images
       language: $language
-      name: $name
       publishedYear: $publishedYear
       status: $status
     ) {
@@ -49,6 +47,7 @@ const CREATE_ITEM_MUTATION = gql`
       category
       status
       images
+      gsImageUrls
       publishedYear
       language
       location {
@@ -112,18 +111,32 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     }
     setFormError(null);
 
-    await createItem({
-      variables: {
-        name,
-        category: category.split(",").map((c) => c.trim()).filter(Boolean),
-        condition,
-        description: description || null,
-        images: images.length > 0 ? images : null,
-        language,
-        publishedYear: publishedYear === "" ? null : Number(publishedYear),
-        status,
-      },
-    });
+    // Build variables object, only including non-empty optional fields
+    const variables: any = {
+      name,
+      category: category.split(",").map((c) => c.trim()).filter(Boolean),
+      condition,
+      language,
+      status,
+    };
+
+    // Only add optional fields if they have values
+    if (description && description.trim()) {
+      variables.description = description;
+    }
+
+    if (images && images.length > 0) {
+      const validImages = images.filter(img => img && img.trim());
+      if (validImages.length > 0) {
+        variables.images = validImages;
+      }
+    }
+
+    if (publishedYear !== "" && publishedYear !== null) {
+      variables.publishedYear = Number(publishedYear);
+    }
+
+    await createItem({ variables });
   };
 
   return (
@@ -158,19 +171,33 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               helperText="e.g. Book,Magazine"
             />
             <TextField
+              select
+              label="Condition"
+              fullWidth
+              margin="normal"
+              required
+              value={condition}
+              onChange={(e) => setCondition(e.target.value as ItemCondition)}
+            >
+              {Object.values(ItemCondition).map((cond) => (
+                <MenuItem key={cond} value={cond}>
+                  {cond}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
               label="Description"
               fullWidth
-              required
               margin="normal"
               multiline
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              helperText="Optional"
             />
             <TextField
               label="Images (comma-separated URLs)"
               fullWidth
-              required
               margin="normal"
               value={images.join(",")}
               onChange={(e) =>
@@ -181,14 +208,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                     .filter(Boolean)
                 )
               }
-              helperText="e.g. https://example.com/image1.jpg,https://example.com/image2.jpg"
+              helperText="Optional: e.g. https://example.com/image1.jpg,https://example.com/image2.jpg"
             />
             <TextField
               select
               label="Language"
               fullWidth
-              required
               margin="normal"
+              required
               value={language}
               onChange={(e) => setLanguage(e.target.value as Language)}
             >
@@ -202,7 +229,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               label="Published Year"
               type="number"
               fullWidth
-              required
               margin="normal"
               value={publishedYear}
               onChange={(e) => {
@@ -210,29 +236,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                 setPublishedYear(val === "" ? "" : Number(val));
               }}
               inputProps={{ min: 1000, max: 9999 }}
-              helperText="Enter a 4-digit year, e.g. 2024"
+              helperText="Optional: Enter a 4-digit year, e.g. 2024"
             />
-            <TextField
-              select
-              label="Condition"
-              fullWidth
-              required
-              margin="normal"
-              value={condition}
-              onChange={(e) => setCondition(e.target.value as ItemCondition)}
-            >
-              {Object.values(ItemCondition).map((cond) => (
-                <MenuItem key={cond} value={cond}>
-                  {cond}
-                </MenuItem>
-              ))}
-            </TextField>
             <TextField
               select
               label="Status"
               fullWidth
-              required
               margin="normal"
+              required
               value={status}
               onChange={(e) => setStatus(e.target.value as ItemStatus)}
             >
@@ -253,6 +264,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               </Box>
             )}
             <Button
+              onClick={handleClose}
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
               type="submit"
               variant="contained"
               fullWidth
@@ -260,14 +279,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               disabled={loading}
             >
               Create Item
-            </Button>
-            <Button
-              onClick={handleClose}
-              fullWidth
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
-              Cancel
             </Button>
           </DialogContent>
         </form>
