@@ -220,6 +220,8 @@ type Mutation {
     tags: [String!]
   ): NewsPost!
   hideNewsPost(id: ID!): Boolean!
+  generateSignedUrl(fileName: String!, contentType: String!, folder: String): SignedUrlResponse!
+
 }
 
 # 輸入類型
@@ -232,4 +234,10 @@ input ContactMethodInput {
   type: String!
   value: String!
   isPublic: Boolean!
+}
+
+type SignedUrlResponse {
+  expires: Float,
+  signedUrl: String!
+  gsUrl: String!
 }

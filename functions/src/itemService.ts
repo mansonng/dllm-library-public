@@ -159,8 +159,10 @@ export class ItemService {
         owner.location.longitude,
       ]);
     }
+    
     let gsImageUrls: string[] | null = null;
     let publicImageUrls: string[] | null = null;
+    
     if (images && images.length > 0) {
       for (const image of images) {
         console.debug(`Processing image: ${image}`);
@@ -185,29 +187,51 @@ export class ItemService {
       }
     }
 
-    const itemData: ItemModel = {
+    // Build itemData object, only including fields with valid values
+    const itemData: any = {
       ownerId: owner.id,
       name: name,
-      description: description || null,
       condition: condition,
       category: category,
       status: status,
-      images: publicImageUrls || undefined,
-      gsImageUrls: gsImageUrls || undefined,
-      publishedYear: publishedYear || undefined,
       language: language,
       created: Timestamp.now(),
       updated: Timestamp.now(),
-      location: owner?.location || undefined,
-      geohash: hash || undefined,
     };
+
+    // Only add optional fields if they have valid values
+    if (description) {
+      itemData.description = description;
+    }
+    
+    if (publicImageUrls && publicImageUrls.length > 0) {
+      itemData.images = publicImageUrls;
+    }
+    
+    if (gsImageUrls && gsImageUrls.length > 0) {
+      itemData.gsImageUrls = gsImageUrls;
+    }
+    
+    if (publishedYear) {
+      itemData.publishedYear = publishedYear;
+    }
+    
+    if (owner?.location) {
+      itemData.location = owner.location;
+    }
+    
+    if (hash) {
+      itemData.geohash = hash;
+    }
+
     const docRef = await db.collection("items").add(itemData);
     const rv = {
       id: docRef.id,
       createdAt: itemData.created.seconds * 1000,
       updatedAt: itemData.updated.seconds * 1000,
       ...itemData,
-    } as Item; // Set the ID after adding to Firestore
+    } as Item;
+    
     return rv;
   }
 

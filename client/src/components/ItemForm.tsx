@@ -18,6 +18,7 @@ import {
   ItemStatus,
   Language,
 } from "../generated/graphql";
+import { Timestamp } from "firebase/firestore";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
@@ -47,7 +48,6 @@ const CREATE_ITEM_MUTATION = gql`
       category
       status
       images
-      gsImageUrls
       publishedYear
       language
       location {
@@ -111,8 +111,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     }
     setFormError(null);
 
-    // Build variables object, only including non-empty optional fields
-    const variables: any = {
+    // Build variables object with required fields only
+    const variables: CreateItemMutationVariables = {
       name,
       category: category.split(",").map((c) => c.trim()).filter(Boolean),
       condition,
@@ -120,23 +120,30 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
       status,
     };
 
-    // Only add optional fields if they have values
-    if (description && description.trim()) {
-      variables.description = description;
+    // Only add optional fields if they have actual values (not empty strings/arrays)
+    if (description?.trim()) {
+      variables.description = description.trim();
     }
 
-    if (images && images.length > 0) {
-      const validImages = images.filter(img => img && img.trim());
+    if (images?.length > 0) {
+      const validImages = images.filter(img => img?.trim());
       if (validImages.length > 0) {
         variables.images = validImages;
       }
     }
 
-    if (publishedYear !== "" && publishedYear !== null) {
+    if (publishedYear && publishedYear !== "") {
       variables.publishedYear = Number(publishedYear);
     }
 
-    await createItem({ variables });
+    console.log("Sending variables:", variables); // Debug log
+
+    try {
+      await createItem({ variables });
+    } catch (err) {
+      console.error("Create item error:", err);
+      setFormError("Failed to create item. Please try again.");
+    }
   };
 
   return (
@@ -264,14 +271,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               </Box>
             )}
             <Button
-              onClick={handleClose}
-              fullWidth
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               variant="contained"
               fullWidth
@@ -279,6 +278,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               disabled={loading}
             >
               Create Item
+            </Button>
+            <Button
+              onClick={handleClose}
+              fullWidth
+              sx={{ mt: 2 }}
+              disabled={loading}
+            >
+              Cancel
             </Button>
           </DialogContent>
         </form>
