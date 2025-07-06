@@ -1,0 +1,236 @@
+scalar Date
+
+# 基本類型定義
+enum Language {
+  ZH_HK # 繁體中文
+  EN # 英文
+}
+
+enum ItemCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ItemStatus {
+  AVAILABLE # 可借閱
+  EXCHANGEABLE # 可交換
+  GIFT # 可贈送
+  RESERVED # 已預留
+  TRANSFERRED # 已轉讓
+}
+
+# 地點類型
+type Location {
+  latitude: Float!
+  longitude: Float!
+  geohash: String
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+# 用戶個人檔案
+type User {
+  id: ID!
+  email: String! # 唯一必填，加密儲存
+  nickname: String # 可選暱稱
+  location: Location # 可選經緯度，用於搜尋
+  address: String # 可選地區，如 "London, UK"
+  role: Role! # 用戶角色
+  isActive: Boolean! # 是否啟用帳號
+  isVerified: Boolean! # 是否已驗證電子郵件
+  contactMethods: [ContactMethod!] # 其他聯繫方式
+  createdAt: Date!
+}
+
+type ContactMethod {
+  type: String! # 如 "WhatsApp", "Signal"
+  value: String! # 聯繫方式詳情
+  isPublic: Boolean! # 是否公開
+}
+
+# 藏品
+type Item {
+  id: ID!
+  ownerId: ID! # 藏品擁有者
+  name: String! # 書名或物品名稱
+  description: String # 可選描述
+  condition: ItemCondition!
+  category: [String!]! # 分類標籤，如 ["小說", "香港歷史"]
+  status: ItemStatus!
+  images: [String!] # 圖片URL列表
+  publishedYear: Int # 可選出版年份
+  language: Language! # 主要語言
+  location: Location # 藏品所在地（繼承自擁有者）
+  createdAt: Date!
+  updatedAt: Date!
+  transactions: [Transaction!] # 相關交易紀錄
+}
+
+type NewsPost {
+  id: ID!
+  title: String!
+  content: String!
+  images: [String!] # 圖片URL列表
+  relatedItems: [Item!] # 相關藏品
+  createdAt: Date!
+  updatedAt: Date!
+  isVisible: Boolean! # 是否公開顯示
+  user: User! # 發布者
+  tags: [String!] # 標籤列表
+}
+
+# 虛擬所有權轉移
+type Transaction {
+  id: ID!
+  item: Item!
+  borrower: User # 借閱者（可為空，若為贈送）
+  status: TransactionStatus!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+enum TransactionStatus {
+  PENDING # 申請中
+  APPROVED # 已確認
+  COMPLETED # 已完成
+  CANCELLED # 已取消
+}
+
+type SignedUrlResponse {
+  signedUrl: String!
+  gsUrl: String!
+  expires: Float!
+}
+
+# 查詢
+type Query {
+  # 用戶相關
+  user(id: ID!): User
+  me: User # 當前登錄用戶
+  users(address: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
+  # 藏品相關
+  item(id: ID!): Item
+  items(
+    category: [String!]
+    address: String # 備用字段
+    status: ItemStatus
+    keyword: String
+    limit: Int
+    offset: Int
+  ): [Item!]! # 按條件篩選藏品（舊方式）
+  itemsByLocation(
+    latitude: Float!
+    longitude: Float!
+    radiusKm: Float! # 搜尋半徑（公里）
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
+    offset: Int
+  ): [Item!]! # 基於當前位置的搜尋
+  itemsByUser(
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
+    offset: Int
+  ): [Item!]! # 基於User的搜尋
+  recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
+  # 交易相關
+  transaction(id: ID!): Transaction
+  transactions(userId: ID, itemId: ID): [Transaction!]!
+
+  # 新聞相關
+  newsPost(id: ID!): NewsPost
+  newsRecentPosts(
+    keyword: String
+    tags: [String!]
+    limit: Int
+    offset: Int
+  ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
+  # 地理編碼相關
+  geocodeAddress(address: String!): Location
+}
+
+# 變更
+type Mutation {
+  # 用戶管理
+  createUser(email: String!, address: String, nickname: String): User!
+  updateUser(
+    nickname: String
+    address: String
+    contactMethods: [ContactMethodInput!]
+  ): User!
+  deleteUser(id: ID!): Boolean!
+
+  # 藏品管理
+  createItem(
+    name: String!
+    description: String
+    condition: ItemCondition!
+    category: [String!]!
+    status: ItemStatus!
+    images: [String!]
+    publishedYear: Int
+    language: Language!
+  ): Item!
+  updateItem(
+    id: ID!
+    name: String
+    description: String
+    condition: ItemCondition
+    category: [String!]
+    status: ItemStatus
+    images: [String!]
+    publishedYear: Int
+  ): Item!
+  deleteItem(id: ID!): Boolean!
+
+  # 交易管理
+  createTransaction(itemId: ID!, status: TransactionStatus!): Transaction!
+  updateTransaction(id: ID!, status: TransactionStatus!): Transaction!
+  cancelTransaction(id: ID!): Boolean!
+
+  # 新聞管理 Only for Admin/Moderator
+  createNewsPost(
+    title: String!
+    content: String!
+    images: [String!]
+    relatedItemIds: [ID!]
+    tags: [String!]
+  ): NewsPost!
+  updateNewsPost(
+    id: ID!
+    title: String
+    content: String
+    images: [String!]
+    relatedItemIds: [ID!]
+    tags: [String!]
+  ): NewsPost!
+  hideNewsPost(id: ID!): Boolean!
+
+  generateSignedUrl(
+    fileName: String!
+    contentType: String!
+    folder: String
+  ): SignedUrlResponse!
+}
+
+# 輸入類型
+input LocationInput {
+  latitude: Float!
+  longitude: Float!
+}
+
+input ContactMethodInput {
+  type: String!
+  value: String!
+  isPublic: Boolean!
+}

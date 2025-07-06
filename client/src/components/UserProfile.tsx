@@ -15,6 +15,7 @@ import {
   CreateUserMutation,
   CreateUserMutationVariables,
 } from "../generated/graphql";
+import Map from "../components/Map";
 
 export const CREATE_USER_MUTATION = gql`
   mutation CreateUser($email: String!, $address: String, $nickname: String) {

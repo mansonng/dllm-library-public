@@ -10,11 +10,13 @@ import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { Link } from "react-router";
 import { gql, useQuery } from "@apollo/client";
 import {
+  Role,
   User,
   Item,
   RecentAddedItemsQuery,
   RecentAddedItemsQueryVariables,
 } from "../generated/graphql";
+import ItemForm from "./ItemForm";
 import ItemPreview from "./ItemPreview";
 import ItemDetail from "./ItemDetail";
 import { useTranslation } from "react-i18next";
@@ -131,6 +133,10 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
 
   const cardDimensions = getCardDimensions();
 
+  const handleItemCreated = () => {
+    refetch();
+  };
+
   const handleItemClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
   };
@@ -190,6 +196,10 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
           >
             {t("item.recentlyAdded", { category: category })}
           </Typography>
+
+          {user?.role === Role.Admin && (
+            <ItemForm onItemCreated={handleItemCreated} />
+          )}
         </Box>
 
         {/* Scrollable Comics Container */}
@@ -248,12 +258,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
