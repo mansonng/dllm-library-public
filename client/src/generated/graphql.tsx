@@ -366,6 +366,20 @@ export type ItemQueryVariables = Exact<{
 
 export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string } | null };
 
+export type CreateItemMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  category: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  condition: ItemCondition;
+  description?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  language: Language;
+  publishedYear?: InputMaybe<Scalars['Int']['input']>;
+  status: ItemStatus;
+}>;
+
+
+export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any } };
+
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
 }>;
@@ -537,6 +551,66 @@ export type ItemQueryHookResult = ReturnType<typeof useItemQuery>;
 export type ItemLazyQueryHookResult = ReturnType<typeof useItemLazyQuery>;
 export type ItemSuspenseQueryHookResult = ReturnType<typeof useItemSuspenseQuery>;
 export type ItemQueryResult = Apollo.QueryResult<ItemQuery, ItemQueryVariables>;
+export const CreateItemDocument = gql`
+    mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!) {
+  createItem(
+    name: $name
+    category: $category
+    condition: $condition
+    description: $description
+    images: $images
+    language: $language
+    publishedYear: $publishedYear
+    status: $status
+  ) {
+    id
+    name
+    description
+    condition
+    category
+    status
+    images
+    publishedYear
+    language
+    createdAt
+    ownerId
+    updatedAt
+  }
+}
+    `;
+export type CreateItemMutationFn = Apollo.MutationFunction<CreateItemMutation, CreateItemMutationVariables>;
+
+/**
+ * __useCreateItemMutation__
+ *
+ * To run a mutation, you first call `useCreateItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createItemMutation, { data, loading, error }] = useCreateItemMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *      category: // value for 'category'
+ *      condition: // value for 'condition'
+ *      description: // value for 'description'
+ *      images: // value for 'images'
+ *      language: // value for 'language'
+ *      publishedYear: // value for 'publishedYear'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useCreateItemMutation(baseOptions?: Apollo.MutationHookOptions<CreateItemMutation, CreateItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateItemMutation, CreateItemMutationVariables>(CreateItemDocument, options);
+      }
+export type CreateItemMutationHookResult = ReturnType<typeof useCreateItemMutation>;
+export type CreateItemMutationResult = Apollo.MutationResult<CreateItemMutation>;
+export type CreateItemMutationOptions = Apollo.BaseMutationOptions<CreateItemMutation, CreateItemMutationVariables>;
 export const NewsPostDocument = gql`
     query NewsPost($newsPostId: ID!) {
   newsPost(id: $newsPostId) {
