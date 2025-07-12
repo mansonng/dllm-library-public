@@ -92,7 +92,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   const isOwner = user && data?.item.ownerId === user.id;
   const isHolder =
-    user && (data?.item.holderId === user.id || data?.item.holderId === null);
+    user &&
+    (data?.item.holderId === user.id ||
+      (isOwner && data?.item.holderId === null));
   const canCreateTransaction = user && !isHolder;
 
   const handleBack = () => {
