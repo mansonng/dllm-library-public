@@ -258,12 +258,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
@@ -370,9 +370,8 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
 
       <ItemDetail
         itemId={selectedItemId}
-        open={!!selectedItemId}
-        onClose={handleCloseDialog}
         user={user}
+        onBack={() => window.history.back()}
       />
     </>
   );

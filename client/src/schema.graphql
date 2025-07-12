@@ -58,6 +58,7 @@ type ContactMethod {
 type Item {
   id: ID!
   ownerId: ID! # 藏品擁有者
+  holderId: ID # 當前持有者（可為null，表示擁有者持有）
   name: String! # 書名或物品名稱
   description: String # 可選描述
   condition: ItemCondition!
@@ -198,7 +199,7 @@ type Mutation {
   createTransaction(itemId: ID!): Transaction!
   approveTransaction(id: ID!): Transaction!
   transferTransaction(id: ID!): Transaction!
-  receveTransaction(id: ID!): Transaction!
+  receiveTransaction(id: ID!): Transaction!
   cancelTransaction(id: ID!): Boolean!
 
   # 新聞管理 Only for Admin/Moderator
