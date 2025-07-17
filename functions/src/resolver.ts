@@ -12,6 +12,7 @@ import {
   Location,
   SignedUrlResponse,
   Transaction,
+  TransactionStatus,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -23,7 +24,7 @@ interface Context {
 const itemService = new ItemService();
 const userService = new UserService(itemService);
 const newsService = new NewsService(itemService, userService);
-const transactionService = new TransactionService();
+const transactionService = new TransactionService(itemService, userService);
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -131,7 +132,7 @@ export const resolvers: Resolvers = {
       { id }: any,
       { loginUser }: Context
     ): Promise<User | null> => {
-      return userService.userById(loginUser, id);
+      return userService.userById(id);
     },
     newsPost: async (
       _: any,
@@ -159,6 +160,30 @@ export const resolvers: Resolvers = {
       }
       const mapService = createMapService();
       return await mapService.resolveLocationAndGeohash(address);
+    },
+    openTransactionsByItem: async (
+      _: any,
+      { itemId }: any,
+      __: any
+    ): Promise<Transaction[]> => {
+      return transactionService.transactionsByItemNotStatus(itemId, [
+        TransactionStatus.Completed,
+        TransactionStatus.Cancelled,
+      ]);
+    },
+    transactionsByItem: async (
+      _: any,
+      { itemId }: any,
+      __: any
+    ): Promise<Transaction[]> => {
+      return transactionService.transactionsByItemNotStatus(itemId, []);
+    },
+    transaction: async (
+      _: any,
+      { id }: any,
+      __: any
+    ): Promise<Transaction | null> => {
+      return transactionService.transactionById(id);
     },
   },
   Mutation: {
@@ -242,11 +267,13 @@ export const resolvers: Resolvers = {
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
-      return transactionService.createTransaction(itemId);
+      const requestor = await userService.me(loginUser);
+      if (!requestor) throw new Error("Owner not found");
+      return transactionService.createTransaction(requestor, itemId);
     },
     approveTransaction: async (
       _: any,
-      { id  }: any,
+      { id }: any,
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
@@ -277,6 +304,5 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       return transactionService.cancelTransaction(id);
     },
-
   },
 };

@@ -147,6 +147,10 @@ type Query {
   recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
   # 交易相關
   transaction(id: ID!): Transaction
+  transactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢交易
+  openTransactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢開放交易
+  openTransactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
+  transactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
   transactions(userId: ID, itemId: ID): [Transaction!]!
 
   # 新聞相關

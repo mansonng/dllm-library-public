@@ -62,7 +62,7 @@ export class NewsService {
     newsModel: NewsModel,
     newsId: string
   ): Promise<NewsPost> {
-    const user = await this.userService.userById(null, newsModel.userId);
+    const user = await this.userService.userById(newsModel.userId);
     if (!user) throw new Error("User not found");
     let rv = {
       id: newsId,
