@@ -1,3 +1,4 @@
+// ItemDetail.tsx - Updated version
 import React, { useState } from "react";
 import {
   Box,
@@ -10,19 +11,25 @@ import {
   Grid,
   Container,
   Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   Snackbar,
+  Card,
+  CardContent,
+  CardActions,
 } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import {
+  ArrowBack,
+  LocationOn as LocationOnIcon,
+  CheckCircle as ApproveIcon,
+  Cancel as RejectIcon,
+  Schedule as ScheduleIcon,
+} from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { Item, User } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import SafeImage from "./SafeImage";
+import RequestConfirmationDialog from "./RequestConfirmationDialog";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -54,10 +61,67 @@ const CREATE_TRANSACTION_MUTATION = gql`
   }
 `;
 
+const USER_QUERY = gql`
+  query User($userId: ID!) {
+    user(id: $userId) {
+      createdAt
+      email
+      id
+      nickname
+      contactMethods {
+        type
+        value
+        isPublic
+      }
+      address
+      location {
+        latitude
+        longitude
+      }
+    }
+  }
+`;
+
+const OPEN_TRANSACTIONS_QUERY = gql`
+  query OpenTransactionsByItem($itemId: ID!) {
+    openTransactionsByItem(itemId: $itemId) {
+      id
+      requestor {
+        id
+        nickname
+        email
+      }
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const APPROVE_TRANSACTION_MUTATION = gql`
+  mutation ApproveTransaction($transactionId: ID!) {
+    approveTransaction(id: $transactionId) {
+      id
+      status
+      updatedAt
+    }
+  }
+`;
+
+const REJECT_TRANSACTION_MUTATION = gql`
+  mutation RejectTransaction($transactionId: ID!) {
+    rejectTransaction(id: $transactionId) {
+      id
+      status
+      updatedAt
+    }
+  }
+`;
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
-  onBack?: () => void; // Optional callback for custom back behavior
+  onBack?: () => void;
 }
 
 const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
@@ -75,11 +139,35 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     skip: !itemId,
   });
 
+  // Query for owner details
+  const { data: ownerData } = useQuery(USER_QUERY, {
+    variables: { userId: data?.item.ownerId },
+    skip: !data?.item.ownerId,
+  });
+
+  // Query for holder details (if different from owner)
+  const { data: holderData } = useQuery(USER_QUERY, {
+    variables: { userId: data?.item.holderId },
+    skip: !data?.item.holderId || data?.item.holderId === data?.item.ownerId,
+  });
+
+  // Query for open transactions
+  const {
+    data: transactionsData,
+    loading: transactionsLoading,
+    refetch: refetchTransactions,
+  } = useQuery(OPEN_TRANSACTIONS_QUERY, {
+    variables: { itemId: itemId! },
+    skip: !itemId,
+    fetchPolicy: "cache-and-network",
+  });
+
   const [createTransaction, { loading: createTransactionLoading }] =
     useMutation(CREATE_TRANSACTION_MUTATION, {
       onCompleted: (data) => {
         setRequestDialogOpen(false);
         setSuccessSnackbarOpen(true);
+        refetchTransactions(); // Refresh transactions after creating new one
         console.log("Transaction created:", data.createTransaction);
       },
       onError: (error) => {
@@ -90,6 +178,34 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       },
     });
 
+  const [approveTransaction, { loading: approveLoading }] = useMutation(
+    APPROVE_TRANSACTION_MUTATION,
+    {
+      onCompleted: () => {
+        setSuccessSnackbarOpen(true);
+        refetchTransactions();
+      },
+      onError: (error) => {
+        setErrorMessage(error.message);
+        setErrorSnackbarOpen(true);
+      },
+    }
+  );
+
+  const [rejectTransaction, { loading: rejectLoading }] = useMutation(
+    REJECT_TRANSACTION_MUTATION,
+    {
+      onCompleted: () => {
+        setSuccessSnackbarOpen(true);
+        refetchTransactions();
+      },
+      onError: (error) => {
+        setErrorMessage(error.message);
+        setErrorSnackbarOpen(true);
+      },
+    }
+  );
+
   const isOwner = user && data?.item.ownerId === user.id;
   const isHolder =
     user &&
@@ -97,11 +213,41 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       (isOwner && data?.item.holderId === null));
   const canCreateTransaction = user && !isHolder;
 
+  // Get open transactions and find oldest pending one
+  const openTransactions = transactionsData?.openTransactionsByItem || [];
+  const oldestPendingTransaction = openTransactions
+    .filter((t: any) => t.status === "PENDING")
+    .sort(
+      (a: any, b: any) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )[0];
+
+  // Calculate distance between user and item owner
+  const getDistanceToOwner = (): string | null => {
+    if (
+      !user?.location?.latitude ||
+      !user?.location?.longitude ||
+      !holderData?.user?.location?.latitude ||
+      !holderData?.user?.location?.longitude
+    ) {
+      return null;
+    }
+
+    const distance = calculateDistance(
+      user.location.latitude,
+      user.location.longitude,
+      holderData.user.location.latitude,
+      holderData.user.location.longitude
+    );
+
+    return formatDistance(distance);
+  };
+
   const handleBack = () => {
     if (onBack) {
       onBack();
     } else {
-      navigate(-1); // Go back to previous page
+      navigate(-1);
     }
   };
 
@@ -117,8 +263,27 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         variables: { itemId },
       });
     } catch (error) {
-      // Error is handled by onError callback
       console.error("Error creating transaction:", error);
+    }
+  };
+
+  const handleApproveTransaction = async (transactionId: string) => {
+    try {
+      await approveTransaction({
+        variables: { transactionId },
+      });
+    } catch (error) {
+      console.error("Error approving transaction:", error);
+    }
+  };
+
+  const handleRejectTransaction = async (transactionId: string) => {
+    try {
+      await rejectTransaction({
+        variables: { transactionId },
+      });
+    } catch (error) {
+      console.error("Error rejecting transaction:", error);
     }
   };
 
@@ -133,6 +298,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const handleCloseErrorSnackbar = () => {
     setErrorSnackbarOpen(false);
     setErrorMessage("");
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Handle case when itemId is null
@@ -207,6 +383,148 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       {/* Item Content */}
       {data?.item && (
         <Paper elevation={1} sx={{ p: 4 }}>
+          {/* Pending Transaction Alert for Owner */}
+          {isOwner && oldestPendingTransaction && (
+            <Card
+              sx={{ mb: 4, border: "2px solid", borderColor: "warning.main" }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <ScheduleIcon color="warning" sx={{ mr: 1 }} />
+                  <Typography variant="h6" color="warning.dark">
+                    {t("item.pendingRequest", "Pending Request")}
+                  </Typography>
+                </Box>
+
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>{oldestPendingTransaction.requestor.nickname}</strong>
+                  {t("item.hasRequested", " has requested this item")}
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t("item.requestedOn", "Requested on")}:{" "}
+                  {formatDate(oldestPendingTransaction.createdAt)}
+                </Typography>
+
+                {oldestPendingTransaction.requestor.email && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    {t("item.contact", "Contact")}:{" "}
+                    {oldestPendingTransaction.requestor.email}
+                  </Typography>
+                )}
+              </CardContent>
+
+              <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<RejectIcon />}
+                  onClick={() =>
+                    handleRejectTransaction(oldestPendingTransaction.id)
+                  }
+                  disabled={rejectLoading || approveLoading}
+                  size="large"
+                >
+                  {rejectLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    t("item.reject", "Reject")
+                  )}
+                </Button>
+
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<ApproveIcon />}
+                  onClick={() =>
+                    handleApproveTransaction(oldestPendingTransaction.id)
+                  }
+                  disabled={approveLoading || rejectLoading}
+                  size="large"
+                >
+                  {approveLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    t("item.approve", "Approve")
+                  )}
+                </Button>
+              </CardActions>
+            </Card>
+          )}
+
+          {/* Categories */}
+          {data.item.category && data.item.category.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                {data.item.category.map((category, index) => (
+                  <Chip
+                    key={index}
+                    label={category}
+                    variant="outlined"
+                    sx={{
+                      backgroundColor:
+                        category === "Comic" ? "primary.light" : "default",
+                      color:
+                        category === "Comic"
+                          ? "primary.contrastText"
+                          : "default",
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* Description */}
+          {data.item.description && (
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  whiteSpace: "pre-wrap",
+                  backgroundColor: "grey.50",
+                  p: 3,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "grey.200",
+                }}
+              >
+                {data.item.description}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Images */}
+          {data.item.images && data.item.images.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {data.item.images.map((image, index) => (
+                  <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Paper elevation={2} sx={{ overflow: "hidden" }}>
+                      <SafeImage
+                        src={image}
+                        alt={`${data.item.name} - Image ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "250px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
             <Grid container spacing={3}>
@@ -254,88 +572,32 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   </Typography>
                 </Grid>
               )}
-              <Grid size={12}>
+              <Grid size={user && getDistanceToOwner() ? 6 : 12}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("item.addedOn", "Added on")}:</strong>{" "}
                   {new Date(data.item.createdAt).toLocaleDateString()}
                 </Typography>
               </Grid>
+              {/* Distance Display */}
+              {user && getDistanceToOwner() && (
+                <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.distance", "Distance")}:</strong>{" "}
+                    <Chip
+                      label={`${getDistanceToOwner()} ${t(
+                        "item.away",
+                        "away"
+                      )}`}
+                      color="info"
+                      size="small"
+                      sx={{ ml: 1 }}
+                      icon={<LocationOnIcon fontSize="small" />}
+                    />
+                  </Typography>
+                </Grid>
+              )}
             </Grid>
           </Box>
-
-          {/* Description */}
-          {data.item.description && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" gutterBottom>
-                {t("item.description", "Description")}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  whiteSpace: "pre-wrap",
-                  backgroundColor: "grey.50",
-                  p: 3,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "grey.200",
-                }}
-              >
-                {data.item.description}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Images */}
-          {data.item.images && data.item.images.length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" gutterBottom>
-                {t("item.images", "Images")}
-              </Typography>
-              <Grid container spacing={2}>
-                {data.item.images.map((image, index) => (
-                  <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
-                    <Paper elevation={2} sx={{ overflow: "hidden" }}>
-                      <SafeImage
-                        src={image}
-                        alt={`${data.item.name} - Image ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "250px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-
-          {/* Categories */}
-          {data.item.category && data.item.category.length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" gutterBottom>
-                {t("item.categories", "Categories")}
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {data.item.category.map((category, index) => (
-                  <Chip
-                    key={index}
-                    label={category}
-                    variant="outlined"
-                    sx={{
-                      backgroundColor:
-                        category === "Comic" ? "primary.light" : "default",
-                      color:
-                        category === "Comic"
-                          ? "primary.contrastText"
-                          : "default",
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-          )}
 
           {/* Status Action Boxes */}
           {data.item.status === "AVAILABLE" && (
@@ -419,7 +681,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 color="secondary"
                 size="large"
                 onClick={() => {
-                  // TODO: Implement edit item functionality
                   console.log("Edit item clicked");
                 }}
               >
@@ -443,55 +704,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           </Box>
         </Paper>
       )}
-      {/* Request Confirmation Dialog */}
-      <Dialog
+
+      {/* Request Confirmation Dialog - Pass transactions data */}
+      <RequestConfirmationDialog
         open={requestDialogOpen}
         onClose={handleCloseRequestDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>{t("item.confirmRequest", "Confirm Request")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t(
-              "item.confirmRequestMessage",
-              "Are you sure you want to request this item? This will create a transaction between you and the owner."
-            )}
-          </DialogContentText>
-          {data?.item && (
-            <Box
-              sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                {data.item.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t("item.condition", "Condition")}: {data.item.condition} |{" "}
-                {t("item.status", "Status")}: {data.item.status}
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseRequestDialog}
-            disabled={createTransactionLoading}
-          >
-            {t("common.cancel", "Cancel")}
-          </Button>
-          <Button
-            onClick={handleConfirmRequest}
-            variant="contained"
-            color="primary"
-            disabled={createTransactionLoading}
-          >
-            {createTransactionLoading ? (
-              <CircularProgress size={20} sx={{ mr: 1 }} />
-            ) : null}
-            {t("item.confirmRequest", "Confirm Request")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmRequest}
+        loading={createTransactionLoading}
+        item={data?.item || null}
+        owner={ownerData?.user || null}
+        holder={holderData?.user || null}
+        existingTransactions={openTransactions}
+        transactionsLoading={transactionsLoading}
+      />
 
       {/* Success Snackbar */}
       <Snackbar
