@@ -243,7 +243,7 @@ export class TransactionService {
     }
 
     const emailDetails: emailDetails = {
-      subject: `Transaction Cancel for Item: ${item.name}`,
+      subject: `Transaction Cancelled for Item: ${item.name}`,
       body: `Your transaction request for item ${item.name} has been cancelled by ${user.nickname}.`,
     };
     const rv = await this._updateTransaction(
@@ -347,7 +347,7 @@ export class TransactionService {
       emailDetails
     );
     if (!rv) {
-      throw new Error(`Failed to cancel transaction with id ${id}`);
+      throw new Error(`Failed to transfer transaction with id ${id}`);
     }
     return rv;
   }
@@ -404,7 +404,7 @@ export class TransactionService {
       emailDetails
     );
     if (!rv) {
-      throw new Error(`Failed to cancel transaction with id ${id}`);
+      throw new Error(`Failed to complete transaction with id ${id}`);
     }
     return rv;
   }

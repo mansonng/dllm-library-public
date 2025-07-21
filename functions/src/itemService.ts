@@ -250,8 +250,9 @@ export class ItemService {
       );
       return;
     }
+    const MAX_UPDATE_ITERATIONS = 2;
     let updateTime = 0;
-    while (updateTime != 2) {
+    while (updateTime != MAX_UPDATE_ITERATIONS) {
       let query = db
         .collection("items")
         .where("ownerId", "==", userId)
@@ -299,7 +300,7 @@ export class ItemService {
     }
     const updateData = itemDoc.data() as ItemModel;
 
-    if (holder && holder.id != updateData?.ownerId) {
+    if (holder && holder.id !== updateData?.ownerId) {
       updateData.holderId = holder.id;
     } else {
       updateData.holderId = null;

@@ -126,8 +126,9 @@ async function sendNotificationViaEmail(
     console.error("Error sending email:", error);
     throw new Error("Failed to send email");
   }
-  // Note: This is a placeholder function. In a real application, you would use a mail service like SendGrid, Mailgun, etc.
-  // to send the email. The above code assumes you have a Firestore collection named "
+  // Note: This is a placeholder function. In a real application, you would use a mail service like SendGrid, Mailgun, or similar
+  // to send the email. The above code assumes you have a Firestore collection named "mail" where email messages are queued
+  // for processing. Replace this implementation with a proper email-sending service for production use.
 }
 
 export {
