@@ -15,6 +15,7 @@ import { Close } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
 import SafeImage from "./SafeImage";
+import { useTranslation } from "react-i18next";
 
 const DETAIL_NEWS_QUERY = gql`
   query NewsPost($newsPostId: ID!) {
@@ -46,6 +47,8 @@ interface NewsDetailProps {
 }
 
 const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
+  const { t } = useTranslation();
+
   const { data, loading, error } = useNewsPostQuery({
     variables: { newsPostId: newsId! } as NewsPostQueryVariables,
     skip: !newsId,
@@ -68,7 +71,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
           alignItems: "center",
         }}
       >
-        <Typography>News Details</Typography>
+        <Typography> {t("news.newsDetails")}</Typography>
         <IconButton onClick={onClose}>
           <Close />
         </IconButton>
@@ -83,7 +86,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            Error loading news details: {error.message}
+            {t("news.error")}: {error.message}
           </Alert>
         )}
 
@@ -95,9 +98,9 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                By {data.newsPost.user?.nickname || "Unknown"} • Created:{" "}
+                {t("common.by")} {data.newsPost.user?.nickname || t("common.unknown")} • {t("common.created")}: {" "}
                 {new Date(data.newsPost.createdAt).toLocaleDateString()} •
-                Updated:{" "}
+                {t("common.updated")}: {" "}
                 {new Date(data.newsPost.updatedAt).toLocaleDateString()}
               </Typography>
             </Box>
@@ -109,7 +112,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
             {data.newsPost.images && data.newsPost.images.length > 0 && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                  Images
+                  {t("common.images")}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   {data.newsPost.images.map((image, index) => (
@@ -133,7 +136,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
               data.newsPost.relatedItems.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
-                    Related Items
+                    {t("news.relatedItems")}
                   </Typography>
                   {data.newsPost.relatedItems.map((item) => (
                     <Box
@@ -149,7 +152,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                         {item.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Status: {item.status} • Categories:{" "}
+                        {t(item.status)}: {item.status} • {t(item.category)}:{" "}
                         {item.category.join(", ")}
                       </Typography>
                     </Box>
@@ -160,7 +163,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
             {data.newsPost.tags && data.newsPost.tags.length > 0 && (
               <Box>
                 <Typography variant="h6" gutterBottom>
-                  Tags
+                  {t("common.tags")}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   {data.newsPost.tags.map((tag, index) => (
@@ -187,7 +190,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
 
       <DialogActions>
         <Button onClick={onClose} variant="contained">
-          Close
+          {t("common.close")}
         </Button>
       </DialogActions>
     </Dialog>

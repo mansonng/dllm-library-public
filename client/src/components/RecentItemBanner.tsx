@@ -165,8 +165,8 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
     ? currentIndex + cardsPerView < data.recentAddedItems.length
     : false;
 
-  if (loading) return <Typography>Loading item...</Typography>;
-  if (error) return <Typography>Error: {error.message}</Typography>;
+  if (loading) return <Typography>{t("item.loadItems")}</Typography>;
+  if (error) return <Typography>{t("common.error", error.message)}</Typography>;
 
   return (
     <>
@@ -258,12 +258,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
@@ -363,7 +363,7 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
               },
             }}
           >
-            {t("item.viewAll", "View All Item")} →
+            {t("navigation.viewAllItems")} →
           </Typography>
         </Box>
       </Box>

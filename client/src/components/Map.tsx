@@ -10,6 +10,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useTranslation } from "react-i18next";
 
 // Fix for default icon issue with Webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -34,13 +35,15 @@ interface MapProps {
 }
 
 const Map: React.FC<MapProps> = ({ open, closeEvent, location }) => {
+  const { t } = useTranslation();
+
   const handleCloseMapDialog = () => {
     closeEvent({}, "escapeKeyDown"); // Or "backdropClick" depending on how you want to signal
   };
 
   return (
     <Dialog open={open} onClose={closeEvent}>
-      <DialogTitle>My Location</DialogTitle>
+      <DialogTitle>{t("location.myLocation")}</DialogTitle>
       <DialogContent sx={{ height: "60vh", width: "60vw", padding: 0 }}>
         {" "}
         {/* Adjust height as needed */}
@@ -56,17 +59,17 @@ const Map: React.FC<MapProps> = ({ open, closeEvent, location }) => {
             />
             <Marker position={[location.latitude, location.longitude]}>
               <Popup>
-                You are here. <br /> Latitude: {location.latitude}, Longitude:{" "}
+                {t("location.here")} <br /> {t("location.latitude")}: {location.latitude}, {t("location.longtitude")}:{" "}
                 {location.longitude}
               </Popup>
             </Marker>
           </MapContainer>
         ) : (
-          <Typography>Location not available.</Typography>
+          <Typography>{t("location.notAvailable")}</Typography>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCloseMapDialog}>Close</Button>
+        <Button onClick={handleCloseMapDialog}>{t("common.close")}</Button>
       </DialogActions>
     </Dialog>
   );

@@ -12,6 +12,7 @@ import { CreateNewsPostMutation } from "../generated/graphql";
 import NewsForm from "./NewsForm";
 import NewsSummary from "./NewsSummary";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 const NEWS_RECENT_QUERY = gql`
   query NewsRecentPosts($limit: Int, $offset: Int) {
@@ -35,6 +36,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
   onBack,
   onNewsCreated,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useNewsRecentPostsQuery({
     variables: {
@@ -63,7 +65,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
           <ArrowBack />
         </IconButton>
         <Typography variant="h5" sx={{ flexGrow: 1 }}>
-          All News
+          {t("news.viewAll")}→
         </Typography>
         {user?.role === Role.Admin && (
           <NewsForm onNewsCreated={handleNewsCreated} />
@@ -85,7 +87,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-          <Typography>Loading all news...</Typography>
+          <Typography>{t("news.loadNews")}</Typography>
         </Box>
       )}
 

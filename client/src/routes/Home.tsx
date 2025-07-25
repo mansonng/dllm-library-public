@@ -104,7 +104,7 @@ const HomePage: React.FC = () => {
               variant="outlined"
               onClick={() => setShowCreateUser(true)}
             >
-              Edit Profile
+              {t("auth.editProfile")}
             </Button>
             <Button
               variant="contained"
@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
                 variant="contained"
                 onClick={() => setShowCreateUser(true)}
               >
-                Create Profile
+                {t("auth.createProfile")}
               </Button>
               <Button
                 variant="outlined"

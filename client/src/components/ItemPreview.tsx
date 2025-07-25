@@ -63,8 +63,8 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
   const contentHeight = isPortrait
     ? `calc(100% - ${imageHeight})`
     : hasImage
-    ? "60%"
-    : "100%";
+      ? "60%"
+      : "100%";
 
   return (
     <Card
@@ -268,7 +268,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
               alignSelf: "flex-start",
             }}
           >
-            {t("comics.viewDetails", "View Details")} →
+            {t("item.viewDetails", "View Details")} →
           </Typography>
         </CardContent>
       </CardActionArea>

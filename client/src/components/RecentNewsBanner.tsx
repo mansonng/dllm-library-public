@@ -142,7 +142,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
     ? currentIndex + cardsPerView < data.newsRecentPosts.length
     : false;
 
-  if (loading) return <Typography>Loading...</Typography>;
+  if (loading) return <Typography>{t("common.loading")}</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
   return (
@@ -171,7 +171,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
               },
             }}
           >
-            {t("news.trending", "Trending News")}
+            {t("news.trending")}
           </Typography>
           {user?.role === Role.Admin && (
             <NewsForm onNewsCreated={handleNewsCreated} />
@@ -234,12 +234,12 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
@@ -335,7 +335,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
               },
             }}
           >
-            {t("news.viewAll", "View All News")} →
+            {t("news.viewAll")} →
           </Typography>
         </Box>
       </Box>

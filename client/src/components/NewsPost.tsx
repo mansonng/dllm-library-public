@@ -58,8 +58,8 @@ const NewsPost: React.FC<NewsPostProps> = ({
   const contentHeight = isPortrait
     ? `calc(100% - ${imageHeight})`
     : hasImage
-    ? "60%"
-    : "100%";
+      ? "60%"
+      : "100%";
 
   return (
     <Card
@@ -218,7 +218,7 @@ const NewsPost: React.FC<NewsPostProps> = ({
               alignSelf: "flex-start",
             }}
           >
-            {t("news.readMore", "Read more")} →
+            {t("news.readMore")} →
           </Typography>
         </CardContent>
       </CardActionArea>
