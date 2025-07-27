@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useRef, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import {
   Button,
@@ -16,6 +16,8 @@ import {
 import {
   UpdateUserMutation,
   UpdateUserMutationVariables,
+  CreateUserMutation,
+  CreateUserMutationVariables,
 } from "../generated/graphql";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -23,11 +25,11 @@ import L from "leaflet";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/535/535239.png',
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/535/535239.png",
   iconSize: [41, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 23]
+  shadowSize: [41, 23],
 });
 
 export const GET_GEO_DETAILS = gql`
@@ -54,30 +56,51 @@ export const UPDATE_USER_MUTATION = gql`
       }
       isVerified
       isActive
+    }
   }
-}`;
+`;
 
+export const CREATE_USER_MUTATION = gql`
+  mutation CreateUser($email: String!, $address: String, $nickname: String) {
+    createUser(email: $email, address: $address, nickname: $nickname) {
+      id
+      email
+      address
+      nickname
+      createdAt
+      location {
+        latitude
+        longitude
+        geohash
+      }
+      isVerified
+      isActive
+    }
+  }
+`;
 
-interface UserProps {
-  onUserCreated?: (data: UpdateUserMutation) => void;
+interface UserProfileProps {
+  email?: string | null | undefined;
+  onUserCreated?: (data: UpdateUserMutation | CreateUserMutation) => void;
   open?: boolean;
   onClose?: () => void;
+  isCreateUser?: boolean; // New parameter to determine create vs update
+  initialNickname?: string | undefined | null; // For pre-filling when updating
+  initialAddress?: string | undefined | null; // For pre-filling when updating
 }
 
-
-const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
+const UserProfile: React.FC<UserProfileProps> = ({
+  email,
+  onUserCreated,
   open = true,
-  onClose
+  onClose,
+  isCreateUser = false,
+  initialNickname = "",
+  initialAddress = "",
 }) => {
   const [internalOpen, setInternalOpen] = useState(open);
-
-  const handleClose = () => {
-    setInternalOpen(false);
-    onClose?.();
-  };
-  const [address, setAddress] = useState("");
-  const [nickname, setNickname] = useState("");
-  // const [showUpdateUser, setShowUpdateUser] = useState(false);
+  const [address, setAddress] = useState(initialAddress);
+  const [nickname, setNickname] = useState(initialNickname);
   const [resolvedLocation, setResolvedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -86,42 +109,91 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
 
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
-  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
-  const [UpdateUser, { data, loading, error: mutationError }] = useMutation<
-    UpdateUserMutation,
-    UpdateUserMutationVariables
-  >(UPDATE_USER_MUTATION, {
-    onCompleted: (data) => {
-      if (onUserCreated) onUserCreated(data);
-      setInternalOpen(false);
-      setAddress("");
-      setNickname("");
-      setResolvedLocation(null);
-    },
-  });
-
-  const [geocodeAddress, { loading: geocodeLoading }] = useLazyQuery(GET_GEO_DETAILS, {
-    onCompleted: (data) => {
-      if (data && data.geocodeAddress) {
-        setResolvedLocation({
-          latitude: data.geocodeAddress.latitude,
-          longitude: data.geocodeAddress.longitude,
-          formattedAddress: address.trim(),
-        });
-      } else {
-        setLocationError("Could not find location for the address.");
-        setResolvedLocation(null);
-      }
-      setIsGeocodingAddress(false);
-    },
-    onError: (error) => {
-      console.error('Geocoding error:', error);
-      setLocationError('Failed to resolve address location');
-      setResolvedLocation(null);
-      setIsGeocodingAddress(false);
+  // Update mutation
+  const [
+    updateUser,
+    { data: updateData, loading: updateLoading, error: updateError },
+  ] = useMutation<UpdateUserMutation, UpdateUserMutationVariables>(
+    UPDATE_USER_MUTATION,
+    {
+      onCompleted: (data) => {
+        if (onUserCreated) onUserCreated(data);
+        handleClose();
+        resetForm();
+      },
     }
-  });
+  );
+
+  // Create mutation
+  const [
+    createUser,
+    { data: createData, loading: createLoading, error: createError },
+  ] = useMutation<CreateUserMutation, CreateUserMutationVariables>(
+    CREATE_USER_MUTATION,
+    {
+      onCompleted: (data) => {
+        if (onUserCreated) onUserCreated(data);
+        handleClose();
+        resetForm();
+      },
+    }
+  );
+
+  // Determine which mutation data/loading/error to use
+  const data = isCreateUser ? createData : updateData;
+  const loading = isCreateUser ? createLoading : updateLoading;
+  const mutationError = isCreateUser ? createError : updateError;
+
+  const handleClose = () => {
+    setInternalOpen(false);
+    onClose?.();
+  };
+
+  const resetForm = () => {
+    setAddress(initialAddress);
+    setNickname(initialNickname);
+    setResolvedLocation(null);
+    setLocationError(null);
+  };
+
+  // Update internal state when props change
+  useEffect(() => {
+    setInternalOpen(open);
+  }, [open]);
+
+  useEffect(() => {
+    setAddress(initialAddress);
+    setNickname(initialNickname);
+  }, [initialAddress, initialNickname]);
+
+  const [geocodeAddress, { loading: geocodeLoading }] = useLazyQuery(
+    GET_GEO_DETAILS,
+    {
+      onCompleted: (data) => {
+        if (data && data.geocodeAddress) {
+          setResolvedLocation({
+            latitude: data.geocodeAddress.latitude,
+            longitude: data.geocodeAddress.longitude,
+            formattedAddress: address ? address.trim() : "",
+          });
+        } else {
+          setLocationError("Could not find location for the address.");
+          setResolvedLocation(null);
+        }
+        setIsGeocodingAddress(false);
+      },
+      onError: (error) => {
+        console.error("Geocoding error:", error);
+        setLocationError("Failed to resolve address location");
+        setResolvedLocation(null);
+        setIsGeocodingAddress(false);
+      },
+    }
+  );
 
   const handleAddressChange = (newAddress: string) => {
     setAddress(newAddress);
@@ -142,7 +214,7 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
       setIsGeocodingAddress(true);
 
       geocodeAddress({
-        variables: { address: newAddress.trim() }
+        variables: { address: newAddress.trim() },
       });
     }, 1500);
 
@@ -155,26 +227,28 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
     // Use the resolved/formatted address if available
     const finalAddress = resolvedLocation?.formattedAddress || address;
 
-    UpdateUser({
-      variables: {
-        address: finalAddress,
-        nickname: nickname,
-      },
-    });
+    const variables = {
+      email: email || "",
+      address: finalAddress,
+      nickname: nickname,
+    };
+
+    // Call the appropriate mutation based on isCreateUser
+    if (isCreateUser) {
+      createUser({ variables });
+    } else {
+      updateUser({ variables });
+    }
   };
 
   return (
     <Box>
-      <Dialog
-        open={internalOpen}
-        onClose={handleClose}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ textAlign: "center" }}>Create User</DialogTitle>
+      <Dialog open={internalOpen} onClose={handleClose} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ textAlign: "center" }}>
+          {isCreateUser ? "Create User Profile" : "Update User Profile"}
+        </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-
             <TextField
               label="Nickname"
               type="text"
@@ -182,6 +256,7 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
               margin="normal"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
+              required
             />
 
             <TextField
@@ -193,10 +268,11 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
               onChange={(e) => handleAddressChange(e.target.value)}
               placeholder="Search address"
               disabled={isGeocodingAddress}
+              required
             />
 
             {isGeocodingAddress && (
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                 <CircularProgress size={16} sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
                   Resolving address...
@@ -216,63 +292,106 @@ const UpdateUser: React.FC<UserProps> = ({ onUserCreated,
               !isNaN(resolvedLocation.latitude) &&
               !isNaN(resolvedLocation.longitude) && (
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
                     Current Address: {resolvedLocation.formattedAddress}
                   </Typography>
                   <Box sx={{ height: 300, mt: 2 }}>
-                    {location ? (
-                      <MapContainer
-                        center={[resolvedLocation.latitude, resolvedLocation.longitude]}
-                        zoom={13}
-                        style={{ height: "100%", width: "100%" }}
-                      >
-                        <TileLayer
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                        />
+                    <MapContainer
+                      center={[
+                        resolvedLocation.latitude,
+                        resolvedLocation.longitude,
+                      ]}
+                      zoom={13}
+                      style={{ height: "100%", width: "100%" }}
+                    >
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                      />
 
-                        <Marker position={[resolvedLocation.latitude, resolvedLocation.longitude]} icon={customIcon}>
-                          <Popup>
-                            You are here. <br /> Latitude: {resolvedLocation.latitude}, Longitude:{" "}
-                            {resolvedLocation.longitude}
-                          </Popup>
-                        </Marker>
-                      </MapContainer>
-                    ) : (
-                      <Typography>Location not available.</Typography>
-                    )}
+                      <Marker
+                        position={[
+                          resolvedLocation.latitude,
+                          resolvedLocation.longitude,
+                        ]}
+                        icon={customIcon}
+                      >
+                        <Popup>
+                          You are here. <br /> Latitude:{" "}
+                          {resolvedLocation.latitude}, Longitude:{" "}
+                          {resolvedLocation.longitude}
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
                   </Box>
                 </Box>
               )}
           </DialogContent>
-          {mutationError && <Alert severity="error">{mutationError.message}</Alert>}
-          {loading && (
-            <CircularProgress sx={{ display: "block", mx: "auto", my: 2 }} />
+
+          {mutationError && (
+            <Alert severity="error" sx={{ mx: 3, mb: 2 }}>
+              {mutationError.message}
+            </Alert>
           )}
+
+          {loading && (
+            <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
           <DialogActions
-            sx={{ flexDirection: "column", alignItems: "stretch", gap: 1 }}
+            sx={{
+              flexDirection: "column",
+              alignItems: "stretch",
+              gap: 1,
+              p: 3,
+            }}
           >
+            <Button
+              onClick={handleClose}
+              variant="outlined"
+              fullWidth
+              disabled={loading}
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               variant="contained"
               fullWidth
               disabled={
-                loading || address.trim() === "" || nickname.trim() === ""
+                loading ||
+                address?.trim() === "" ||
+                nickname?.trim() === "" ||
+                isGeocodingAddress
               }
-              sx={{ mt: 1 }}
             >
-              Submit
+              {loading
+                ? isCreateUser
+                  ? "Creating..."
+                  : "Updating..."
+                : isCreateUser
+                ? "Create Profile"
+                : "Update Profile"}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
+
       {data && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          User created successfully!
+          {isCreateUser
+            ? "User profile created successfully!"
+            : "User profile updated successfully!"}
         </Alert>
       )}
     </Box>
   );
 };
 
-export default UpdateUser;
+export default UserProfile;

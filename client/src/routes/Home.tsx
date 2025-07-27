@@ -7,7 +7,7 @@ import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
 import Map from "../components/Map";
 import { useOutletContext } from "react-router-dom";
-import CreateUser from "../components/UserProfile";
+import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 
 const ITEMS_QUERY = gql`
@@ -41,6 +41,9 @@ const HomePage: React.FC = () => {
 
   // State for controlling CreateUser dialog
   const [showCreateUser, setShowCreateUser] = useState(false);
+
+  // State for controlling UpdateUser dialog
+  const [showUpdateUser, setShowUpdateUser] = useState(false);
 
   const [location, setLocation] = useState<{
     latitude: number;
@@ -96,26 +99,34 @@ const HomePage: React.FC = () => {
     <List>
       <ListItem>
         {user ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              width: "100%",
+            }}
+          >
             <Typography sx={{ flex: 1 }}>
               {t("home.welcome", { nickname: user.nickname })}
             </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => setShowCreateUser(true)}
-            >
+            <Button variant="outlined" onClick={() => setShowUpdateUser(true)}>
               {t("auth.editProfile")}
             </Button>
-            <Button
-              variant="contained"
-              onClick={signOut}
-            >
+            <Button variant="contained" onClick={signOut}>
               {t("auth.signOut")}
             </Button>
           </Box>
         ) : (
           email && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <Typography sx={{ flex: 1 }}>
                 {t("home.welcome")} {email}
               </Typography>
@@ -125,10 +136,7 @@ const HomePage: React.FC = () => {
               >
                 {t("auth.createProfile")}
               </Button>
-              <Button
-                variant="outlined"
-                onClick={signOut}
-              >
+              <Button variant="outlined" onClick={signOut}>
                 {t("auth.signOut")}
               </Button>
             </Box>
@@ -186,11 +194,25 @@ const HomePage: React.FC = () => {
         </ListItem>
       )}
 
-      {/* CreateUser Dialog - Only render when needed */}
+      {/* UpdateUser Dialog - Only render when needed */}
+      {showUpdateUser && (
+        <UpdateUser
+          email={email}
+          onUserCreated={handleUserCreated}
+          open={showUpdateUser}
+          isCreateUser={false}
+          initialNickname={user?.nickname}
+          initialAddress={user?.address}
+          onClose={() => setShowUpdateUser(false)}
+        />
+      )}
+
       {showCreateUser && (
-        <CreateUser
+        <UpdateUser
+          email={email}
           onUserCreated={handleUserCreated}
           open={showCreateUser}
+          isCreateUser={true}
           onClose={() => setShowCreateUser(false)}
         />
       )}
