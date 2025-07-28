@@ -11,8 +11,8 @@ export interface ProcessedImage {
 export const processImage = (
   file: File,
   maxSize: number = 2000,
-  quality: number = 0.9,
-  format: string = "image/png"
+  quality: number = 0.6,
+  format: string = "image/jpeg"
 ): Promise<ProcessedImage> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -50,8 +50,8 @@ export const processImage = (
           // Create new file with processed image
           const processedFile = new File(
             [blob],
-            `${file.name.split(".")[0]}.png`,
-            { type: "image/png" }
+            `${file.name.split(".")[0]}.jpg`,
+            { type: "image/jpg" }
           );
 
           const processedUrl = URL.createObjectURL(blob);
@@ -106,7 +106,7 @@ const calculateDimensions = (
 export const batchProcessImages = async (
   files: File[],
   maxSize: number = 2000,
-  quality: number = 0.9,
+  quality: number = 0.6,
   onProgress?: (processed: number, total: number) => void
 ): Promise<ProcessedImage[]> => {
   const processedImages: ProcessedImage[] = [];
