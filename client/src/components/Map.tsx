@@ -59,7 +59,7 @@ const Map: React.FC<MapProps> = ({ open, closeEvent, location }) => {
             />
             <Marker position={[location.latitude, location.longitude]}>
               <Popup>
-                {t("location.here")} <br /> {t("location.latitude")}: {location.latitude}, {t("location.longtitude")}:{" "}
+                {t("location.here")} <br /> {t("location.latitude")}: {location.latitude}, {t("location.longitude")}:{" "}
                 {location.longitude}
               </Popup>
             </Marker>

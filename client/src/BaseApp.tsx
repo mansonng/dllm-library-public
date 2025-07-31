@@ -42,8 +42,8 @@ const BaseApp: React.FC = () => {
 
   const handleInputChange =
     (setter: React.Dispatch<React.SetStateAction<string>>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setter(e.target.value);
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        setter(e.target.value);
 
   const signInSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -114,7 +114,7 @@ const BaseApp: React.FC = () => {
             onClose={() => setShowSignInForm(false)}
           >
             <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-              Sign In
+              t{("auth.signIn")}
             </DialogTitle>
             <form onSubmit={signInSubmit}>
               <DialogContent>

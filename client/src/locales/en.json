@@ -31,9 +31,12 @@
     "createUserPrompt": "Please create your user profile"
   },
   "common": {
+    "name": "Name",
     "tags": "Tags",
+    "all": "All",
     "loading": "Loading...",
     "processing": "Processing...",
+    "updating": "Updating...",
     "uploading": "Uploading...",
     "creating": "Creating...",
     "error": "Error: {{message}}",
@@ -47,11 +50,12 @@
     "by": "By",
     "unknown": "Unknown",
     "updated": "Updated",
-    "created": "Created"
+    "created": "Created",
+    "optional": "Optional"
   },
   "location": {
     "latitude": "Latitude",
-    "longtitude": "Longitude",
+    "longitude": "Longitude",
     "myLocation": "My Location",
     "notAvailable": "Location not available.",
     "here": "You are here."
@@ -68,7 +72,19 @@
     "readMore": "Read More",
     "loadNews": "Loading all news...",
     "newsDetails": "News Details",
-    "error": "Error loading news details: {{message}}"
+    "error": "Error loading news details: {{message}}",
+    "titleRequired": "Title is required.",
+    "contentRequired": "Content is required.",
+    "imageUploadInfo": "Images will be automatically resized to max {{maxImageSize}}px and converted to PNG format. Signed URLs are generated via GraphQL for secure direct upload to Google Cloud Storage.",
+    "progressComplete": "{{progress}}% complete",
+    "uploadingToGCS": "Uploading to Google Cloud Storage via GraphQL signed URLs...",
+    "imagePreview": "Preview {{index}}",
+    "uploadingProgress": "Uploading {{progress}}%",
+    "uploadedToGCS": "✓ Uploaded to GCS",
+    "uploadFailed": "Upload Failed",
+    "relatedItemIds": "Related Item IDs (comma-separated)",
+    "relatedItemIdsHelper": "e.g., itemID1,itemID2",
+    "tagsHelper": "e.g., announcement,update"
   },
   "item": {
     "recentlyAdded": "Recently Added {{category}}",
@@ -76,6 +92,36 @@
     "viewDetails": "View Details",
     "relatedItems": "Related Items",
     "loadItems": "Loading item...",
+    "categoryCommaSeparated": "Category (comma-separated)",
+    "categoryHelper": "e.g. Book,Magazine",
+    "condition": "Condition",
+    "description": "Description",
+    "publishedYear": "Published Year",
+    "publishedYearHelper": "Optional: Enter a 4-digit year, e.g. 2024",
+    "status": "Status",
+    "nameAndCategoryRequired": "Name and category are required.",
+    "createItemError": "Failed to create item. Please try again.",
+    "fileNotImage": "File {{fileName}} is not an image",
+    "fileTooLarge": "File {{fileName}} is too large. Maximum size is 50MB",
+    "imageProcessingError": "Failed to process images: {{error}}",
+    "uploadingImages": "Uploading images... {{progress}}%",
+    "previewAlt": "Preview {{index}}",
+    "createSuccess": "Item created successfully!",
+    "conditions": {
+      "New": "New",
+      "LikeNew": "Like New",
+      "VeryGood": "Very Good",
+      "Good": "Good",
+      "Acceptable": "Acceptable",
+      "Poor": "Poor"
+    },
+    "statuses": {
+      "Available": "Available",
+      "Borrowed": "Borrowed",
+      "Maintenance": "Maintenance",
+      "Lost": "Lost",
+      "Damaged": "Damaged"
+    },
     "request": "Request",
     "confirmRequest": "Confirm Request",
     "confirmRequestMessage": "Are you sure you want to request this item? This will create a transaction between you and the owner.",
@@ -97,14 +143,18 @@
     "loadingRequests": "Loading existing requests...",
     "noExistingRequests": "No existing open requests for this item. You'll be the first!",
     "existingRequestsWarning": "There {count, plural, one {is # existing open request} other {are # existing open requests}} for this item. Your request will be added to the queue.",
+    "allItems": "All Items",
+    "available": "Available",
+    "exchangeable": "Exchangeable",
+    "gift": "Gift",
+    "reserved": "Reserved",
+    "noComicsFound": "No comics found",
     "requestedOn": "Requested on",
     "lastUpdated": "Last updated",
     "contact": "Contact",
     "approve": "Approve",
     "reject": "Reject",
     "category": "Categories",
-    "condition": "Condition",
-    "status": "Status",
     "approvedTransfer": "Ready for Transfer",
     "approvedForTransfer": "'s request has been approved",
     "approvedOn": "Approved on",
@@ -125,5 +175,15 @@
   "languages": {
     "en": "English",
     "zh-TW": "繁體中文"
+  },
+  "userProfile": {
+    "nickname": "Nickname",
+    "address": "Address",
+    "searchAddress": "Search address",
+    "resolvingAddress": "Resolving address...",
+    "currentAddress": "Current Address",
+    "updateProfile": "Update Profile",
+    "createSuccess": "User profile created successfully!",
+    "updateSuccess": "User profile updated successfully!"
   }
 }

@@ -157,7 +157,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         const file = files[i];
 
         if (!file.type.startsWith("image/")) {
-          setFormError(`File ${file.name} is not an image`);
+          setFormError(t("item.fileTooLarge", { fileName: file.name }));
           continue;
         }
 
@@ -195,7 +195,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
       setImageFiles((prev) => [...prev, ...newImagePreviews]);
     } catch (error) {
       console.error("Image processing error:", error);
-      setFormError(`Failed to process images: ${error}`);
+      setFormError(t("item.imageProcessingError", { error: String(error) }));
     } finally {
       setIsProcessingImages(false);
       setProcessingProgress(0);
@@ -294,7 +294,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     event.preventDefault();
 
     if (!name.trim() || !category.trim()) {
-      setFormError("Name and category are required.");
+      setFormError(t("item.nameAndCategoryRequired"));
       return;
     }
 
@@ -340,7 +340,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
       await createItem({ variables });
     } catch (err) {
       console.error("Create item error:", err);
-      setFormError("Failed to create item. Please try again.");
+      setFormError(t("item.createItemError"));
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -353,7 +353,9 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         {t("item.create")}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle sx={{ textAlign: "center" }}>Create New Item</DialogTitle>
+        <DialogTitle sx={{ textAlign: "center" }}>
+          {t("item.create")}
+        </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             {formError && (
@@ -363,7 +365,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             )}
 
             <TextField
-              label="Name"
+              label={t("common.name")}
               fullWidth
               margin="normal"
               required
@@ -372,18 +374,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             />
 
             <TextField
-              label="Category (comma-separated)"
+              label={t("item.categoryCommaSeparated")}
               fullWidth
               margin="normal"
               required
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              helperText="e.g. Book,Magazine"
+              helperText={t("item.categoryHelper")}
             />
 
             <TextField
               select
-              label="Condition"
+              label={t("item.condition")}
               fullWidth
               margin="normal"
               required
@@ -392,20 +394,20 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(ItemCondition).map((cond) => (
                 <MenuItem key={cond} value={cond}>
-                  {cond}
+                  {t(`item.conditions.${cond}`) || cond}
                 </MenuItem>
               ))}
             </TextField>
 
             <TextField
-              label="Description"
+              label={t("item.description")}
               fullWidth
               margin="normal"
               multiline
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              helperText="Optional"
+              helperText={t("common.optional")}
             />
 
             {/* Image Upload Section */}
@@ -417,7 +419,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                 disabled={isProcessingImages || isUploading}
                 sx={{ mb: 2 }}
               >
-                Add Images{t("common.addImages")}
+                {t("common.addImages")}
                 <input
                   type="file"
                   hidden
@@ -446,7 +448,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                     value={uploadProgress}
                   />
                   <Box sx={{ textAlign: "center", mt: 1 }}>
-                    Uploading images... {uploadProgress}%
+                    {t("item.uploadingImages", { progress: uploadProgress })}
                   </Box>
                 </Box>
               )}
@@ -460,7 +462,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                           component="img"
                           height="120"
                           image={image.url}
-                          alt={`Preview ${index + 1}`}
+                          alt={t("item.previewAlt", { index: index + 1 })}
                         />
                         <Box sx={{ p: 1, textAlign: "center" }}>
                           {image.isUploading && (
@@ -495,7 +497,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
             <TextField
               select
-              label="Language"
+              label={t("common.language")}
               fullWidth
               margin="normal"
               required
@@ -504,13 +506,13 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(Language).map((lang) => (
                 <MenuItem key={lang} value={lang}>
-                  {lang}
+                  {t(`languages.${lang}`) || lang}
                 </MenuItem>
               ))}
             </TextField>
 
             <TextField
-              label="Published Year"
+              label={t("item.publishedYear")}
               type="number"
               fullWidth
               margin="normal"
@@ -520,12 +522,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                 setPublishedYear(val === "" ? "" : Number(val));
               }}
               inputProps={{ min: 1000, max: 9999 }}
-              helperText="Optional: Enter a 4-digit year, e.g. 2024"
+              helperText={t("item.publishedYearHelper")}
             />
 
             <TextField
               select
-              label="Status"
+              label={t("item.status")}
               fullWidth
               margin="normal"
               required
@@ -534,7 +536,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(ItemStatus).map((stat) => (
                 <MenuItem key={stat} value={stat}>
-                  {stat}
+                  {t(`item.statuses.${stat}`) || stat}
                 </MenuItem>
               ))}
             </TextField>
@@ -555,7 +557,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               {isProcessingImages
                 ? t("common.processingImages")
                 : isUploading
-                  ? t("common.loading")
+                  ? t("common.uploading")
                   : loading
                     ? t("common.creating")
                     : t("item.create")}
@@ -575,7 +577,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
       {data && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Item created successfully!
+          {t("item.createSuccess")}
         </Alert>
       )}
     </Box>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   TextField,
@@ -98,6 +99,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   initialNickname = "",
   initialAddress = "",
 }) => {
+  const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(open);
   const [address, setAddress] = useState(initialAddress || "");
   const [nickname, setNickname] = useState(initialNickname || "");
@@ -245,12 +247,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
     <Box>
       <Dialog open={internalOpen} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle sx={{ textAlign: "center" }}>
-          {isCreateUser ? "Create User Profile" : "Update User Profile"}
+          {isCreateUser ? t("auth.createProfile") : t("auth.editProfile")}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
-              label="Nickname"
+              label={t("userProfile.nickname")}
               type="text"
               fullWidth
               margin="normal"
@@ -260,13 +262,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
             />
 
             <TextField
-              label="Address"
+              label={t("userProfile.address")}
               type="text"
               fullWidth
               margin="normal"
               value={address}
               onChange={(e) => handleAddressChange(e.target.value)}
-              placeholder="Search address"
+              placeholder={t("userProfile.searchAddress")}
               disabled={isGeocodingAddress}
               required
             />
@@ -275,7 +277,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                 <CircularProgress size={16} sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  Resolving address...
+                  {t("userProfile.resolvingAddress")}
                 </Typography>
               </Box>
             )}
@@ -297,7 +299,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     color="text.secondary"
                     gutterBottom
                   >
-                    Current Address: {resolvedLocation.formattedAddress}
+                    {t("userProfile.currentAddress")}: {resolvedLocation.formattedAddress}
                   </Typography>
                   <Box sx={{ height: 300, mt: 2 }}>
                     <MapContainer
@@ -321,8 +323,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
                         icon={customIcon}
                       >
                         <Popup>
-                          You are here. <br /> Latitude:{" "}
-                          {resolvedLocation.latitude}, Longitude:{" "}
+                          {t("location.here")} <br /> {t("location.latitude")}:{" "}
+                          {resolvedLocation.latitude}, {t("location.longitude")}:{" "}
                           {resolvedLocation.longitude}
                         </Popup>
                       </Marker>
@@ -358,7 +360,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               fullWidth
               disabled={loading}
             >
-              Cancel
+              {t("auth.cancel")}
             </Button>
             <Button
               type="submit"
@@ -373,11 +375,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
             >
               {loading
                 ? isCreateUser
-                  ? "Creating..."
-                  : "Updating..."
+                  ? t("common.creating")
+                  : t("common.updating")
                 : isCreateUser
-                ? "Create Profile"
-                : "Update Profile"}
+                  ? t("auth.createProfile")
+                  : t("userProfile.updateProfile")}
             </Button>
           </DialogActions>
         </form>
@@ -386,8 +388,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       {data && (
         <Alert severity="success" sx={{ mt: 2 }}>
           {isCreateUser
-            ? "User profile created successfully!"
-            : "User profile updated successfully!"}
+            ? t("userProfile.createSuccess")
+            : t("userProfile.updateSuccess")}
         </Alert>
       )}
     </Box>

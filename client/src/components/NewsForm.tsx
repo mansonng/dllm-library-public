@@ -275,11 +275,11 @@ const NewsForm: React.FC<NewsFormProps> = ({
 
   const validateForm = () => {
     if (!title.trim()) {
-      setFormError("Title is required.");
+      setFormError(t("news.titleRequired"));
       return false;
     }
     if (!content.trim()) {
-      setFormError("Content is required.");
+      setFormError(t("news.contentRequired"));
       return false;
     }
     setFormError(null);
@@ -357,7 +357,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
       </Button>
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>Create New News Post</DialogTitle>
+        <DialogTitle>{t("news.createPost")}</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             {formError && (
@@ -370,7 +370,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
               autoFocus
               margin="dense"
               id="title"
-              label="Title"
+              label={t("news.title")}
               type="text"
               fullWidth
               variant="outlined"
@@ -383,7 +383,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
             <TextField
               margin="dense"
               id="content"
-              label="Content"
+              label={t("news.content")}
               type="text"
               fullWidth
               variant="outlined"
@@ -405,9 +405,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
               </Typography>
 
               <Alert severity="info" sx={{ mb: 2 }}>
-                Images will be automatically resized to max {maxImageSize}px and
-                converted to PNG format. Signed URLs are generated via GraphQL
-                for secure direct upload to Google Cloud Storage.
+                {t("news.imageUploadInfo", { maxImageSize })}
               </Alert>
 
               {/* Image Processing Progress */}
@@ -422,7 +420,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                     sx={{ mt: 1 }}
                   />
                   <Typography variant="caption" color="textSecondary">
-                    {processingProgress}% complete
+                    {t("news.progressComplete", { progress: processingProgress })}
                   </Typography>
                 </Box>
               )}
@@ -431,7 +429,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
               {isUploading && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="textSecondary">
-                    Uploading to Google Cloud Storage via GraphQL signed URLs...
+                    {t("news.uploadingToGCS")}
                   </Typography>
                   <LinearProgress
                     variant="determinate"
@@ -439,7 +437,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                     sx={{ mt: 1 }}
                   />
                   <Typography variant="caption" color="textSecondary">
-                    {uploadProgress}% complete
+                    {t("news.progressComplete", { progress: uploadProgress })}
                   </Typography>
                 </Box>
               )}
@@ -470,7 +468,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                       <Box sx={{ position: "relative" }}>
                         <img
                           src={image.url}
-                          alt={`Preview ${index + 1}`}
+                          alt={t("news.imagePreview", { index: index + 1 })}
                           style={{
                             width: "100%",
                             height: "120px",
@@ -505,7 +503,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                               }}
                             />
                             <Typography variant="caption">
-                              Uploading {image.uploadProgress || 0}%
+                              {t("news.uploadingProgress", { progress: image.uploadProgress || 0 })}
                             </Typography>
                           </Box>
                         )}
@@ -525,7 +523,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                             }}
                           >
                             <Typography variant="caption">
-                              ✓ Uploaded to GCS
+                              {t("news.uploadedToGCS")}
                             </Typography>
                           </Box>
                         )}
@@ -545,7 +543,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                             }}
                           >
                             <Typography variant="caption">
-                              Upload Failed
+                              {t("news.uploadFailed")}
                             </Typography>
                           </Box>
                         )}
@@ -610,26 +608,26 @@ const NewsForm: React.FC<NewsFormProps> = ({
             <TextField
               margin="dense"
               id="relatedItemIds"
-              label="Related Item IDs (comma-separated)"
+              label={t("news.relatedItemIds")}
               type="text"
               fullWidth
               variant="outlined"
               value={relatedItemIds}
               onChange={(e) => setRelatedItemIds(e.target.value)}
-              helperText="e.g., itemID1,itemID2"
+              helperText={t("news.relatedItemIdsHelper")}
               disabled={isProcessingImages || isUploading}
             />
 
             <TextField
               margin="dense"
               id="tags"
-              label="Tags (comma-separated)"
+              label={t("common.tags")}
               type="text"
               fullWidth
               variant="outlined"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              helperText="e.g., announcement,update"
+              helperText={t("news.tagsHelper")}
               disabled={isProcessingImages || isUploading}
             />
           </DialogContent>
@@ -640,7 +638,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
               color="secondary"
               disabled={isProcessingImages || isUploading}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -659,7 +657,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                   {isProcessingImages
                     ? t("common.processingImages")
                     : isUploading
-                      ? t("common.loading")
+                      ? t("common.uploading")
                       : t("common.creating")}
                 </Box>
               ) : (

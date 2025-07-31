@@ -83,29 +83,29 @@ const AllItemPage: React.FC = () => {
           <ArrowBack />
         </IconButton>
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          {t("item.allItems", "All Items")}
+          {t("item.allItems")}
         </Typography>
       </Box>
 
       {/* Filters */}
       <Box sx={{ mb: 3, display: "flex", gap: 2 }}>
         <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel>{t("item.status", "Status")}</InputLabel>
+          <InputLabel>{t("item.status")}</InputLabel>
           <Select
             value={statusFilter}
-            label={t("item.status", "Status")}
+            label={t("item.status")}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <MenuItem value="">{t("common.all", "All")}</MenuItem>
             <MenuItem value="AVAILABLE">
-              {t("item.available", "Available")}
+              {t("item.available")}
             </MenuItem>
             <MenuItem value="EXCHANGEABLE">
-              {t("item.exchangeable", "Exchangeable")}
+              {t("item.exchangeable")}
             </MenuItem>
-            <MenuItem value="GIFT">{t("item.gift", "Gift")}</MenuItem>
+            <MenuItem value="GIFT">{t("item.gift")}</MenuItem>
             <MenuItem value="RESERVED">
-              {t("item.reserved", "Reserved")}
+              {t("item.reserved")}
             </MenuItem>
           </Select>
         </FormControl>
@@ -139,7 +139,7 @@ const AllItemPage: React.FC = () => {
 
       {filteredComics.length === 0 && !loading && (
         <Typography variant="h6" sx={{ textAlign: "center", mt: 4 }}>
-          {t("item.noComicsFound", "No comics found")}
+          {t("item.noComicsFound")}
         </Typography>
       )}
 
