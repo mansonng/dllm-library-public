@@ -180,7 +180,8 @@ const compressToTargetSize = (
           compressionApplied = true;
 
           // Use setTimeout to prevent blocking the UI
-          setTimeout(tryCompress, 0);
+          // Use requestAnimationFrame to prevent blocking the UI
+          requestAnimationFrame(tryCompress);
         },
         format.type,
         format.type === "image/jpeg" ? currentQuality : undefined // PNG doesn't use quality parameter
