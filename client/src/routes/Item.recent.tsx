@@ -22,6 +22,7 @@ import {
 import ItemPreview from "../components/ItemPreview";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
+import PaginationControls from "../components/PaginationControls";
 
 interface OutletContext {
   user?: User;
@@ -164,33 +165,15 @@ const ItemRecentPage: React.FC = () => {
             ))}
           </Grid>
           {/* Pagination Controls */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              mt: 2,
-              gap: 2,
-            }}
-          >
-            <Button
-              variant="outlined"
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1 || loading}
-            >
-              {t("item.prev", "Previous")}
-            </Button>
-            <Typography variant="body2">
-              {t("item.page", "Page")} {page}
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => handlePageChange(page + 1)}
-              disabled={filteredItems.length < ITEMS_PER_PAGE || loading}
-            >
-              {t("item.next", "Next")}
-            </Button>
-          </Box>
+          <PaginationControls
+            currentPage={page}
+            onPageChange={handlePageChange}
+            hasNextPage={filteredItems.length === ITEMS_PER_PAGE}
+            hasPrevPage={page > 1}
+            isLoading={loading}
+            itemsPerPage={ITEMS_PER_PAGE}
+            showPageInfo={true}
+          />
         </>
       )}
 
