@@ -11,8 +11,6 @@ import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
-import ItemSummary from "../components/ItemSummary";
-import { calculateDistance } from "../utils/geoProcessor";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
