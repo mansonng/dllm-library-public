@@ -63,7 +63,6 @@ const USER_ITEMS_QUERY = gql`
       condition
       status
       images
-      thumbnails
       category
       location {
         latitude
@@ -246,7 +245,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
           <Paper elevation={1} sx={{ p: 4, mb: 4 }}>
             <Grid container spacing={3}>
               {/* Basic Info */}
-              <Grid size={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography
                   variant="h6"
                   sx={{ mb: 2, display: "flex", alignItems: "center" }}
@@ -256,28 +255,28 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 </Typography>
               </Grid>
 
-              <Grid size={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("user.nickname", "Nickname")}:</strong>{" "}
                   {userData.user.nickname || t("user.notSet", "Not set")}
                 </Typography>
               </Grid>
 
-              <Grid size={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("user.email", "Email")}:</strong>{" "}
                   {userData.user.email}
                 </Typography>
               </Grid>
 
-              <Grid size={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("user.joinedOn", "Joined on")}:</strong>{" "}
                   {formatDate(userData.user.createdAt)}
                 </Typography>
               </Grid>
 
-              <Grid size={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("user.status", "Status")}:</strong>{" "}
                   <Chip
@@ -295,7 +294,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
               {/* Address */}
               {userData.user.address && (
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body1" color="text.secondary">
                     <HomeIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                     <strong>{t("user.address", "Address")}:</strong>{" "}
@@ -306,7 +305,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
               {/* Distance */}
               {currentUser && getDistanceToUser() && (
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body1" color="text.secondary">
                     <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                     <strong>
@@ -393,7 +392,6 @@ const UserDetail: React.FC<UserDetailProps> = ({
                             : 0,
                         status: item.status,
                         images: item.images,
-                        thumbnails: item.thumbnails,
                         tags: item.category,
                       }}
                       onClick={handleItemClick}

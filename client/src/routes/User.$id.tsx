@@ -18,7 +18,7 @@ const UserDetailPage: React.FC = () => {
 
   return (
     <UserDetail
-      userId={id || null}
+      userId={id}
       currentUser={user}
       onBack={() => window.history.back()} // Optional custom back behavior
     />

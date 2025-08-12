@@ -128,13 +128,11 @@ export class ItemService {
       query = query
         .where("name", ">=", keyword)
         .where("name", "<=", keyword + "\uf8ff");
-    console.log;
     const snapshot = await query.limit(limit).offset(offset).get();
-    console.log(`Total ${snapshot.docs.length} items found for user ${userId}`);
     const results: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
+        const item = await this._itemModelToItem(doc);
         results.push(item);
       })
     );
