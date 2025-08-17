@@ -142,6 +142,23 @@ export class ItemService {
     return results;
   }
 
+  async itemCategoriesByUser(  userId: string )
+  {
+      // Assuming that we do not have anyone with large number of entries
+      const items = await this.itemsByUser(userId, [], "", "", 1 << 31, 0); 
+
+      // Count categories
+      const categoryCount: { [category: string]: number } = {};
+      for (const item of items) {
+        if (item.category && Array.isArray(item.category)) {
+          for (const cat of item.category) {
+            categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+          }
+        }
+      }
+      return categoryCount;
+  }
+
   async _itemQueryToItem(
     query: firebase.firestore.QueryDocumentSnapshot<
       firebase.firestore.DocumentData,

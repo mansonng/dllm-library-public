@@ -24,7 +24,7 @@ interface Context {
 
 const categoryService = new CategoryService();
 const itemService = new ItemService(categoryService);
-const userService = new UserService(itemService);
+const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
 

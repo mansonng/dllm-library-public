@@ -3,6 +3,7 @@ import { User, ContactMethod, Location, Role } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
 import { Timestamp } from "firebase-admin/firestore";
+import { CategoryService } from "./categoryService";
 
 type UserModel = Omit<User, "createdAt"> & {
   geohash?: string;
@@ -12,13 +13,15 @@ type UserModel = Omit<User, "createdAt"> & {
 export class UserService {
   private mapService: MapService;
   private itemService: ItemService;
+  private categoryService: CategoryService;
 
   // all cache for user data
   private userCache: Map<string, User> = new Map();
 
-  constructor(itemService: ItemService) {
+  constructor(itemService: ItemService, categoryService: CategoryService) {
     this.mapService = createMapService();
     this.itemService = itemService;
+    this.categoryService = categoryService;
   }
 
   async me(loginUser: LoginUser | null): Promise<User | null> {
@@ -49,11 +52,7 @@ export class UserService {
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
 
-    const categorySnapshot = await db.collection("users").doc(userId).collection("itemCategory").get();
-    const itemCategory = categorySnapshot.docs.map(doc => ({
-      category: doc.id,
-      count: doc.data().count
-    }));
+    const itemCategory = await this.getOrComputeUserItemCategory(userId);
 
     const user = {
       createdAt: data.created.seconds * 1000,
@@ -63,6 +62,23 @@ export class UserService {
 
     this.userCache.set(userId, user);
     return user;
+  }
+
+  /**
+   * Gets the user item category based on items in the user's collection.
+   * If one is not available, then compute the value.
+   * @param userId 
+   * @returns 
+   */
+  async getOrComputeUserItemCategory( userId: string )
+  {
+    var itemCategory = await this.categoryService.getUserItemCategory(userId);
+
+    if (!itemCategory || itemCategory.length === 0) {
+      const categoryCount = await this.itemService.itemCategoriesByUser(userId);
+      itemCategory = await this.categoryService.initializeUserCategories( userId, categoryCount );
+    }
+    return itemCategory;
   }
 
   async createUser(
