@@ -34,7 +34,7 @@ enum Role {
   MODERATOR
 }
 
-type CategoryCount {
+type Category{
   category: String!
   count: Int!
 }
@@ -50,7 +50,7 @@ type User {
   isActive: Boolean! # 是否啟用帳號
   isVerified: Boolean! # 是否已驗證電子郵件
   contactMethods: [ContactMethod!] # 其他聯繫方式
-  itemCategoryCounts : [CategoryCount!] 
+  itemCategory: [Category!]
   createdAt: Date!
 }
 
