@@ -11,7 +11,7 @@ import cors from 'cors';
 import { resolvers } from './resolver';
 import { readFileSync } from "fs";
 import { getLoginUserFromToken } from './platform';
-import { log } from 'console';
+import { handleHomePageSSR, handleItemDetailSSR } from './ssrService';
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
@@ -73,9 +73,16 @@ async function startApolloServer() {
           },
         }));
 
+  // Set up SSR routes
+  app.get('/', handleHomePageSSR);
+  app.get('/item/:id', handleItemDetailSSR);
+
+  // For local development, we need to listen on a port
+  if (process.env.NODE_ENV !== 'production') {
     await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
     console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-    return { server, app };
+  }
+  return { server, app };
 }
 
 startApolloServer();
