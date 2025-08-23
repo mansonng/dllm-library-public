@@ -29,7 +29,7 @@ export class ItemService {
   private mapService: MapService;
   private categoryService: CategoryService;
 
-  constructor(categoryService: CategoryService) {
+  constructor(categoryService: CategoryService ) {
     this.mapService = createMapService();
     this.categoryService = categoryService;
   }
@@ -141,6 +141,23 @@ export class ItemService {
       `Found ${results.length} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
     );
     return results;
+  }
+
+  async itemCategoriesByUser(  userId: string )
+  {
+      // Assuming that we do not have anyone with large number of entries
+      const items = await this.itemsByUser(userId, [], "", "", 65535, 0);
+
+      // Count categories
+      const categoryCount: { [category: string]: number } = {};
+      for (const item of items) {
+        if (item.category && Array.isArray(item.category)) {
+          for (const cat of item.category) {
+            categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+          }
+        }
+      }
+      return categoryCount;
   }
 
   async _itemQueryToItem(
@@ -310,7 +327,13 @@ export class ItemService {
 
     // Update category counts
     if (category && category.length > 0) {
-      await this.categoryService.upsertCategories(category);
+      // If user category is empty, then initialize it
+      const itemCategory = await this.categoryService.getUserItemCategory(owner.id);
+      if (!itemCategory || itemCategory.length === 0) {
+          const categoryCount = await this.itemCategoriesByUser(owner.id);
+          await this.categoryService.initializeUserCategories( owner.id, categoryCount );
+      }
+      await this.categoryService.upsertCategories(owner, category);
     }
 
     return rv;

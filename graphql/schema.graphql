@@ -35,6 +35,11 @@ enum Role {
   EXCHANGE_POINT_ADMIN # 交換點管理員
 }
 
+type Category {
+  category: String!
+  count: Int!
+}
+
 # 用戶個人檔案
 type User {
   id: ID!
@@ -47,6 +52,7 @@ type User {
   isVerified: Boolean! # 是否已驗證電子郵件
   contactMethods: [ContactMethod!] # 其他聯繫方式
   exchangePoints: [String!] # 可選的交換點
+  itemCategory: [Category!]
   createdAt: Date!
 }
 

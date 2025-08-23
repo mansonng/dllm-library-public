@@ -10,16 +10,38 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ],
       "runtime": "nodejs22"
     }
   ],
   "hosting": {
-    "public": "client/build",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "public": "client/dist",
+    "predeploy": [
+      "npm run build --prefix client",
+      "npm run build --prefix functions",
+      "test -f client/dist/index.html && cp client/dist/index.html functions/ || echo 'index.html already moved to functions/'",
+      "test -f client/dist/index.html && cp client/dist/index.html functions/dist/ || echo 'index.html already moved to functions/dist/'",
+      "test -f client/dist/index.html && cp client/dist/index.html functions/lib/ || echo 'index.html already moved to functions/lib/'",
+      "test -f client/dist/index.html && rm client/dist/index.html || echo 'index.html already removed'"
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
+        "source": "/item/**",
+        "function": "graphql"
+      },
+      {
         "source": "/graphql",
+        "function": "graphql"
+      },
+      {
+        "source": "/",
         "function": "graphql"
       },
       {

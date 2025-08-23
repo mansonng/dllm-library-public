@@ -34,6 +34,11 @@ enum Role {
   MODERATOR
 }
 
+type Category{
+  category: String!
+  count: Int!
+}
+
 # 用戶個人檔案
 type User {
   id: ID!
@@ -45,6 +50,7 @@ type User {
   isActive: Boolean! # 是否啟用帳號
   isVerified: Boolean! # 是否已驗證電子郵件
   contactMethods: [ContactMethod!] # 其他聯繫方式
+  itemCategory: [Category!]
   createdAt: Date!
 }
 
