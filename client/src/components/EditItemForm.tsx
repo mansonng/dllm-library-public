@@ -45,7 +45,7 @@ const EDIT_ITEM_MUTATION = gql`
     $condition: ItemCondition
     $description: String
     $images: [String!]
-    $language: Language!
+    $language: Language
     $publishedYear: Int
     $status: ItemStatus
   ) {
@@ -112,6 +112,18 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>(Language.En);
 
+  // Store original values for comparison
+  const [originalValues, setOriginalValues] = useState<{
+    name: string;
+    category: string;
+    condition: ItemCondition;
+    description: string;
+    publishedYear: number | "";
+    status: ItemStatus;
+    language: Language;
+    images: string[];
+  } | null>(null);
+
   // Image processing states
   const [isProcessingImages, setIsProcessingImages] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -139,17 +151,37 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   // Populate form when item changes
   useEffect(() => {
     if (item && open) {
-      setName(item.name || "");
-      setCategory(item.category?.join(", ") || "");
-      setCondition(item.condition || ItemCondition.Good);
-      setDescription(item.description || "");
-      // Ensure publishedYear is either a number or an empty string for the input field
-      setPublishedYear(item.publishedYear ?? "");
-      setStatus(item.status || ItemStatus.Available);
-      setLanguage(item.language || Language.En);
+      const itemName = item.name || "";
+      const itemCategory = item.category?.join(", ") || "";
+      const itemCondition = item.condition || ItemCondition.Good;
+      const itemDescription = item.description || "";
+      const itemPublishedYear = item.publishedYear ?? "";
+      const itemStatus = item.status || ItemStatus.Available;
+      const itemLanguage = item.language || Language.En;
+      const itemImages = item.images || [];
+
+      setName(itemName);
+      setCategory(itemCategory);
+      setCondition(itemCondition);
+      setDescription(itemDescription);
+      setPublishedYear(itemPublishedYear);
+      setStatus(itemStatus);
+      setLanguage(itemLanguage);
+
+      // Store original values for comparison
+      setOriginalValues({
+        name: itemName,
+        category: itemCategory,
+        condition: itemCondition,
+        description: itemDescription,
+        publishedYear: itemPublishedYear,
+        status: itemStatus,
+        language: itemLanguage,
+        images: itemImages,
+      });
 
       // Convert existing images to ImagePreview format
-      const existingImages: ImagePreview[] = (item.images || []).map((url, index) => ({
+      const existingImages: ImagePreview[] = itemImages.map((url, index) => ({
         url,
         file: new File([], `existing-${index}`), // Dummy file for existing images
         originalFile: new File([], `existing-${index}`),
@@ -353,7 +385,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!item?.id) return;
+    if (!item?.id || !originalValues) return;
 
     if (!name.trim() || !category.trim()) {
       setFormError(t("item.nameAndCategoryRequired"));
@@ -381,23 +413,73 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         ...newImageUrls
       ];
 
-      // Build variables object with required fields
+      // Build variables object with only changed fields
       const variables: UpdateItemMutationVariables = {
         id: item.id,
-        name,
-        category: category
-          .split(",")
-          .map((c) => c.trim())
-          .filter(Boolean),
-        condition,
-        status,
-        language,
-        description: description?.trim() || null,
-        images: allImageUrls,
-        publishedYear: publishedYear === "" ? null : Number(publishedYear),
       };
 
-      console.log("Sending variables:", variables);
+      // Only include fields that have changed
+      if (name.trim() !== originalValues.name) {
+        variables.name = name;
+      }
+
+      const currentCategory = category
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean);
+      const originalCategoryArray = originalValues.category
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean);
+
+      if (JSON.stringify(currentCategory) !== JSON.stringify(originalCategoryArray)) {
+        variables.category = currentCategory;
+      }
+
+      if (condition !== originalValues.condition) {
+        variables.condition = condition;
+      }
+
+      if (status !== originalValues.status) {
+        variables.status = status;
+      }
+
+      if (language !== originalValues.language) {
+        variables.language = language;
+      }
+
+      const currentDescription = description?.trim() || null;
+      const originalDescription = originalValues.description?.trim() || null;
+      if (currentDescription !== originalDescription) {
+        variables.description = currentDescription;
+      }
+
+      const currentPublishedYear = publishedYear === "" ? null : Number(publishedYear);
+      const originalPublishedYearValue = originalValues.publishedYear === "" ? null : Number(originalValues.publishedYear);
+      if (currentPublishedYear !== originalPublishedYearValue) {
+        variables.publishedYear = currentPublishedYear;
+      }
+
+      // Check if images have changed (new images added or existing images removed)
+      const hasImageChanges =
+        newImages.length > 0 || // New images added
+        allImageUrls.length !== originalValues.images.length || // Images removed
+        JSON.stringify(allImageUrls.sort()) !== JSON.stringify(originalValues.images.sort()); // Images reordered
+
+      if (hasImageChanges) {
+        variables.images = allImageUrls;
+      }
+
+      // Only proceed if there are actually changes to send
+      const hasChanges = Object.keys(variables).length > 1; // More than just 'id'
+
+      if (!hasChanges) {
+        setFormError(t("item.noChangesDetected", "No changes detected"));
+        setIsUploading(false);
+        return;
+      }
+
+      console.log("Sending only changed variables:", variables);
 
       await updateItem({ variables });
     } catch (err) {

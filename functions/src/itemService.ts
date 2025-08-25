@@ -73,6 +73,7 @@ export class ItemService {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;
     let data = itemDoc.data();
+    console.log("itemByid", itemDoc, data);
     if (!data) return null;
     data.id = itemId;
     const item: Item = await this._itemModelToItem(data);
@@ -340,23 +341,20 @@ export class ItemService {
 
   async updateItem(
     itemId: string,
-    userId: string, // To verify ownership
-    name?: string,
-    description?: string,
-    condition?: ItemCondition,
-    category?: string[],
-    status?: ItemStatus,
-    language?: Language,
-    images?: string[],
-    publishedYear?: number
-  ): Promise<Item | null> {
+    userId: string,
+    name?: string, 
+    condition?: ItemCondition, 
+    category?: string[], 
+    status?: ItemStatus, 
+    publishedYear?: number,  
+    description?: string,   
+    images?: string[]       
+  ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await db.collection("items").doc(itemId).get();
-    if (!itemDoc.exists) {
-      throw new Error(`Item with ID ${itemId} does not exist`);
-    }
+    if (!itemDoc.exists) throw new Error(`Item with ID ${itemId} does not exist`);
 
-    const existingData = itemDoc.data() as ItemModel;
+    let existingData = itemDoc.data() as ItemModel;
     
     // Verify the user owns this item
     if (existingData.ownerId !== userId) {
@@ -364,72 +362,81 @@ export class ItemService {
     }
 
     // Process new images if provided
-    let gsImageUrls: string[] | null = null;
-    let publicImageUrls: string[] | null = null;
+    let gsImageUrls: string[] = [];
+    let publicImageUrls: string[] = [];
 
     if (images && images.length > 0) {
       for (const image of images) {
         console.debug(`Processing image: ${image}`);
         if (image.startsWith("gs://")) {
           try {
-            const publicUrl = await GetPublicUrlForGSFile(image);
+            let publicUrl = await GetPublicUrlForGSFile(image);
             console.debug(`Public URL for image ${image}: ${publicUrl}`);
-            if (!gsImageUrls) gsImageUrls = [];
-            if (!publicImageUrls) publicImageUrls = [];
             publicImageUrls.push(publicUrl);
             gsImageUrls.push(image);
           } catch (error) {
-            console.error(
-              `Failed to get public URL for image ${image}:`,
-              error
-            );
+            console.error(`Failed to get public URL for image ${image}:`, error);
           }
         } else {
-          if (!publicImageUrls) publicImageUrls = [];
           publicImageUrls.push(image);
         }
       }
     }
 
     // Build update data object with only provided fields
-    const updateData: Partial<ItemModel> = {
+    let updateData: Partial<ItemModel> = {
       updated: Timestamp.now(),
     };
 
     // Only update fields that were provided
-    if (name !== undefined) updateData.name = name;
+    if (name && existingData.name !== name) {
+      updateData.name = name;
+      existingData.name = name;
+    }
+    if (condition && existingData.condition !== condition) {
+      updateData.condition = condition;
+      existingData.condition = condition;
+    }
+    if (status && existingData.status !== status) {
+      updateData.status = status;
+      existingData.status = status;
+    }
+    if (description && existingData.description !== description) {
+      updateData.description = description;
+      existingData.description = description;
+    }
+    if (category && JSON.stringify(existingData.category) !== JSON.stringify(category)) {
+      updateData.category = category;
+      existingData.category = category;
+    }
+    if (publishedYear && existingData.publishedYear !== publishedYear) {
+      updateData.publishedYear = publishedYear;
+      existingData.publishedYear = publishedYear;
+    }
     
-
-    if (description !== undefined) updateData.description = description || null; // Allow clearing description
-    
-
-    if (condition !== undefined) updateData.condition = condition;
-    
-
-    if (category !== undefined) updateData.category = category;
-    
-    if (status !== undefined) updateData.status = status;
-    
-    if (language !== undefined) updateData.language = language;
-
-    if (publishedYear !== undefined) updateData.publishedYear = publishedYear || null; // Allow clearing year
-    
+    // Handle images - either replace entirely or append to existing
     if (images !== undefined) {
-      if (publicImageUrls && publicImageUrls.length > 0) {
-        updateData.images = publicImageUrls;
+      if (images.length === 0) {
+        // Clear all images if empty array is provided
+        updateData.images = [];
+        updateData.gsImageUrls = [];
+        existingData.images = [];
+        existingData.gsImageUrls = [];
       } else {
-        updateData.images = []; // Allow clearing images
-      }
-
-      if (gsImageUrls && gsImageUrls.length > 0) {
-        updateData.gsImageUrls = gsImageUrls;
-      } else {
-        updateData.gsImageUrls = []; // Allow clearing gs URLs
+        // Append to existing images
+        let existingPublicImages = existingData.images || [];
+        let existingGsImages = existingData.gsImageUrls || [];
+        updateData.images = [...existingPublicImages, ...publicImageUrls];
+        updateData.gsImageUrls = [...existingGsImages, ...gsImageUrls];
+        existingData.images = updateData.images;
+        existingData.gsImageUrls = updateData.gsImageUrls;
       }
 
       // Clear thumbnails when images change - they'll be regenerated on next read
       updateData.thumbnails = [];
       updateData.gsThumbnailUrls = [];
+      existingData.thumbnails = [];
+      existingData.gsThumbnailUrls = [];
     }
 
     // Update the document
@@ -444,12 +451,21 @@ export class ItemService {
         // Update category counts for new categories
         await this.categoryService.upsertCategories(owner, category);
       }
-      
-      // TODO: counts for categories,
     }
 
+    // const rv = {
+    //   id: itemId,
+    //   createdAt: existingData.created.seconds * 1000,
+    //   updatedAt: updateData.updated?.seconds ? updateData.updated.seconds * 1000 : Date.now(),
+    //   ...existingData,
+    // } as Item;
+    // return rv;
+    
     // Fetch and return the updated item
     const updatedItem = await this.itemById(itemId);
+    if (!updatedItem) {
+      throw new Error(`Failed to fetch updated item with ID ${itemId}`);
+    }
     return updatedItem;
   }
 

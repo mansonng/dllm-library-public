@@ -179,10 +179,10 @@ export type MutationTransferTransactionArgs = {
 
 
 export type MutationUpdateItemArgs = {
+  id: Scalars['ID']['input'];
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   condition?: InputMaybe<ItemCondition>;
   description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
   name?: InputMaybe<Scalars['String']['input']>;
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
@@ -491,7 +491,7 @@ export type UpdateItemMutationVariables = Exact<{
 
 export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any } };
 
-export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any } };
+export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name?: string, description?: string | null, condition?: ItemCondition, category?: Array<string>, status?: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language?: Language, createdAt: any, ownerId: string, updatedAt: any } };
 
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
