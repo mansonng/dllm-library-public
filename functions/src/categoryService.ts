@@ -76,6 +76,20 @@ export class CategoryService {
 
     await batch.commit();
     console.log(`Upserted categories: ${categories.join(", ")}`);
+
+    // update user's exchange points's item and category cache
+    if (owner.exchangePoints && owner.exchangePoints.length > 0) {
+      const itemCategory = categories.map((category) => ({
+        category,
+        count: 1,
+      }));
+      for (const exchangePointId of owner.exchangePoints) {
+        await this.upsertExchangePointCategoryCache(
+          exchangePointId,
+          itemCategory
+        );
+      }
+    }
   }
 
   /**
@@ -95,7 +109,7 @@ export class CategoryService {
 
     const maxBatchSize = 20;
     let batchCount = 0;
-    
+
     // Update global categories
     for (const [category, count] of Object.entries(categoriesMap)) {
       if (!category || typeof count !== "number") continue;
@@ -127,7 +141,7 @@ export class CategoryService {
       .collection("users")
       .doc(userId)
       .collection("itemCategory");
-    console.log("Initializing user categories for user: " + userId );
+    console.log("Initializing user categories for user: " + userId);
     for (const [category, count] of Object.entries(categoriesMap)) {
       if (!category || typeof count !== "number") continue;
       const userCategoryRef = userCategoryCollection.doc(category);
@@ -141,7 +155,12 @@ export class CategoryService {
       );
       batchCount++;
       if (batchCount >= maxBatchSize) {
-        console.log("Committing batch of user categories for user: " + userId + " starting with " + category);
+        console.log(
+          "Committing batch of user categories for user: " +
+            userId +
+            " starting with " +
+            category
+        );
         await batch.commit();
         batch = db.batch();
         batchCount = 0;
@@ -190,7 +209,7 @@ export class CategoryService {
     const exchangePointCategoryCollection = db
       .collection("users")
       .doc(exchangePointId)
-      .collection("itemCategory");
+      .collection("itemCategoryCache");
 
     for (const { category, count } of categories) {
       if (!category || typeof count !== "number") continue;
@@ -225,7 +244,7 @@ export class CategoryService {
     const exchangePointCategoryCollection = db
       .collection("users")
       .doc(exchangePointId)
-      .collection("itemCategory");
+      .collection("itemCategoryCache");
 
     for (const { category, count } of categories) {
       if (!category || typeof count !== "number") continue;

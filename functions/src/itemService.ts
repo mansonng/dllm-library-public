@@ -29,7 +29,7 @@ export class ItemService {
   private mapService: MapService;
   private categoryService: CategoryService;
 
-  constructor(categoryService: CategoryService ) {
+  constructor(categoryService: CategoryService) {
     this.mapService = createMapService();
     this.categoryService = categoryService;
   }
@@ -143,32 +143,38 @@ export class ItemService {
     return results;
   }
 
-  async itemCategoriesByUser(  userId: string )
-  {
-      // Assuming that we do not have anyone with large number of entries
-      let items: Item[] = [];
-      // Fetch all items by user by batch
-      let batchSize = 20;
-      let offset = 0;
-      while (true) {
-        const batchItems = await this.itemsByUser(userId, [], "", "", batchSize, offset);
-        if (!batchItems || batchItems.length === 0) break;
-        items.push(...batchItems);
-        offset += batchSize;
-        if (batchItems.length < batchSize) break;
-       // console.log(`Fetched ${items.length} items for user ${userId} so far...`);
-      }
+  async itemCategoriesByUser(userId: string) {
+    // Assuming that we do not have anyone with large number of entries
+    let items: Item[] = [];
+    // Fetch all items by user by batch
+    let batchSize = 20;
+    let offset = 0;
+    while (true) {
+      const batchItems = await this.itemsByUser(
+        userId,
+        [],
+        "",
+        "",
+        batchSize,
+        offset
+      );
+      if (!batchItems || batchItems.length === 0) break;
+      items.push(...batchItems);
+      offset += batchSize;
+      if (batchItems.length < batchSize) break;
+      // console.log(`Fetched ${items.length} items for user ${userId} so far...`);
+    }
 
-      // Count categories
-      const categoryCount: { [category: string]: number } = {};
-      for (const item of items) {
-        if (item.category && Array.isArray(item.category)) {
-          for (const cat of item.category) {
-            categoryCount[cat] = (categoryCount[cat] || 0) + 1;
-          }
+    // Count categories
+    const categoryCount: { [category: string]: number } = {};
+    for (const item of items) {
+      if (item.category && Array.isArray(item.category)) {
+        for (const cat of item.category) {
+          categoryCount[cat] = (categoryCount[cat] || 0) + 1;
         }
       }
-      return categoryCount;
+    }
+    return categoryCount;
   }
 
   async _itemQueryToItem(
@@ -329,8 +335,9 @@ export class ItemService {
     }
 
     const docRef = await db.collection("items").add(itemData);
+    const itemId = docRef.id;
     const rv = {
-      id: docRef.id,
+      id: itemId,
       createdAt: itemData.created.seconds * 1000,
       updatedAt: itemData.updated.seconds * 1000,
       ...itemData,
@@ -339,10 +346,15 @@ export class ItemService {
     // Update category counts
     if (category && category.length > 0) {
       // If user category is empty, then initialize it
-      const itemCategory = await this.categoryService.getUserItemCategory(owner.id);
+      const itemCategory = await this.categoryService.getUserItemCategory(
+        owner.id
+      );
       if (!itemCategory || itemCategory.length === 0) {
-          const categoryCount = await this.itemCategoriesByUser(owner.id);
-          await this.categoryService.initializeUserCategories( owner.id, categoryCount );
+        const categoryCount = await this.itemCategoriesByUser(owner.id);
+        await this.categoryService.initializeUserCategories(
+          owner.id,
+          categoryCount
+        );
       }
       await this.categoryService.upsertCategories(owner, category);
     }

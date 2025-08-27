@@ -242,7 +242,7 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
       if (!owner) throw new Error("Owner not found");
-      return itemService.createItem(
+      const newItem = await itemService.createItem(
         owner,
         args.name,
         args.description,
@@ -253,6 +253,8 @@ export const resolvers: Resolvers = {
         args.publishedYear,
         args.language
       );
+      await userService.addItemToUser(owner, newItem);
+      return newItem;
     },
     createNewsPost: async (
       _: any,

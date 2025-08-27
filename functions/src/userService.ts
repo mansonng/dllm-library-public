@@ -1,5 +1,5 @@
 import { db, LoginUser } from "./platform";
-import { User, ContactMethod, Location, Role } from "./generated/graphql";
+import { User, ContactMethod, Location, Role, Item } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
 import { Timestamp } from "firebase-admin/firestore";
@@ -84,6 +84,27 @@ export class UserService {
       );
     }
     return itemCategory;
+  }
+
+  async addItemToUser(user: User, item: Item): Promise<void> {
+    // update item cache for all exchange points
+    for (const exchangePoint of user.exchangePoints || []) {
+      await this._AddItemCacheToExchangePoint(
+        exchangePoint,
+        new Map([[item.id, { categories: item.category || [] }]])
+      );
+    }
+  }
+
+  async updateItemToUser(user: User, item: Item): Promise<void> {
+    // update item cache for all exchange points
+    for (const exchangePoint of user.exchangePoints || []) {
+      await this._RemoveItemCacheFromExchangePoint(exchangePoint, [item.id]);
+      await this._AddItemCacheToExchangePoint(
+        exchangePoint,
+        new Map([[item.id, { categories: item.category || [] }]])
+      );
+    }
   }
 
   async createUser(
@@ -198,13 +219,23 @@ export class UserService {
     }
 
     if (exchangePoints != null) {
-      updates.exchangePoints = exchangePoints;
+      // ensure all exchange points are valid and Role.ExchangePointAdmin
+      let validExchangePoints: string[] = [];
+      if (exchangePoints.length !== 0) {
+        validExchangePoints = exchangePoints.filter((point) =>
+          this.isValidExchangePoint(point)
+        );
+        if (validExchangePoints.length === 0) {
+          throw new Error("Invalid exchange points");
+        }
+      }
+      updates.exchangePoints = validExchangePoints;
       const oldExchangePoints: string[] = userDoc.data()?.exchangePoints || [];
-      const newExchangePoints = exchangePoints.filter(
+      const newExchangePoints = validExchangePoints.filter(
         (point) => !oldExchangePoints.includes(point)
       );
       const removedExchangePoints = oldExchangePoints.filter(
-        (point) => !exchangePoints.includes(point)
+        (point) => !validExchangePoints.includes(point)
       );
       if (newExchangePoints.length > 0 || removedExchangePoints.length > 0) {
         // update item and categories cache in exchange points
@@ -212,7 +243,7 @@ export class UserService {
         while (true) {
           const itemsPerUser = await this.itemService.itemsByUser(
             loginUser.uid,
-            newExchangePoints, // category
+            [], // category
             undefined, // status
             undefined, // keyword
             100, // limit
@@ -234,7 +265,10 @@ export class UserService {
           }
           // remove item cache from removed exchange points
           for (const point of removedExchangePoints) {
-            this._RemoveItemCacheFromExchangePoint(point, itemCacheModelMap);
+            this._RemoveItemCacheFromExchangePoint(
+              point,
+              Array.from(itemCacheModelMap.keys())
+            );
           }
         }
         // update CategoryCache for exchange points
@@ -254,7 +288,7 @@ export class UserService {
           );
         }
       }
-      updates.exchangePoints = exchangePoints;
+      updates.exchangePoints = validExchangePoints;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -286,16 +320,22 @@ export class UserService {
     }
   }
 
+  private async isValidExchangePoint(userId: string): Promise<boolean> {
+    const user = await this.userById(userId);
+    if (!user) return false;
+    return user.role === Role.ExchangePointAdmin;
+  }
+
   private async _RemoveItemCacheFromExchangePoint(
     userId: string,
-    itemCacheModelMap: Map<string, ItemCacheModel>
+    itemIds: string[]
   ) {
     const itemCacheCollection = userCollection
       .doc(userId)
       .collection("itemCache");
 
     // remove item cache from exchange point's itemCacheCollections
-    for (const itemId of itemCacheModelMap.keys()) {
+    for (const itemId of itemIds) {
       await itemCacheCollection.doc(itemId).delete();
     }
   }
