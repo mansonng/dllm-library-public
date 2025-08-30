@@ -152,7 +152,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleViewAllItems = () => {
-    navigate("/items/all");
+    navigate("/item/all");
   };
 
   const handleExchangePointClick = (exchangePointId: string) => {
