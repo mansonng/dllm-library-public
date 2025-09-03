@@ -16,6 +16,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
+import { Person as PersonIcon } from "@mui/icons-material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
@@ -76,15 +77,16 @@ const HomePage: React.FC = () => {
   // State for controlling CreateUser dialog
   const [showCreateUser, setShowCreateUser] = useState(false);
 
-  // State for controlling UpdateUser dialog
-  const [showUpdateUser, setShowUpdateUser] = useState(false);
-
   // State for exchange points pagination
   const [exchangePointsPage, setExchangePointsPage] = useState(1);
   const exchangePointsPerPage = 5;
 
   const handleItemCreated = () => {
     refetch();
+  };
+
+  const handleUserClick = (userId: string) => {
+    navigate(`/user/${userId}`);
   };
 
   const [location, setLocation] = useState<{
@@ -185,10 +187,14 @@ const HomePage: React.FC = () => {
             <Typography sx={{ flex: 1 }}>
               {t("home.welcome", { nickname: user.nickname })}
             </Typography>
+            {user?.isActive && (
+              <Button
+                variant="contained"
+                startIcon={<PersonIcon />}
+                onClick={() => handleUserClick(user.id)}
+              />
+            )}
             {user?.isActive && <ItemForm onItemCreated={handleItemCreated} />}
-            <Button variant="outlined" onClick={() => setShowUpdateUser(true)}>
-              {t("auth.editProfile")}
-            </Button>
             <Button variant="contained" onClick={signOut}>
               {t("auth.signOut")}
             </Button>
@@ -338,20 +344,6 @@ const HomePage: React.FC = () => {
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
         </ListItem>
-      )}
-
-      {/* UpdateUser Dialog - Only render when needed */}
-      {showUpdateUser && (
-        <UpdateUser
-          email={email}
-          onUserCreated={handleUserCreated}
-          open={showUpdateUser}
-          isCreateUser={false}
-          initialNickname={user?.nickname}
-          initialAddress={user?.address}
-          initialExchangePoints={user?.exchangePoints}
-          onClose={() => setShowUpdateUser(false)}
-        />
       )}
 
       {showCreateUser && (

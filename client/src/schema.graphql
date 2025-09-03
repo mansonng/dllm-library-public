@@ -126,6 +126,7 @@ type Query {
   me: User # 當前登錄用戶
   users(address: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
   exchangePoints(limit: Int, offset: Int): [User!]! # 交換點列表
+  exchangePointsCount: Int! # 交換點總數
   # 藏品相關
   item(id: ID!): Item
   items(

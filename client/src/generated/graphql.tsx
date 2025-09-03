@@ -232,6 +232,7 @@ export type Query = {
   __typename?: 'Query';
   defaultCategories: Array<Scalars['String']['output']>;
   exchangePoints: Array<User>;
+  exchangePointsCount: Scalars['Int']['output'];
   geocodeAddress?: Maybe<Location>;
   hotCategories: Array<Scalars['String']['output']>;
   item?: Maybe<Item>;
@@ -299,6 +300,7 @@ export type QueryItemsByLocationArgs = {
 
 export type QueryItemsByUserArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  isExchangePointItem?: InputMaybe<Scalars['Boolean']['input']>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -552,12 +554,14 @@ export type UserQueryVariables = Exact<{
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, isVerified: boolean, isActive: boolean, role: Role, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: string, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, isVerified: boolean, isActive: boolean, role: Role, exchangePoints?: Array<string> | null, itemCategory?: Array<{ __typename?: 'Category', category: string, count: number }> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: string, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
 export type ItemsByUserQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+  category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  isExchangePointItem?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
@@ -602,6 +606,11 @@ export type RecentCategoriesQueryVariables = Exact<{
 
 
 export type RecentCategoriesQuery = { __typename?: 'Query', recentUpdateCategories: Array<string> };
+
+export type GetExchangePointsCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetExchangePointsCountQuery = { __typename?: 'Query', exchangePointsCount: number };
 
 export type ItemsByLocationQueryVariables = Exact<{
   latitude: Scalars['Float']['input'];
@@ -1346,6 +1355,10 @@ export const UserDocument = gql`
     isActive
     role
     exchangePoints
+    itemCategory {
+      category
+      count
+    }
     contactMethods {
       type
       value
@@ -1392,8 +1405,14 @@ export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
 export type UserSuspenseQueryHookResult = ReturnType<typeof useUserSuspenseQuery>;
 export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
 export const ItemsByUserDocument = gql`
-    query ItemsByUser($userId: ID!, $limit: Int, $offset: Int) {
-  itemsByUser(userId: $userId, limit: $limit, offset: $offset) {
+    query ItemsByUser($userId: ID!, $limit: Int, $offset: Int, $category: [String!], $isExchangePointItem: Boolean) {
+  itemsByUser(
+    userId: $userId
+    limit: $limit
+    offset: $offset
+    category: $category
+    isExchangePointItem: $isExchangePointItem
+  ) {
     id
     name
     condition
@@ -1424,6 +1443,8 @@ export const ItemsByUserDocument = gql`
  *      userId: // value for 'userId'
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
+ *      category: // value for 'category'
+ *      isExchangePointItem: // value for 'isExchangePointItem'
  *   },
  * });
  */
@@ -1667,6 +1688,43 @@ export type RecentCategoriesQueryHookResult = ReturnType<typeof useRecentCategor
 export type RecentCategoriesLazyQueryHookResult = ReturnType<typeof useRecentCategoriesLazyQuery>;
 export type RecentCategoriesSuspenseQueryHookResult = ReturnType<typeof useRecentCategoriesSuspenseQuery>;
 export type RecentCategoriesQueryResult = Apollo.QueryResult<RecentCategoriesQuery, RecentCategoriesQueryVariables>;
+export const GetExchangePointsCountDocument = gql`
+    query GetExchangePointsCount {
+  exchangePointsCount
+}
+    `;
+
+/**
+ * __useGetExchangePointsCountQuery__
+ *
+ * To run a query within a React component, call `useGetExchangePointsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetExchangePointsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetExchangePointsCountQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetExchangePointsCountQuery(baseOptions?: Apollo.QueryHookOptions<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>(GetExchangePointsCountDocument, options);
+      }
+export function useGetExchangePointsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>(GetExchangePointsCountDocument, options);
+        }
+export function useGetExchangePointsCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>(GetExchangePointsCountDocument, options);
+        }
+export type GetExchangePointsCountQueryHookResult = ReturnType<typeof useGetExchangePointsCountQuery>;
+export type GetExchangePointsCountLazyQueryHookResult = ReturnType<typeof useGetExchangePointsCountLazyQuery>;
+export type GetExchangePointsCountSuspenseQueryHookResult = ReturnType<typeof useGetExchangePointsCountSuspenseQuery>;
+export type GetExchangePointsCountQueryResult = Apollo.QueryResult<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>;
 export const ItemsByLocationDocument = gql`
     query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!, $category: [String!]) {
   itemsByLocation(

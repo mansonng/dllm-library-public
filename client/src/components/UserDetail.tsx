@@ -4,13 +4,16 @@ import {
   Typography,
   IconButton,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Alert,
+  Button,
   Chip,
   Grid,
   Container,
   Paper,
-  Card,
-  CardContent,
+  Collapse,
   List,
   ListItem,
   ListItemText,
@@ -26,6 +29,7 @@ import {
   Verified as VerifiedIcon,
   Label as LabelIcon,
   Storage as StorageIcon,
+  ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
 import { User, Item, Category } from "../generated/graphql";
@@ -35,6 +39,7 @@ import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import ItemSummary from "./ItemSummary";
 import PaginationControls from "./PaginationControls";
 import { TagCloud } from "react-tagcloud";
+import UpdateUser from "./UserProfile";
 
 const USER_DETAIL_QUERY = gql`
   query User($userId: ID!) {
@@ -119,7 +124,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [includeExchangePointItems, setIncludeExchangePointItems] =
     useState<boolean>(true);
+  // State for controlling UpdateUser dialog
+  const [showUpdateUser, setShowUpdateUser] = useState(false);
+  const [expanded, setExpanded] = React.useState(false);
 
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
   const {
     data: userData,
     loading: userLoading,
@@ -191,6 +202,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
   const isCurrentUser =
     currentUser && userData?.user && currentUser.id === userData.user.id;
+
+  const handleUserCreated = () => {
+    setShowUpdateUser(false);
+    // Optionally refresh the page or refetch user data
+    window.location.reload();
+  };
 
   // Calculate distance between current user and profile user
   const getDistanceToUser = (): string | null => {
@@ -314,10 +331,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
               {userData.user.nickname || userData.user.email}
               {isCurrentUser && (
                 <Chip
-                  label={t("user.you", "You")}
+                  label={t("auth.editProfile")}
                   color="primary"
                   size="small"
                   sx={{ ml: 2 }}
+                  onClick={() => setShowUpdateUser(true)}
                 />
               )}
               {userData.user.isVerified && (
@@ -361,9 +379,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
       {userData?.user && (
         <>
           {/* User Info Card */}
-          <Paper elevation={1} sx={{ p: 4, mb: 4 }}>
-            <Grid container spacing={3}>
-              {/* Basic Info */}
+          <Accordion>
+            {/* Basic Info */}
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Grid size={{ xs: 12 }}>
                 <Typography
                   variant="h6"
@@ -373,74 +391,109 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   {t("user.basicInfo", "Basic Information")}
                 </Typography>
               </Grid>
-
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("user.nickname", "Nickname")}:</strong>{" "}
-                  {userData.user.nickname || t("user.notSet", "Not set")}
-                </Typography>
-              </Grid>
-
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("user.email", "Email")}:</strong>{" "}
-                  {userData.user.email}
-                </Typography>
-              </Grid>
-
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("user.joinedOn", "Joined on")}:</strong>{" "}
-                  {formatDate(userData.user.createdAt)}
-                </Typography>
-              </Grid>
-
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("user.status", "Status")}:</strong>{" "}
-                  <Chip
-                    label={
-                      userData.user.isActive
-                        ? t("user.active", "Active")
-                        : t("user.inactive", "Inactive")
-                    }
-                    color={userData.user.isActive ? "success" : "default"}
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Grid>
-
-              {/* Address */}
-              {userData.user.address && (
-                <Grid size={{ xs: 12 }}>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="body1" color="text.secondary">
-                    <HomeIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                    <strong>{t("user.address", "Address")}:</strong>{" "}
-                    {userData.user.address}
+                    <strong>{t("user.email", "Email")}:</strong>{" "}
+                    {userData.user.email}
                   </Typography>
                 </Grid>
-              )}
 
-              {/* Distance */}
-              {currentUser && getDistanceToUser() && (
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="body1" color="text.secondary">
-                    <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                    <strong>
-                      {t("user.distance", "Distance from you")}:
-                    </strong>{" "}
+                    <strong>{t("user.joinedOn", "Joined on")}:</strong>{" "}
+                    {formatDate(userData.user.createdAt)}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("user.status", "Status")}:</strong>{" "}
                     <Chip
-                      label={getDistanceToUser()}
-                      color="info"
+                      label={
+                        userData.user.isActive
+                          ? t("user.active", "Active")
+                          : t("user.inactive", "Inactive")
+                      }
+                      color={userData.user.isActive ? "success" : "default"}
                       size="small"
                       sx={{ ml: 1 }}
                     />
                   </Typography>
                 </Grid>
-              )}
-            </Grid>
-          </Paper>
+
+                {/* Address */}
+                {userData.user.address && (
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      <HomeIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      <strong>{t("user.address", "Address")}:</strong>{" "}
+                      {userData.user.address}
+                    </Typography>
+                  </Grid>
+                )}
+
+                {/* Distance */}
+                {currentUser && getDistanceToUser() && (
+                  <Grid size={{ xs: 12 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      <strong>
+                        {t("user.distance", "Distance from you")}:
+                      </strong>{" "}
+                      <Chip
+                        label={getDistanceToUser()}
+                        color="info"
+                        size="small"
+                        sx={{ ml: 1 }}
+                      />
+                    </Typography>
+                  </Grid>
+                )}
+                {/* Contact Methods */}
+                {userData.user.contactMethods &&
+                  userData.user.contactMethods.length > 0 && (
+                    <Box
+                      sx={{
+                        mb: 2,
+                        p: 2,
+                        bgcolor: "action.hover",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{ mb: 2, display: "flex", alignItems: "center" }}
+                      >
+                        <EmailIcon sx={{ mr: 1 }} />
+                        {t("user.contactMethods", "Contact Methods")}
+                      </Typography>
+                      <List>
+                        {userData.user.contactMethods.map((contact, index) => (
+                          <ListItem key={index} sx={{ px: 0 }}>
+                            <ListItemText
+                              primary={contact.type}
+                              secondary={contact.value}
+                            />
+                            <Chip
+                              label={
+                                contact.isPublic
+                                  ? t("user.public", "Public")
+                                  : t("user.private", "Private")
+                              }
+                              color={contact.isPublic ? "success" : "default"}
+                              size="small"
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
 
           {/* Item Categories Tag Cloud */}
           {userData.user.itemCategory &&
@@ -584,40 +637,19 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 </Typography>
               </Paper>
             )}
-
-          {/* Contact Methods */}
-          {userData.user.contactMethods &&
-            userData.user.contactMethods.length > 0 && (
-              <Paper elevation={1} sx={{ p: 4, mb: 4 }}>
-                <Typography
-                  variant="h6"
-                  sx={{ mb: 2, display: "flex", alignItems: "center" }}
-                >
-                  <EmailIcon sx={{ mr: 1 }} />
-                  {t("user.contactMethods", "Contact Methods")}
-                </Typography>
-                <List>
-                  {userData.user.contactMethods.map((contact, index) => (
-                    <ListItem key={index} sx={{ px: 0 }}>
-                      <ListItemText
-                        primary={contact.type}
-                        secondary={contact.value}
-                      />
-                      <Chip
-                        label={
-                          contact.isPublic
-                            ? t("user.public", "Public")
-                            : t("user.private", "Private")
-                        }
-                        color={contact.isPublic ? "success" : "default"}
-                        size="small"
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            )}
-
+          {/* UpdateUser Dialog - Only render when needed */}
+          {showUpdateUser && (
+            <UpdateUser
+              email={userData.user.email}
+              onUserCreated={handleUserCreated}
+              open={showUpdateUser}
+              isCreateUser={false}
+              initialNickname={userData.user?.nickname}
+              initialAddress={userData.user?.address}
+              initialExchangePoints={userData.user?.exchangePoints}
+              onClose={() => setShowUpdateUser(false)}
+            />
+          )}
           {/* User's Items - Only show when a category is selected */}
           {selectedCategory && (
             <Paper elevation={1} sx={{ p: 4 }}>

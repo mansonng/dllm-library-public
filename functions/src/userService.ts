@@ -166,6 +166,14 @@ export class UserService {
     return users;
   }
 
+  async exchangePointsCount(): Promise<number> {
+    const usersSnapshot = await userCollection
+      .where("role", "==", Role.ExchangePointAdmin)
+      .get();
+
+    return usersSnapshot.size;
+  }
+
   async updateUser(
     loginUser: LoginUser | null,
     nickname?: string | null,

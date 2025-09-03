@@ -152,6 +152,9 @@ export const resolvers: Resolvers = {
     ): Promise<User[]> => {
       return userService.exchangePoints(limit, offset);
     },
+    exchangePointsCount: async (_: any, __: any, ___: any): Promise<number> => {
+      return userService.exchangePointsCount();
+    },
     newsPost: async (
       _: any,
       { id }: any,
