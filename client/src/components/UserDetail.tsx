@@ -331,7 +331,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               {userData.user.nickname || userData.user.email}
               {isCurrentUser && (
                 <Chip
-                  label={t("auth.editProfile")}
+                  label={t("user.editProfile")}
                   color="primary"
                   size="small"
                   sx={{ ml: 2 }}

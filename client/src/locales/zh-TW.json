@@ -12,7 +12,6 @@
     "resetPassword": "重設密碼",
     "sendResetEmail": "發送重設郵件",
     "createProfile": "編輯個人檔案",
-    "editProfile": "編輯個人檔案",
     "cancel": "取消",
     "submit": "提交"
   },
@@ -216,6 +215,7 @@
   "user": {
     "itemCategories": "物品類別",
     "includesCachedItems": "包含快取物品",
+    "editProfile": "編輯個人檔案",
     "exchangePointAdmin": "交換點管理員",
     "filteringByCategory": "按類別過濾：{{category}}",
     "tagCloudHelper": "點擊類別來過濾物品。較大的標籤表示該類別有更多物品。",

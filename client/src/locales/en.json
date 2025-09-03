@@ -12,7 +12,6 @@
     "resetPassword": "Reset Password",
     "sendResetEmail": "Send Reset Email",
     "createProfile": "Create Profile",
-    "editProfile": "Edit Profile",
     "cancel": "Cancel",
     "submit": "Submit"
   },
@@ -210,6 +209,7 @@
   "user": {
     "itemCategories": "Item Categories",
     "includesCachedItems": "Includes cached items",
+    "editProfile": "Edit Profile",
     "exchangePointAdmin": "Exchange Point Admin",
     "filteringByCategory": "Filtering by category: {{category}}",
     "tagCloudHelper": "Click on a category to filter items. Larger tags indicate more items in that category.",

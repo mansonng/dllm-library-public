@@ -191,6 +191,7 @@ const HomePage: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<PersonIcon />}
+                aria-label={t("home.profile")}
                 onClick={() => handleUserClick(user.id)}
               />
             )}
