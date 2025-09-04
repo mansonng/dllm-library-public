@@ -8,6 +8,8 @@ import ItemDetailPage from "./routes/Item.$id";
 import ItemRecentPage from "./routes/Item.recent";
 import ItemAllPage from "./routes/Item.all";
 import UserDetailPage from "./routes/User.$id";
+import TransactionsPage from "./routes/Transactions";
+import TransactionDetailPage from "./components/TransactionDetail";
 import { User } from "./generated/graphql";
 
 /*
@@ -66,6 +68,14 @@ export const createRouter = (email?: string | undefined | null, user?: User) =>
               element: <UserDetailPage />,
             },
           ],
+        },
+        {
+          path: "transactions",
+          element: <TransactionsPage />,
+        },
+        {
+          path: "transaction/:transactionId",
+          element: <TransactionDetailPage />,
         },
       ],
     },

@@ -15,8 +15,13 @@ import {
   Divider,
   CircularProgress,
   Alert,
+  IconButton,
+  Badge,
 } from "@mui/material";
-import { Person as PersonIcon } from "@mui/icons-material";
+import {
+  Person as PersonIcon,
+  Notifications as NotificationsIcon,
+} from "@mui/icons-material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
@@ -53,6 +58,20 @@ const GET_EXCHANGE_POINTS_COUNT = gql`
   }
 `;
 
+const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
+  query GetUserOpenTransactionsForCount($userId: ID!) {
+    openTransactionsByUser(userId: $userId) {
+      id
+      status
+      createdAt
+      item {
+        id
+        name
+      }
+    }
+  }
+`;
+
 interface ExchangePoint {
   id: string;
   nickname: string;
@@ -81,12 +100,26 @@ const HomePage: React.FC = () => {
   const [exchangePointsPage, setExchangePointsPage] = useState(1);
   const exchangePointsPerPage = 5;
 
+  // Query for user's open transactions to show notification count
+  const { data: transactionsData } = useQuery(
+    GET_USER_OPEN_TRANSACTIONS_FOR_COUNT,
+    {
+      variables: { userId: user?.id! },
+      skip: !user?.id,
+      pollInterval: 30000, // Poll every 30 seconds for new transactions
+    }
+  );
+
   const handleItemCreated = () => {
     refetch();
   };
 
   const handleUserClick = (userId: string) => {
     navigate(`/user/${userId}`);
+  };
+
+  const handleTransactionsClick = () => {
+    navigate("/transactions");
   };
 
   const [location, setLocation] = useState<{
@@ -172,6 +205,10 @@ const HomePage: React.FC = () => {
       )
     : 0;
 
+  // Calculate notification count
+  const notificationCount =
+    transactionsData?.openTransactionsByUser?.length || 0;
+
   return (
     <List>
       <ListItem>
@@ -187,11 +224,22 @@ const HomePage: React.FC = () => {
             <Typography sx={{ flex: 1 }}>
               {t("home.welcome", { nickname: user.nickname })}
             </Typography>
+
+            {/* Notifications Bell Icon */}
+            <IconButton
+              onClick={handleTransactionsClick}
+              sx={{ mr: 1 }}
+              title={t("transactions.viewTransactions", "View Transactions")}
+            >
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+
             {user?.isActive && (
               <Button
                 variant="contained"
                 startIcon={<PersonIcon />}
-                aria-label={t("home.profile")}
                 onClick={() => handleUserClick(user.id)}
               />
             )}
