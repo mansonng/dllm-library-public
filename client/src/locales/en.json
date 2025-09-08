@@ -11,6 +11,8 @@
     "forgotPassword": "Forgot Password?",
     "resetPassword": "Reset Password",
     "sendResetEmail": "Send Reset Email",
+    "verificationEmailSent": "Verification email sent.",
+    "resendVerification": "Resend Verification Email",
     "createProfile": "Create Profile",
     "cancel": "Cancel",
     "submit": "Submit"

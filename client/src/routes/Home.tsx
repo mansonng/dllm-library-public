@@ -30,6 +30,7 @@ import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { sendVerificationEmail } from "../firebase";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -281,12 +282,22 @@ const HomePage: React.FC = () => {
               <Typography sx={{ flex: 1 }}>
                 {t("home.welcome")} {email}
               </Typography>
-              {emailVerified && (
+              {emailVerified ? (
                 <Button
                   variant="contained"
                   onClick={() => setShowCreateUser(true)}
                 >
                   {t("auth.createProfile")}
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  onClick={async () => {
+                    await sendVerificationEmail();
+                    alert(t("auth.verificationEmailSent"));
+                  }}
+                >
+                  {t("auth.resendVerification", "Resend Verification Email")}
                 </Button>
               )}
               <Button variant="outlined" onClick={signOut}>
