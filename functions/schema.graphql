@@ -80,12 +80,11 @@ type Item {
   createdAt: Date!
   updatedAt: Date!
   transactions: [Transaction!] # 相關交易紀錄
-  # Keep this disabled until implementation is ready.
-  commentsConnection( first : Int, after : ID ) : ItemCommentsConnection!
 }
 
 type ItemComment {
-    content : String
+    id      : ID!
+    content : String!
 }
 
 # Connection object for item comments for pagination.
@@ -198,6 +197,11 @@ type Query {
   recentUpdateCategories(limit: Int): [String!]! # 最近更新的分類列表
   hotCategories(limit: Int): [String!]! # 熱門分類列表
   defaultCategories: [String!]! # 預設分類列表
+
+  # Query comments by itemId
+  # first - the number of comments to return.
+  # after - The ID of the first comment to return. Use null to return the first comment.
+  commentsByItemId( itemId : ID!, first : Int!, after: ID ) : ItemCommentsConnection!
 }
 
 # 變更

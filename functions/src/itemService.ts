@@ -1,7 +1,6 @@
 import { db, GetPublicUrlForGSFile } from "./platform";
 import {
   Item,
-  ItemCommentsConnection,
   Location,
   LocationInput,
   ItemCondition,
@@ -294,6 +293,7 @@ export class ItemService {
     return item;
   }
 
+  /* For creating a new item in resolver */
   async createItem(
     owner: User,
     name: string,
@@ -350,14 +350,6 @@ export class ItemService {
       language: language,
       created: Timestamp.now(),
       updated: Timestamp.now(),
-      commentsConnection: {
-        comments: [],
-        pageInfo: {
-          hasNextPage: false,
-          startCursor: "dummy",
-          endCursor: "dummy",
-        },
-      },
     };
 
     // Only add optional fields if they have valid values

@@ -17,6 +17,7 @@ import {
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
 import { CategoryService } from "./categoryService";
+import { CommentService } from "./commentService";
 
 interface Context {
   loginUser: LoginUser | null;
@@ -27,6 +28,7 @@ const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
+const commentService = new CommentService();
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -240,6 +242,14 @@ export const resolvers: Resolvers = {
     },
     defaultCategories: async (_: any, __: any): Promise<string[]> => {
       return categoryService.getDefaultCategories();
+    },
+      commentsByItemId: async (
+      _: any,
+      { itemId, first = 10, after }: any,
+      __: any
+    ) => {
+      // Returns dummy comments for any itemId
+      return commentService.commentsByItemId(itemId, first, after);
     },
   },
   Mutation: {
