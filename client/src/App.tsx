@@ -15,6 +15,7 @@ const ME_QUERY = gql`
       isVerified
       isActive
       role
+      exchangePoints
       nickname
       location {
         latitude

@@ -193,7 +193,14 @@
     "responsibility2": "在需要時將物品交給下一個申請人",
     "responsibility3": "如有要求，需將物品歸還給物主",
     "confirmReceiptInstructions": "只有在實際從當前持有者手中收到物品後，才點擊「已接收」。",
-    "received": "已接收"
+    "received": "已接收",
+    "selectExchangeLocation": "選擇交換地點",
+    "holderAddress": "持有者地址",
+    "requestorAddress": "您的地址",
+    "holderExchangePoint": "持有者的交換點",
+    "requestorExchangePoint": "您的交換點",
+    "selectExchangePoint": "選擇交換點",
+    "alreadyRequested": "您已經申請過此物品。"
   },
   "userProfile": {
     "nickname": "暱稱",

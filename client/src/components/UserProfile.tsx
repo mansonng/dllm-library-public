@@ -33,6 +33,11 @@ import {
 } from "../generated/graphql";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { LocationOn as LocationIcon } from "@mui/icons-material";
+import {
+  UPDATE_USER_MUTATION,
+  CREATE_USER_MUTATION,
+  GET_EXCHANGE_POINTS,
+} from "../hook/user";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -51,67 +56,6 @@ export const GET_GEO_DETAILS = gql`
       latitude
       longitude
       geohash
-    }
-  }
-`;
-
-export const UPDATE_USER_MUTATION = gql`
-  mutation UpdateUser(
-    $address: String
-    $nickname: String
-    $exchangePoints: [String!]
-  ) {
-    updateUser(
-      address: $address
-      nickname: $nickname
-      exchangePoints: $exchangePoints
-    ) {
-      id
-      address
-      nickname
-      createdAt
-      location {
-        latitude
-        longitude
-        geohash
-      }
-      isVerified
-      isActive
-      exchangePoints
-    }
-  }
-`;
-
-export const GET_EXCHANGE_POINTS = gql`
-  query GetExchangePoints($limit: Int, $offset: Int) {
-    exchangePoints(limit: $limit, offset: $offset) {
-      id
-      nickname
-      address
-      location {
-        latitude
-        longitude
-        geohash
-      }
-    }
-  }
-`;
-
-export const CREATE_USER_MUTATION = gql`
-  mutation CreateUser($email: String!, $address: String, $nickname: String) {
-    createUser(email: $email, address: $address, nickname: $nickname) {
-      id
-      email
-      address
-      nickname
-      createdAt
-      location {
-        latitude
-        longitude
-        geohash
-      }
-      isVerified
-      isActive
     }
   }
 `;

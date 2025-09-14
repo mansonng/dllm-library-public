@@ -13,6 +13,7 @@ import {
   Chip,
   Button,
   Card,
+  CardActionArea,
   CardContent,
   CardMedia,
   Divider,
@@ -33,6 +34,9 @@ import {
   LocationOn as LocationOnIcon,
   CalendarToday as CalendarTodayIcon,
   Email as EmailIcon,
+  AccountBox as AccountBoxIcon,
+  PersonAdd as PersonAddIcon,
+  Home as HomeIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
@@ -66,6 +70,7 @@ const GET_TRANSACTION = gql`
         condition
         category
         ownerId
+        holderId
         location {
           latitude
           longitude
@@ -85,6 +90,25 @@ const GET_TRANSACTION = gql`
           longitude
         }
         address
+      }
+      receiver {
+        id
+        nickname
+        email
+        contactMethods {
+          type
+          value
+          isPublic
+        }
+        location {
+          latitude
+          longitude
+        }
+        address
+      }
+      location {
+        latitude
+        longitude
       }
     }
   }
@@ -170,6 +194,10 @@ const TransactionDetailPage: React.FC = () => {
     }
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
   const getStatusIcon = (status: TransactionStatus) => {
     switch (status) {
       case TransactionStatus.Pending:
@@ -216,6 +244,7 @@ const TransactionDetailPage: React.FC = () => {
 
   const isOwner = user?.id === data?.transaction?.item?.ownerId;
   const isRequestor = user?.id === data?.transaction?.requestor?.id;
+  const isReceiver = user?.id === data?.transaction?.receiver?.id;
 
   if (loading) {
     return (
@@ -251,6 +280,10 @@ const TransactionDetailPage: React.FC = () => {
   }
 
   const transaction = data.transaction;
+  const location = transaction.location || transaction.item?.location;
+  const holder = transaction.item?.holderId
+    ? { id: transaction.item.holderId }
+    : null;
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -316,125 +349,261 @@ const TransactionDetailPage: React.FC = () => {
         </Typography>
 
         <Card elevation={0} sx={{ border: 1, borderColor: "divider" }}>
-          <Grid container>
-            {transaction.item?.images?.[0] && (
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={
-                    transaction.item.thumbnails?.[0] ||
-                    transaction.item.images[0]
-                  }
-                  alt={transaction.item.name}
-                  sx={{ objectFit: "cover" }}
-                />
+          <CardActionArea
+            onClick={() => handleNavigate(`/item/${transaction.item.id}`)}
+            title={t("item.viewDetail", "View item detail")}
+          >
+            <Grid container>
+              {transaction.item?.images?.[0] && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={
+                      transaction.item.thumbnails?.[0] ||
+                      transaction.item.images[0]
+                    }
+                    alt={transaction.item.name}
+                    sx={{ objectFit: "cover" }}
+                  />
+                </Grid>
+              )}
+              <Grid
+                size={{ xs: 12, sm: transaction.item?.images?.[0] ? 8 : 12 }}
+              >
+                <CardContent>
+                  <Typography variant="h6" component="h3">
+                    {transaction.item?.name}
+                  </Typography>
+                  {transaction.item?.description && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1 }}
+                    >
+                      {transaction.item.description}
+                    </Typography>
+                  )}
+                  {transaction.item?.category && (
+                    <Box sx={{ mt: 2 }}>
+                      {transaction.item.category.map((cat) => (
+                        <Chip
+                          key={cat}
+                          label={cat}
+                          size="small"
+                          sx={{ mr: 1, mb: 1 }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                  {transaction.item?.condition && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      <strong>{t("item.condition", "Condition")}:</strong>{" "}
+                      {transaction.item.condition}
+                    </Typography>
+                  )}
+                </CardContent>
               </Grid>
-            )}
-            <Grid size={{ xs: 12, sm: transaction.item?.images?.[0] ? 8 : 12 }}>
-              <CardContent>
-                <Typography variant="h6" component="h3">
-                  {transaction.item?.name}
-                </Typography>
-                {transaction.item?.description && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    {transaction.item.description}
-                  </Typography>
-                )}
-                {transaction.item?.category && (
-                  <Box sx={{ mt: 2 }}>
-                    {transaction.item.category.map((cat) => (
-                      <Chip
-                        key={cat}
-                        label={cat}
-                        size="small"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                    ))}
-                  </Box>
-                )}
-                {transaction.item?.condition && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                    {transaction.item.condition}
-                  </Typography>
-                )}
-              </CardContent>
             </Grid>
-          </Grid>
+          </CardActionArea>
         </Card>
       </Paper>
 
-      {/* Requestor Info */}
+      {/* Participants Info */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
         <Typography
           variant="h6"
           sx={{ mb: 2, display: "flex", alignItems: "center" }}
         >
           <PersonIcon sx={{ mr: 1 }} />
-          {t("transactions.requestorInfo", "Requestor Information")}
+          {t("transactions.participants", "Participants")}
         </Typography>
 
-        <List>
-          <ListItem sx={{ px: 0 }}>
-            <ListItemIcon>
-              <PersonIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary={t("user.nickname", "Nickname")}
-              secondary={
-                transaction.requestor?.nickname || t("user.notSet", "Not set")
+        <Grid container spacing={2}>
+          {/* Requestor */}
+          <Grid size={{ xs: 12, md: transaction.receiver ? 4 : 6 }}>
+            <Card
+              elevation={0}
+              sx={{
+                border: 1,
+                borderColor: "primary.light",
+                height: "100%",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
+              onClick={() =>
+                handleNavigate(`/user/${transaction.requestor?.id}`)
               }
-            />
-          </ListItem>
-          <ListItem sx={{ px: 0 }}>
-            <ListItemIcon>
-              <EmailIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary={t("user.email", "Email")}
-              secondary={transaction.requestor?.email}
-            />
-          </ListItem>
-          {transaction.requestor?.address && (
-            <ListItem sx={{ px: 0 }}>
-              <ListItemIcon>
-                <LocationOnIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary={t("user.address", "Address")}
-                secondary={transaction.requestor.address}
-              />
-            </ListItem>
-          )}
-        </List>
+              title={t("user.viewProfile", "View user profile")}
+            >
+              <CardContent>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ mb: 1, color: "primary.main", fontWeight: "bold" }}
+                >
+                  {t("transactions.requestorInfo", "Requestor")}
+                </Typography>
+                <ListItem sx={{ px: 0 }}>
+                  <ListItemIcon>
+                    <PersonIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t("user.nickname", "Nickname")}
+                    secondary={
+                      transaction.requestor?.nickname ||
+                      t("user.notSet", "Not set")
+                    }
+                  />
+                </ListItem>
+                <ListItem sx={{ px: 0 }}>
+                  <ListItemIcon>
+                    <EmailIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t("user.email", "Email")}
+                    secondary={transaction.requestor?.email}
+                  />
+                </ListItem>
+                {transaction.requestor?.address && (
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon>
+                      <HomeIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={t("user.address", "Address")}
+                      secondary={transaction.requestor.address}
+                    />
+                  </ListItem>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Contact Methods - Only show to item owner */}
-        {isOwner && transaction.requestor?.contactMethods && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              {t("user.contactMethods", "Contact Methods")}:
-            </Typography>
-            {transaction.requestor.contactMethods
-              .filter((contact) => contact.isPublic)
-              .map((contact, index) => (
-                <Chip
-                  key={index}
-                  label={`${contact.type}: ${contact.value}`}
-                  size="small"
-                  sx={{ mr: 1, mb: 1 }}
-                />
-              ))}
-          </Box>
-        )}
+          {/* Receiver (if different from requestor) */}
+          {transaction.receiver &&
+            transaction.receiver.id !== transaction.requestor?.id && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    border: 1,
+                    borderColor: "secondary.light",
+                    height: "100%",
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "action.hover",
+                    },
+                  }}
+                  onClick={() =>
+                    handleNavigate(`/user/${transaction.receiver?.id}`)
+                  }
+                  title={t("user.viewProfile", "View user profile")}
+                >
+                  <CardContent>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        mb: 1,
+                        color: "secondary.main",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {t("transactions.receiverInfo", "Receiver")}
+                    </Typography>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon>
+                        <PersonAddIcon color="secondary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={t("user.nickname", "Nickname")}
+                        secondary={
+                          transaction.receiver?.nickname ||
+                          t("user.notSet", "Not set")
+                        }
+                      />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon>
+                        <EmailIcon color="secondary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={t("user.email", "Email")}
+                        secondary={transaction.receiver?.email}
+                      />
+                    </ListItem>
+                    {transaction.receiver?.address && (
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon>
+                          <HomeIcon color="secondary" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={t("user.address", "Address")}
+                          secondary={transaction.receiver.address}
+                        />
+                      </ListItem>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
+          {/* Current Holder/Owner */}
+          <Grid size={{ xs: 12, md: transaction.receiver ? 4 : 6 }}>
+            <Card
+              elevation={0}
+              sx={{
+                border: 1,
+                borderColor: "info.light",
+                height: "100%",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
+              onClick={() =>
+                handleNavigate(`/user/${transaction.item.ownerId}`)
+              }
+              title={t("user.viewProfile", "View user profile")}
+            >
+              <CardContent>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ mb: 1, color: "info.main", fontWeight: "bold" }}
+                >
+                  {holder
+                    ? t("transactions.holderInfo", "Current Holder")
+                    : t("transactions.ownerInfo", "Owner")}
+                </Typography>
+                <ListItem sx={{ px: 0 }}>
+                  <ListItemIcon>
+                    <AccountBoxIcon color="info" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      holder
+                        ? t("item.holder", "Holder")
+                        : t("item.owner", "Owner")
+                    }
+                    secondary={
+                      holder
+                        ? t(
+                            "transactions.holderIsRequestor",
+                            "Requestor has the item"
+                          )
+                        : t("transactions.ownerHasItem", "Owner has the item")
+                    }
+                  />
+                </ListItem>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Paper>
 
       {/* Exchange Location Map */}
-      {transaction.item?.location && (
+      {location && (
         <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
           <Typography
             variant="h6"
@@ -453,10 +622,7 @@ const TransactionDetailPage: React.FC = () => {
             }}
           >
             <MapContainer
-              center={[
-                transaction.item.location.latitude,
-                transaction.item.location.longitude,
-              ]}
+              center={[location.latitude, location.longitude]}
               zoom={15}
               style={{ height: "100%", width: "100%" }}
             >
@@ -464,12 +630,7 @@ const TransactionDetailPage: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker
-                position={[
-                  transaction.item.location.latitude,
-                  transaction.item.location.longitude,
-                ]}
-              >
+              <Marker position={[location.latitude, location.longitude]}>
                 <Popup>
                   <Typography variant="body2">
                     {t("transactions.exchangePoint", "Exchange Point")}
@@ -525,27 +686,65 @@ const TransactionDetailPage: React.FC = () => {
               </Button>
             </>
           )}
-
-          {isOwner && transaction.status === TransactionStatus.Approved && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleAction("transfer", transferTransaction)}
-              disabled={actionLoading === "transfer"}
-              startIcon={
-                actionLoading === "transfer" ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <LocalShippingIcon />
-                )
-              }
-            >
-              {t("transactions.transfer", "Mark as Transferred")}
-            </Button>
-          )}
+          {transaction.status === TransactionStatus.Approved ? (
+            <>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleAction("cancel", cancelTransaction)}
+                disabled={actionLoading === "cancel"}
+                startIcon={
+                  actionLoading === "cancel" ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <CancelIcon />
+                  )
+                }
+              >
+                {t("transactions.cancel", "Cancel")}
+              </Button>
+              {isOwner && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleAction("transfer", transferTransaction)}
+                  disabled={actionLoading === "transfer"}
+                  startIcon={
+                    actionLoading === "transfer" ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <LocalShippingIcon />
+                    )
+                  }
+                >
+                  {t("transactions.transfer", "Mark as Transferred")}
+                </Button>
+              )}
+            </>
+          ) : null}
 
           {/* Requestor Actions */}
           {isRequestor &&
+            transaction.status === TransactionStatus.Transfered && (
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => handleAction("receive", receiveTransaction)}
+                disabled={actionLoading === "receive"}
+                startIcon={
+                  actionLoading === "receive" ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <DoneIcon />
+                  )
+                }
+              >
+                {t("transactions.receive", "Confirm Received")}
+              </Button>
+            )}
+
+          {/* Receiver Actions */}
+          {isReceiver &&
             transaction.status === TransactionStatus.Transfered && (
               <Button
                 variant="contained"
@@ -590,7 +789,8 @@ const TransactionDetailPage: React.FC = () => {
                 transaction.status === TransactionStatus.Approved)) ||
             (isRequestor &&
               (transaction.status === TransactionStatus.Pending ||
-                transaction.status === TransactionStatus.Transfered))
+                transaction.status === TransactionStatus.Transfered)) ||
+            (isReceiver && transaction.status === TransactionStatus.Transfered)
           ) && (
             <Alert severity="info" sx={{ mt: 2 }}>
               {t(

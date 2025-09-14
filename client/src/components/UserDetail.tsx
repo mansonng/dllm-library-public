@@ -40,35 +40,8 @@ import ItemSummary from "./ItemSummary";
 import PaginationControls from "./PaginationControls";
 import { TagCloud } from "react-tagcloud";
 import UpdateUser from "./UserProfile";
-
-const USER_DETAIL_QUERY = gql`
-  query User($userId: ID!) {
-    user(id: $userId) {
-      createdAt
-      email
-      id
-      nickname
-      address
-      isVerified
-      isActive
-      role
-      exchangePoints
-      itemCategory {
-        category
-        count
-      }
-      contactMethods {
-        type
-        value
-        isPublic
-      }
-      location {
-        latitude
-        longitude
-      }
-    }
-  }
-`;
+import { USER_DETAIL_QUERY } from "../hook/user";
+// GraphQL query to fetch user's items with pagination and category filter}
 
 const USER_ITEMS_QUERY = gql`
   query ItemsByUser(

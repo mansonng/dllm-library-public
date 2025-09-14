@@ -187,7 +187,14 @@
     "responsibility3": "Returning the item to the original owner if requested",
     "confirmReceiptInstructions": "Please only click 'Received' after you have physically received the item from the current holder.",
     "received": "Received",
-    "editItem": "Edit Item"
+    "editItem": "Edit Item",
+    "selectExchangeLocation": "Select Exchange Location",
+    "holderAddress": "Holder's Address",
+    "requestorAddress": "Your Address",
+    "holderExchangePoint": "Holder's Exchange Point",
+    "requestorExchangePoint": "Your Exchange Point",
+    "selectExchangePoint": "Select Exchange Point",
+    "alreadyRequested": "You have already requested this item."
   },
   "languages": {
     "en": "English",
@@ -223,7 +230,8 @@
     "includeExchangePointItems": "Include Exchange Point Cached Items",
     "exchangePointItemsHelper": "When enabled, includes items cached at your exchange point in addition to your personal items.",
     "selectCategoryToViewItems": "Select a category below to view items.",
-    "noCategories": "No categories available"
+    "noCategories": "No categories available",
+    "addressNotSet": "Address not set"
   },
   "transactions": {
     "title": "My Transactions",

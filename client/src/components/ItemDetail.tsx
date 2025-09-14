@@ -14,7 +14,6 @@ import {
   Snackbar,
   Card,
   CardContent,
-  CardActions,
   Modal,
   Backdrop,
   Fade,
@@ -38,6 +37,7 @@ import {
   Transaction,
   User,
   TransactionStatus,
+  TransactionLocation,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -67,8 +67,16 @@ const ITEM_DETAIL_QUERY = gql`
 `;
 
 const CREATE_TRANSACTION_MUTATION = gql`
-  mutation CreateTransaction($itemId: ID!) {
-    createTransaction(itemId: $itemId) {
+  mutation CreateTransaction(
+    $itemId: ID!
+    $location: TransactionLocation!
+    $locationIndex: Int
+  ) {
+    createTransaction(
+      itemId: $itemId
+      location: $location
+      locationIndex: $locationIndex
+    ) {
       id
       status
       createdAt
@@ -90,6 +98,7 @@ const USER_QUERY = gql`
         isPublic
       }
       address
+      exchangePoints
       location {
         latitude
         longitude
@@ -113,43 +122,6 @@ const OPEN_TRANSACTIONS_QUERY = gql`
     }
   }
 `;
-
-const APPROVE_TRANSACTION_MUTATION = gql`
-  mutation ApproveTransactionForItem($transactionId: ID!) {
-    approveTransaction(id: $transactionId) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
-const CANCEL_TRANSACTION_MUTATION = gql`
-  mutation CancelTransactionForItem($transactionId: ID!) {
-    cancelTransaction(id: $transactionId)
-  }
-`;
-
-const TRANSFER_TRANSACTION_MUTATION = gql`
-  mutation TransferTransactionForItem($transactionId: ID!) {
-    transferTransaction(id: $transactionId) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
-const RECEIVE_TRANSACTION_MUTATION = gql`
-  mutation ReceiveTransactionForItem($transactionId: ID!) {
-    receiveTransaction(id: $transactionId) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -218,64 +190,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       },
     });
 
-  const [approveTransaction, { loading: approveLoading }] = useMutation(
-    APPROVE_TRANSACTION_MUTATION,
-    {
-      onCompleted: () => {
-        setSuccessSnackbarOpen(true);
-        refetchTransactions();
-      },
-      onError: (error) => {
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
-      },
-    }
-  );
-
-  const [cancelTransaction, { loading: cancelLoading }] = useMutation(
-    CANCEL_TRANSACTION_MUTATION,
-    {
-      onCompleted: () => {
-        setSuccessSnackbarOpen(true);
-        refetchTransactions();
-      },
-      onError: (error) => {
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
-      },
-    }
-  );
-
-  // Add the transfer mutation
-  const [transferTransaction, { loading: transferLoading }] = useMutation(
-    TRANSFER_TRANSACTION_MUTATION,
-    {
-      onCompleted: () => {
-        setSuccessSnackbarOpen(true);
-        refetchTransactions();
-      },
-      onError: (error) => {
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
-      },
-    }
-  );
-
-  // Add the receive transaction mutation
-  const [receiveTransaction, { loading: receiveLoading }] = useMutation(
-    RECEIVE_TRANSACTION_MUTATION,
-    {
-      onCompleted: () => {
-        setSuccessSnackbarOpen(true);
-        refetchTransactions();
-      },
-      onError: (error) => {
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
-      },
-    }
-  );
-
   const isOwner = user && data?.item.ownerId === user.id;
   const isHolder =
     user &&
@@ -331,57 +245,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     setRequestDialogOpen(true);
   };
 
-  const handleConfirmRequest = async () => {
+  const handleConfirmRequest = async (
+    location: TransactionLocation,
+    locationIndex?: number
+  ) => {
     if (!itemId) return;
 
     try {
       await createTransaction({
-        variables: { itemId },
+        variables: { itemId, location, locationIndex: locationIndex || 0 },
       });
     } catch (error) {
       console.error("Error creating transaction:", error);
     }
   };
 
-  const handleApproveTransaction = async (transactionId: string) => {
-    try {
-      await approveTransaction({
-        variables: { transactionId },
-      });
-    } catch (error) {
-      console.error("Error approving transaction:", error);
-    }
-  };
-
-  const handleRejectTransaction = async (transactionId: string) => {
-    try {
-      await cancelTransaction({
-        variables: { transactionId },
-      });
-    } catch (error) {
-      console.error("Error rejecting transaction:", error);
-    }
-  };
-
-  const handleCompleteTransfer = async (transactionId: string) => {
-    try {
-      await transferTransaction({
-        variables: { transactionId },
-      });
-    } catch (error) {
-      console.error("Error completing transfer:", error);
-    }
-  };
-
-  const handleReceiveItem = async (transactionId: string) => {
-    try {
-      await receiveTransaction({
-        variables: { transactionId },
-      });
-    } catch (error) {
-      console.error("Error receiving item:", error);
-    }
-  };
   const handleCloseRequestDialog = () => {
     setRequestDialogOpen(false);
   };
@@ -581,42 +459,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     </Typography>
                   )}
                 </CardContent>
-
-                <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<RejectIcon />}
-                    onClick={() =>
-                      handleRejectTransaction(oldestTransaction?.id)
-                    }
-                    disabled={cancelLoading || approveLoading}
-                    size="large"
-                  >
-                    {cancelLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      t("item.reject")
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<ApproveIcon />}
-                    onClick={() =>
-                      handleApproveTransaction(oldestTransaction?.id)
-                    }
-                    disabled={approveLoading || cancelLoading}
-                    size="large"
-                  >
-                    {approveLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      t("item.approve")
-                    )}
-                  </Button>
-                </CardActions>
               </Card>
             )}
 
@@ -662,25 +504,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {t("item.transferInstructions")}
                   </Alert>
                 </CardContent>
-
-                <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<TransferIcon />}
-                    onClick={() =>
-                      handleCompleteTransfer(oldestTransaction?.id)
-                    }
-                    disabled={transferLoading}
-                    size="large"
-                  >
-                    {transferLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      t("item.completeTransfer")
-                    )}
-                  </Button>
-                </CardActions>
               </Card>
             )}
 
@@ -751,23 +574,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {t("item.confirmReceiptInstructions")}
                   </Alert>
                 </CardContent>
-
-                <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="info"
-                    startIcon={<ReceiveIcon />}
-                    onClick={() => handleReceiveItem(oldestTransaction?.id)}
-                    disabled={receiveLoading}
-                    size="large"
-                  >
-                    {receiveLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      t("item.received")
-                    )}
-                  </Button>
-                </CardActions>
               </Card>
             )}
 
@@ -1035,6 +841,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         item={data?.item || null}
         owner={ownerData?.user || null}
         holder={holderData?.user || null}
+        requestor={user || null}
         existingTransactions={openTransactions}
         transactionsLoading={transactionsLoading}
       />
