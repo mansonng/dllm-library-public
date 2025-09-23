@@ -505,7 +505,7 @@ export class ItemService {
       existingData.description = description;
     }
 
-    if (deposit && existingData.deposit !== deposit) {
+    if (deposit !== undefined && existingData.deposit !== deposit) {
       updateData.deposit = deposit;
       existingData.deposit = deposit;
     }
