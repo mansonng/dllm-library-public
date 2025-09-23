@@ -295,6 +295,10 @@ export class ItemService {
       });
     }
 
+    if (data.deposit === undefined || data.deposit === null) {
+      data.deposit = 0; // default to 0 if not set
+    }
+
     const item: Item = {
       id: itemId,
       createdAt: data.created.seconds * 1000,
@@ -314,7 +318,8 @@ export class ItemService {
     status: ItemStatus,
     images: string[],
     publishedYear: number,
-    language: Language
+    language: Language,
+    deposit: number
   ): Promise<Item> {
     let hash = null;
     if (owner?.location) {
@@ -359,6 +364,7 @@ export class ItemService {
       category: category,
       status: status,
       language: language,
+      deposit: deposit,
       created: Timestamp.now(),
       updated: Timestamp.now(),
     };
@@ -426,7 +432,8 @@ export class ItemService {
     publishedYear?: number,
     language?: Language,
     description?: string,
-    images?: string[]
+    images?: string[],
+    deposit?: number
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await db.collection("items").doc(itemId).get();
@@ -496,6 +503,11 @@ export class ItemService {
     if (description && existingData.description !== description) {
       updateData.description = description;
       existingData.description = description;
+    }
+
+    if (deposit !== undefined && existingData.deposit !== deposit) {
+      updateData.deposit = deposit;
+      existingData.deposit = deposit;
     }
 
     // Handle category changes with comparison
