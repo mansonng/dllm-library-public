@@ -42,7 +42,7 @@ const CREATE_ITEM_MUTATION = gql`
     $language: Language!
     $publishedYear: Int
     $status: ItemStatus!
-    $deposite: Int
+    $deposit: Int
   ) {
     createItem(
       name: $name
@@ -53,7 +53,7 @@ const CREATE_ITEM_MUTATION = gql`
       language: $language
       publishedYear: $publishedYear
       status: $status
-      deposite: $deposite
+      deposit: $deposit
     ) {
       id
       name
@@ -67,7 +67,7 @@ const CREATE_ITEM_MUTATION = gql`
       createdAt
       ownerId
       updatedAt
-      deposite
+      deposit
     }
   }
 `;
@@ -92,7 +92,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
   const [category, setCategory] = useState<string>("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
   const [description, setDescription] = useState("");
-  const [deposite, setDeposite] = useState<number>(0);
+  const [deposit, setdeposit] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [language, setLanguage] = useState<Language>(Language.En);
   const [publishedYear, setPublishedYear] = useState<number | "">("");
@@ -140,7 +140,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     setProcessingProgress(0);
     setIsUploading(false);
     setUploadProgress(0);
-    setDeposite(0);
+    setdeposit(0);
   };
 
   const handleFileSelect = async (
@@ -328,7 +328,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         condition,
         language,
         status,
-        deposite,
+        deposit,
       };
 
       // Only add optional fields if they have actual values
@@ -429,14 +429,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             />
 
             <TextField
-              label={t("item.desposite")}
+              label={t("item.deposit")}
               fullWidth
               margin="normal"
               required
               type="number"
-              value={deposite}
-              onChange={(e) => setDeposite(Number(e.target.value))}
-              helperText={t("item.despositeHelper")}
+              value={deposit}
+              onChange={(e) => setdeposit(Number(e.target.value))}
+              helperText={t("item.depositHelper")}
             />
 
             {/* Image Upload Section */}

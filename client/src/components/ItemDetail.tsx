@@ -62,7 +62,7 @@ const ITEM_DETAIL_QUERY = gql`
       createdAt
       ownerId
       holderId
-      deposite
+      deposit
     }
   }
 `;
@@ -394,8 +394,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposite", "Deposite")}: ${
-                    data.item.deposite
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
                   }`}
                   color="secondary"
                   size="small"

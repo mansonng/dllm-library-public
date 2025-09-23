@@ -296,7 +296,7 @@ export const resolvers: Resolvers = {
         args.images,
         args.publishedYear,
         args.language,
-        args.deposite
+        args.deposit
       );
       await userService.addItemToUser(owner, newItem);
       return newItem;
@@ -320,7 +320,7 @@ export const resolvers: Resolvers = {
         args.language,
         args.description,
         args.images,
-        args.deposite
+        args.deposit
       );
     },
     createNewsPost: async (

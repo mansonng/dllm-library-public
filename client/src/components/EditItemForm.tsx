@@ -48,7 +48,7 @@ const EDIT_ITEM_MUTATION = gql`
     $language: Language
     $publishedYear: Int
     $status: ItemStatus
-    $deposite: Int
+    $deposit: Int
   ) {
     updateItem(
       id: $id
@@ -60,7 +60,7 @@ const EDIT_ITEM_MUTATION = gql`
       language: $language
       publishedYear: $publishedYear
       status: $status
-      deposite: $deposite
+      deposit: $deposit
     ) {
       id
       name
@@ -74,7 +74,7 @@ const EDIT_ITEM_MUTATION = gql`
       createdAt
       ownerId
       updatedAt
-      deposite
+      deposit
     }
   }
 `;
@@ -114,7 +114,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
   const [formError, setFormError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>(Language.En);
-  const [deposite, setDeposite] = useState<number>(0);
+  const [deposit, setdeposit] = useState<number>(0);
 
   // Store original values for comparison
   const [originalValues, setOriginalValues] = useState<{
@@ -171,7 +171,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
       setPublishedYear(itemPublishedYear);
       setStatus(itemStatus);
       setLanguage(itemLanguage);
-      setDeposite(item.deposite || 0);
+      setdeposit(item.deposit || 0);
 
       // Store original values for comparison
       setOriginalValues({
@@ -222,7 +222,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
     setProcessingProgress(0);
     setIsUploading(false);
     setUploadProgress(0);
-    setDeposite(0);
+    setdeposit(0);
     setLanguage(Language.En);
     onClose();
   };
@@ -461,8 +461,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         variables.language = language;
       }
 
-      if (deposite !== item.deposite) {
-        variables.deposite = deposite;
+      if (deposit !== item.deposit) {
+        variables.deposit = deposit;
       }
 
       const currentDescription = description?.trim() || null;
@@ -581,14 +581,14 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
           />
 
           <TextField
-            label={t("item.desposite")}
+            label={t("item.deposit")}
             fullWidth
             margin="normal"
             required
             type="number"
-            value={deposite}
-            onChange={(e) => setDeposite(Number(e.target.value))}
-            helperText={t("item.despositeHelper")}
+            value={deposit}
+            onChange={(e) => setdeposit(Number(e.target.value))}
+            helperText={t("item.depositHelper")}
           />
 
           {/* Image Upload Section */}
