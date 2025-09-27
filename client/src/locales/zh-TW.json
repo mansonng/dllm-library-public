@@ -103,6 +103,7 @@
     "publishedYearHelper": "可選：輸入四位數年份，例如：2024",
     "status": "情況",
     "nameAndCategoryRequired": "名稱和類別為必填項。",
+    "nameRequired": "名稱為必填項。",
     "createItemError": "創建項目失敗。請重試。",
     "fileNotImage": "檔案 {{fileName}} 不是圖片",
     "fileTooLarge": "檔案 {{fileName}} 太大。最大大小為 50MB",

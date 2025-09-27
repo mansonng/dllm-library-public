@@ -156,9 +156,9 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   useEffect(() => {
     if (item && open) {
       const itemName = item.name || "";
-      const itemCategory = item.category?.join(", ") || "";
+      const itemCategory = item.category?.filter(cat => cat !== "Uncategorized").join(", ") || "";
       const itemCondition = item.condition || ItemCondition.Good;
-      const itemDescription = item.description || "";
+      const itemDescription = item.description?.replace(/#Uncategorized\b/gi, '') || "";
       const itemPublishedYear = item.publishedYear ?? "";
       const itemStatus = item.status || ItemStatus.Available;
       const itemLanguage = item.language || Language.En;
@@ -335,10 +335,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
               return idx === actualIndex
                 ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
+                  ...img,
+                  isUploading: true,
+                  uploadProgress: progress.percentage,
+                }
                 : img;
             })
           );
@@ -358,11 +358,11 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
               return idx === actualIndex
                 ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
+                  ...img,
+                  isUploading: false,
+                  uploadProgress: 100,
+                  gsUrl: gsUrl,
+                }
                 : img;
             })
           );
@@ -380,10 +380,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         prev.map((img, _) =>
           !img.isExisting && !img.gsUrl
             ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
+              ...img,
+              isUploading: false,
+              uploadError: `Upload failed: ${error}`,
+            }
             : img
         )
       );
@@ -397,8 +397,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
     if (!item?.id || !originalValues) return;
 
-    if (!name.trim() || !category.trim()) {
-      setFormError(t("item.nameAndCategoryRequired"));
+    if (!name.trim()) {
+      setFormError(t("item.nameRequired"));
       return;
     }
 
@@ -449,6 +449,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         variables.category = currentCategory;
       }
 
+
       if (condition !== originalValues.condition) {
         variables.condition = condition;
       }
@@ -479,6 +480,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
           variables.category = [...(variables.category || []), ...hashtags];
         }
       }
+
+      if ((!variables.category || variables.category.length === 0) && !item.category?.includes("Uncategorized")) variables.category = ["Uncategorized"];
 
       const currentPublishedYear =
         publishedYear === "" ? null : Number(publishedYear);
@@ -547,7 +550,6 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
             label={t("item.categoryCommaSeparated")}
             fullWidth
             margin="normal"
-            required
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             helperText={t("item.categoryHelper")}
@@ -736,10 +738,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
             {isProcessingImages
               ? t("common.processingImages")
               : isUploading
-              ? t("common.uploading")
-              : updateLoading
-              ? t("common.updating")
-              : t("common.save")}
+                ? t("common.uploading")
+                : updateLoading
+                  ? t("common.updating")
+                  : t("common.save")}
           </Button>
 
           <Button
