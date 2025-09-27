@@ -260,8 +260,7 @@
         "telegramFormat": "請使用 Telegram 連結格式",
         "duplicate": "此聯絡方法已存在"
       }
-    },
-    // contact method placeholders and helpers moved to root-level sections
+    }
   },
   "contactMethod": {
     "phone": "電話",
