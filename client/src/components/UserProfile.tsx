@@ -33,6 +33,7 @@ import {
   Switch,
   Chip,
   SvgIcon,
+  Snackbar,
 } from "@mui/material";
 import {
   UpdateUserMutation,
@@ -167,6 +168,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     formattedAddress: string;
   } | null>(null);
 
+  const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(
@@ -190,6 +192,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     UPDATE_USER_MUTATION,
     {
       onCompleted: (data) => {
+        setShowSuccessSnackbar(true);
         if (onUserCreated) onUserCreated(data);
         handleClose();
         resetForm();
@@ -236,6 +239,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
     setLocationError(null);
   };
 
+  const handleCloseSuccessSnackbar = () => {
+    setShowSuccessSnackbar(false);
+  };
+
+  // Update internal state when props change
   useEffect(() => {
     setInternalOpen(open);
   }, [open]);
@@ -940,13 +948,22 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </DialogActions>
       </Dialog>
 
-      {data && (
-        <Alert severity="success" sx={{ mt: 2 }}>
+      <Snackbar
+        open={showSuccessSnackbar}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccessSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSuccessSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
           {isCreateUser
             ? t("userProfile.createSuccess")
             : t("userProfile.updateSuccess")}
         </Alert>
-      )}
+      </Snackbar>
     </Box>
   );
 };

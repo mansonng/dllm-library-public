@@ -114,6 +114,7 @@
     "publishedYearHelper": "Optional: Enter a 4-digit year, e.g. 2024",
     "status": "Status",
     "nameAndCategoryRequired": "Name and category are required.",
+    "nameRequired": "Name is required.",
     "createItemError": "Failed to create item. Please try again.",
     "fileNotImage": "File {{fileName}} is not an image",
     "fileTooLarge": "File {{fileName}} is too large. Maximum size is 50MB",
