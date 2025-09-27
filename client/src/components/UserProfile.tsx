@@ -55,6 +55,14 @@ import {
   Public as PublicIcon,
   Lock as PrivateIcon,
 } from "@mui/icons-material";
+import {
+  UPDATE_USER_MUTATION,
+  CREATE_USER_MUTATION,
+  GET_EXCHANGE_POINTS,
+} from "../hook/user";
+import ContactMethods from "./ContactMethods";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 // Create custom icons for social platforms that don't have default MUI icons
 const SignalIcon = (props: any) => (
@@ -68,13 +76,6 @@ const TelegramIcon = (props: any) => (
     <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
   </SvgIcon>
 );
-import {
-  UPDATE_USER_MUTATION,
-  CREATE_USER_MUTATION,
-  GET_EXCHANGE_POINTS,
-} from "../hook/user";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -142,7 +143,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [selectedExchangePoints, setSelectedExchangePoints] = useState<
     string[]
   >(initialExchangePoints || []);
-  const [contactMethods, setContactMethods] = useState<ContactMethodForm[]>(
+  const [contactMethods, setContactMethods] = useState<any[]>(
     initialContactMethods?.map((cm) => ({
       type: cm.type,
       value: cm.value,
@@ -328,25 +329,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
     setMapDialogOpen(true);
   };
 
-  // Contact Method handlers
-  const handleAddContactMethod = () => {
-    setNewContactMethod({
-      type: ContactMethodType.Email,
-      value: "",
-      isPublic: false,
-    });
-    setEditingContactMethodIndex(null);
-    setContactMethodDialogOpen(true);
-  };
-
-  const handleEditContactMethod = (index: number) => {
-    setNewContactMethod(contactMethods[index]);
-    setEditingContactMethodIndex(index);
-    setContactMethodDialogOpen(true);
-  };
-
-  const handleDeleteContactMethod = (index: number) => {
-    setContactMethods((prev) => prev.filter((_, i) => i !== index));
+  const handleContactMethodsChange = (methods: any[]) => {
+    setContactMethods(methods);
   };
 
   // Validation functions
@@ -741,103 +725,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
             {!isCreateUser && (
               <Box sx={{ mt: 3 }}>
                 <Divider sx={{ mb: 2 }} />
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="h6">
-                    {t("userProfile.contactMethods", "Contact Methods")}
-                  </Typography>
-                  <Button
-                    startIcon={<AddIcon />}
-                    onClick={handleAddContactMethod}
-                    variant="outlined"
-                    size="small"
-                  >
-                    {t("userProfile.addContactMethod", "Add Contact Method")}
-                  </Button>
-                </Box>
-
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  {t(
-                    "userProfile.contactMethodsHelper",
-                    "Add contact methods for other users to reach you when needed"
+                <ContactMethods
+                  contactMethods={contactMethods}
+                  onContactMethodsChange={handleContactMethodsChange}
+                  readOnly={false}
+                  title={t(
+                    "userProfile.contactMethods.title",
+                    "Contact Methods"
                   )}
-                </Typography>
-
-                {contactMethods.length === 0 ? (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "userProfile.noContactMethods",
-                      "No contact methods added yet. Add some to help others contact you."
-                    )}
-                  </Alert>
-                ) : (
-                  <List>
-                    {contactMethods.map((method, index) => (
-                      <ListItem key={index} divider>
-                        <ListItemText
-                          primary={
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <Chip
-                                icon={
-                                  method.isPublic ? (
-                                    <PublicIcon />
-                                  ) : (
-                                    <PrivateIcon />
-                                  )
-                                }
-                                label={
-                                  method.isPublic
-                                    ? t("common.public")
-                                    : t("common.private")
-                                }
-                                size="small"
-                                color={method.isPublic ? "success" : "default"}
-                                variant="outlined"
-                              />
-                            </Box>
-                          }
-                          secondary={method.value}
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            aria-label="edit"
-                            onClick={() => handleEditContactMethod(index)}
-                            size="small"
-                            sx={{ mr: 1 }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            edge="end"
-                            aria-label="delete"
-                            onClick={() => handleDeleteContactMethod(index)}
-                            size="small"
-                            color="error"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
+                  showTitle={true}
+                  showAddButton={true}
+                />
               </Box>
             )}
 

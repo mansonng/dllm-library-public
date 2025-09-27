@@ -659,7 +659,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, address?: string | null, nickname?: string | null, createdAt: any, isVerified: boolean, isActive: boolean, exchangePoints?: Array<string> | null, location?: { __typename?: 'Location', latitude: number, longitude: number, geohash?: string | null } | null } };
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, address?: string | null, nickname?: string | null, createdAt: any, isVerified: boolean, isActive: boolean, exchangePoints?: Array<string> | null, location?: { __typename?: 'Location', latitude: number, longitude: number, geohash?: string | null } | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null } };
 
 export type GetExchangePointsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1736,6 +1736,11 @@ export const UpdateUserDocument = gql`
       latitude
       longitude
       geohash
+    }
+    contactMethods {
+      type
+      value
+      isPublic
     }
     isVerified
     isActive

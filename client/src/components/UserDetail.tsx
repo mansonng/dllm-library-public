@@ -41,6 +41,7 @@ import PaginationControls from "./PaginationControls";
 import { TagCloud } from "react-tagcloud";
 import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
+import ContactMethods from "./ContactMethods";
 // GraphQL query to fetch user's items with pagination and category filter}
 
 const USER_ITEMS_QUERY = gql`
@@ -425,48 +426,27 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     </Typography>
                   </Grid>
                 )}
-                {/* Contact Methods */}
-                {userData.user.contactMethods &&
-                  userData.user.contactMethods.length > 0 && (
-                    <Box
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        bgcolor: "action.hover",
-                        borderRadius: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 2, display: "flex", alignItems: "center" }}
-                      >
-                        <EmailIcon sx={{ mr: 1 }} />
-                        {t("user.contactMethods", "Contact Methods")}
-                      </Typography>
-                      <List>
-                        {userData.user.contactMethods.map((contact, index) => (
-                          <ListItem key={index} sx={{ px: 0 }}>
-                            <ListItemText
-                              primary={contact.type}
-                              secondary={contact.value}
-                            />
-                            <Chip
-                              label={
-                                contact.isPublic
-                                  ? t("user.public", "Public")
-                                  : t("user.private", "Private")
-                              }
-                              color={contact.isPublic ? "success" : "default"}
-                              size="small"
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Box>
-                  )}
               </Grid>
             </AccordionDetails>
           </Accordion>
+
+          {/* Contact Methods in read-only mode */}
+          {userData.user.contactMethods &&
+            userData.user.contactMethods.length > 0 && (
+              <Box
+                sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 1 }}
+              >
+                <ContactMethods
+                  contactMethods={userData.user.contactMethods}
+                  readOnly={true}
+                  title={t("user.contactMethods", "Contact Methods")}
+                  showTitle={true}
+                  showAddButton={false}
+                  showPublicPrivateFilter={!isCurrentUser} // Show filter only for other users
+                  maxHeight={300}
+                />
+              </Box>
+            )}
 
           {/* Item Categories Tag Cloud */}
           {userData.user.itemCategory &&
