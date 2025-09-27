@@ -64,19 +64,8 @@ import ContactMethods from "./ContactMethods";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Create custom icons for social platforms that don't have default MUI icons
-const SignalIcon = (props: any) => (
-  <SvgIcon {...props}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 2c4.42 0 8 3.58 8 8s-3.58 8-8 8-8-3.58-8-8 3.58-8 8-8zm1 12h-2v-2h2v2zm0-4h-2V7h2v5z" />
-  </SvgIcon>
-);
-
-const TelegramIcon = (props: any) => (
-  <SvgIcon {...props}>
-    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
-  </SvgIcon>
-);
-
+// Import custom icons for social platforms from shared utility file
+import { SignalIcon, TelegramIcon } from "./icons";
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/535/535239.png",
