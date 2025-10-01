@@ -119,13 +119,6 @@
     "selectFromGallery": "從相冊選擇",
     "takePhoto": "拍攝照片",
     "invalidFileType": "{{fileName}} 不是有效的圖片文件",
-    "fileTooLarge": "{{fileName}} 太大。最大大小為 50MB",
-    "imageProcessingError": "處理圖片時出現錯誤：{{error}}",
-    "nameRequired": "項目名稱為必填項。",
-    "createItemError": "創建項目時出現錯誤。",
-    "uploadingImages": "上傳圖片中... {{progress}}%",
-    "previewAlt": "圖片預覽 {{index}}",
-    "createSuccess": "項目創建成功！",
     "conditions": {
       "New": "全新",
       "LikeNew": "幾乎全新",
