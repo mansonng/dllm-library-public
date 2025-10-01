@@ -211,7 +211,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         const file = files[i];
 
         if (!file.type.startsWith("image/")) {
-          setFormError(t("item.invalidFileType", { fileName: file.name }));
+          setFormError(t("item.fileNotImage", { fileName: file.name }));
           continue;
         }
 
