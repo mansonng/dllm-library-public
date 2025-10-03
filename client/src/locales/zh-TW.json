@@ -57,9 +57,9 @@
     "clearFilter": "清除過濾",
     "enabled": "已啟用",
     "disabled": "已停用",
-    "public": "Public",
-    "private": "Private",
-    "add": "Add",
+    "public": "公開",
+    "private": "私有",
+    "add": "添加",
     "update": "更新"
   },
   "location": {
@@ -115,6 +115,10 @@
     "uploadingImages": "正在上傳圖片... {{progress}}%",
     "previewAlt": "預覽 {{index}}",
     "createSuccess": "項目創建成功！",
+    "addImages": "添加圖片",
+    "selectFromGallery": "從相冊選擇",
+    "takePhoto": "拍攝照片",
+    "invalidFileType": "{{fileName}} 不是有效的圖片文件",
     "conditions": {
       "New": "全新",
       "LikeNew": "幾乎全新",

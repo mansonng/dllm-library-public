@@ -27,7 +27,7 @@ interface RecentNewsBannerProps {
   user: User | undefined;
 }
 
-const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
+const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
@@ -171,9 +171,6 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
           >
             {t("news.trending")}
           </Typography>
-          {user?.role === Role.Admin && (
-            <NewsForm onNewsCreated={handleNewsCreated} />
-          )}
         </Box>
 
         {data && (

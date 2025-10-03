@@ -62,6 +62,8 @@ const CREATE_NEWS_MUTATION = gql`
 `;
 
 interface NewsFormProps {
+  open: boolean;
+  onClose?: () => void;
   onNewsCreated?: (data: CreateNewsPostMutation) => void;
   maxImageSize?: number;
   imageQuality?: number;
@@ -75,13 +77,15 @@ interface ImagePreview extends ProcessedImage {
 }
 
 const NewsForm: React.FC<NewsFormProps> = ({
+  open,
+  onClose,
   onNewsCreated,
   maxImageSize = 2000,
   imageQuality = 0.5,
 }) => {
   const { t } = useTranslation();
   const apolloClient = useApolloClient();
-  const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(open);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
@@ -102,11 +106,12 @@ const NewsForm: React.FC<NewsFormProps> = ({
   >(CREATE_NEWS_MUTATION);
 
   const handleClickOpen = () => {
-    setOpen(true);
+    setDialogOpen(true);
   };
 
   const handleClose = () => {
-    setOpen(false);
+    onClose?.();
+    setDialogOpen(false);
     // Cleanup object URLs
     imageFiles.forEach((image) => {
       URL.revokeObjectURL(image.url);
@@ -223,10 +228,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: true,
-                  uploadProgress: progress.percentage,
-                }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                 : img
             )
           );
@@ -243,11 +248,11 @@ const NewsForm: React.FC<NewsFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: false,
-                  uploadProgress: 100,
-                  gsUrl: gsUrl,
-                }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                 : img
             )
           );
@@ -266,10 +271,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-              ...img,
-              isUploading: false,
-              uploadError: `Upload failed: ${error}`,
-            }
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
             : img
         )
       );
@@ -322,7 +327,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
           .split("#")
           .slice(1)
           .map((c) => c.split(/\s/)[0].trim())
-          .filter(Boolean)
+          .filter(Boolean),
       ];
 
       // Create news post with GS URLs
@@ -365,321 +370,327 @@ const NewsForm: React.FC<NewsFormProps> = ({
 
   return (
     <Box>
-      <Button variant="contained" onClick={handleClickOpen}>
-        {t("news.create")}
-      </Button>
-
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>{t("news.createPost")}</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            {formError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {formError}
-              </Alert>
-            )}
-
-            <TextField
-              autoFocus
-              margin="dense"
-              id="title"
-              label={t("news.title")}
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              disabled={isProcessingImages || isUploading}
-            />
-
-            <TextField
-              margin="dense"
-              id="content"
-              label={t("news.content")}
-              type="text"
-              fullWidth
-              variant="outlined"
-              multiline
-              rows={4}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              disabled={isProcessingImages || isUploading}
-            />
-
-            {/* Image Upload Section */}
-            <Box sx={{ mt: 2, mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                {t("common.images")}
-                <IconButton size="small" sx={{ ml: 1 }}>
-                  <Info fontSize="small" />
-                </IconButton>
-              </Typography>
-
-              <Alert severity="info" sx={{ mb: 2 }}>
-                {t("news.imageUploadInfo", { maxImageSize })}
-              </Alert>
-
-              {/* Image Processing Progress */}
-              {isProcessingImages && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="textSecondary">
-                    {t("common.processingImages")}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={processingProgress}
-                    sx={{ mt: 1 }}
-                  />
-                  <Typography variant="caption" color="textSecondary">
-                    {t("news.progressComplete", { progress: processingProgress })}
-                  </Typography>
-                </Box>
+      {dialogOpen ? (
+        <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="md">
+          <DialogTitle>{t("news.createPost")}</DialogTitle>
+          <form onSubmit={handleSubmit}>
+            <DialogContent>
+              {formError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {formError}
+                </Alert>
               )}
 
-              {/* Upload Progress */}
-              {isUploading && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="textSecondary">
-                    {t("news.uploadingToGCS")}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={uploadProgress}
-                    sx={{ mt: 1 }}
-                  />
-                  <Typography variant="caption" color="textSecondary">
-                    {t("news.progressComplete", { progress: uploadProgress })}
-                  </Typography>
-                </Box>
-              )}
-
-              {/* Upload Button */}
-              <Button
+              <TextField
+                autoFocus
+                margin="dense"
+                id="title"
+                label={t("news.title")}
+                type="text"
+                fullWidth
                 variant="outlined"
-                component="label"
-                startIcon={<PhotoCamera />}
-                sx={{ mb: 2 }}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
                 disabled={isProcessingImages || isUploading}
-              >
-                {t("common.addImages")}
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                />
-              </Button>
+              />
 
-              {/* Image Previews */}
-              {imageFiles.length > 0 && (
-                <Grid container spacing={2}>
-                  {imageFiles.map((image, index) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
-                      <Box sx={{ position: "relative" }}>
-                        <img
-                          src={image.url}
-                          alt={t("news.imagePreview", { index: index + 1 })}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            border: "1px solid #ddd",
-                          }}
-                        />
+              <TextField
+                margin="dense"
+                id="content"
+                label={t("news.content")}
+                type="text"
+                fullWidth
+                variant="outlined"
+                multiline
+                rows={4}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                disabled={isProcessingImages || isUploading}
+              />
 
-                        {/* Upload Status Indicators */}
-                        {image.isUploading && (
+              {/* Image Upload Section */}
+              <Box sx={{ mt: 2, mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  {t("common.images")}
+                  <IconButton size="small" sx={{ ml: 1 }}>
+                    <Info fontSize="small" />
+                  </IconButton>
+                </Typography>
+
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {t("news.imageUploadInfo", { maxImageSize })}
+                </Alert>
+
+                {/* Image Processing Progress */}
+                {isProcessingImages && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      {t("common.processingImages")}
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={processingProgress}
+                      sx={{ mt: 1 }}
+                    />
+                    <Typography variant="caption" color="textSecondary">
+                      {t("news.progressComplete", {
+                        progress: processingProgress,
+                      })}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Upload Progress */}
+                {isUploading && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      {t("news.uploadingToGCS")}
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={uploadProgress}
+                      sx={{ mt: 1 }}
+                    />
+                    <Typography variant="caption" color="textSecondary">
+                      {t("news.progressComplete", { progress: uploadProgress })}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Upload Button */}
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<PhotoCamera />}
+                  sx={{ mb: 2 }}
+                  disabled={isProcessingImages || isUploading}
+                >
+                  {t("common.addImages")}
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                  />
+                </Button>
+
+                {/* Image Previews */}
+                {imageFiles.length > 0 && (
+                  <Grid container spacing={2}>
+                    {imageFiles.map((image, index) => (
+                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
+                        <Box sx={{ position: "relative" }}>
+                          <img
+                            src={image.url}
+                            alt={t("news.imagePreview", { index: index + 1 })}
+                            style={{
+                              width: "100%",
+                              height: "120px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                              border: "1px solid #ddd",
+                            }}
+                          />
+
+                          {/* Upload Status Indicators */}
+                          {image.isUploading && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                backgroundColor: "rgba(25, 118, 210, 0.9)",
+                                color: "white",
+                                padding: "4px 8px",
+                                borderRadius: "0 0 8px 8px",
+                              }}
+                            >
+                              <LinearProgress
+                                variant="determinate"
+                                value={image.uploadProgress || 0}
+                                sx={{
+                                  mb: 0.5,
+                                  "& .MuiLinearProgress-bar": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              />
+                              <Typography variant="caption">
+                                {t("news.uploadingProgress", {
+                                  progress: image.uploadProgress || 0,
+                                })}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          {/* Success Indicator */}
+                          {image.gsUrl && !image.isUploading && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                backgroundColor: "rgba(76, 175, 80, 0.9)",
+                                color: "white",
+                                padding: "4px 8px",
+                                borderRadius: "0 0 8px 8px",
+                              }}
+                            >
+                              <Typography variant="caption">
+                                {t("news.uploadedToGCS")}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          {/* Error Overlay */}
+                          {image.uploadError && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                backgroundColor: "rgba(244, 67, 54, 0.9)",
+                                color: "white",
+                                padding: "4px 8px",
+                                borderRadius: "0 0 8px 8px",
+                              }}
+                            >
+                              <Typography variant="caption">
+                                {t("news.uploadFailed")}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          {/* Delete Button */}
+                          <IconButton
+                            sx={{
+                              position: "absolute",
+                              top: 4,
+                              right: 4,
+                              backgroundColor: "rgba(255, 255, 255, 0.8)",
+                              "&:hover": {
+                                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                              },
+                            }}
+                            size="small"
+                            onClick={() => handleRemoveImage(index)}
+                            disabled={isProcessingImages || isUploading}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+
+                          {/* Image Info */}
                           <Box
                             sx={{
                               position: "absolute",
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              backgroundColor: "rgba(25, 118, 210, 0.9)",
-                              color: "white",
-                              padding: "4px 8px",
-                              borderRadius: "0 0 8px 8px",
+                              top: 4,
+                              left: 4,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 0.5,
                             }}
                           >
-                            <LinearProgress
-                              variant="determinate"
-                              value={image.uploadProgress || 0}
+                            <Chip
+                              label={`${image.width}×${image.height}`}
+                              size="small"
                               sx={{
-                                mb: 0.5,
-                                "& .MuiLinearProgress-bar": {
-                                  backgroundColor: "white",
-                                },
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "white",
+                                fontSize: "0.6rem",
+                                height: 16,
                               }}
                             />
-                            <Typography variant="caption">
-                              {t("news.uploadingProgress", { progress: image.uploadProgress || 0 })}
-                            </Typography>
+                            <Chip
+                              label={formatFileSize(image.size)}
+                              size="small"
+                              sx={{
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "white",
+                                fontSize: "0.6rem",
+                                height: 16,
+                              }}
+                            />
                           </Box>
-                        )}
-
-                        {/* Success Indicator */}
-                        {image.gsUrl && !image.isUploading && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              backgroundColor: "rgba(76, 175, 80, 0.9)",
-                              color: "white",
-                              padding: "4px 8px",
-                              borderRadius: "0 0 8px 8px",
-                            }}
-                          >
-                            <Typography variant="caption">
-                              {t("news.uploadedToGCS")}
-                            </Typography>
-                          </Box>
-                        )}
-
-                        {/* Error Overlay */}
-                        {image.uploadError && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              backgroundColor: "rgba(244, 67, 54, 0.9)",
-                              color: "white",
-                              padding: "4px 8px",
-                              borderRadius: "0 0 8px 8px",
-                            }}
-                          >
-                            <Typography variant="caption">
-                              {t("news.uploadFailed")}
-                            </Typography>
-                          </Box>
-                        )}
-
-                        {/* Delete Button */}
-                        <IconButton
-                          sx={{
-                            position: "absolute",
-                            top: 4,
-                            right: 4,
-                            backgroundColor: "rgba(255, 255, 255, 0.8)",
-                            "&:hover": {
-                              backgroundColor: "rgba(255, 255, 255, 0.9)",
-                            },
-                          }}
-                          size="small"
-                          onClick={() => handleRemoveImage(index)}
-                          disabled={isProcessingImages || isUploading}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-
-                        {/* Image Info */}
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: 4,
-                            left: 4,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 0.5,
-                          }}
-                        >
-                          <Chip
-                            label={`${image.width}×${image.height}`}
-                            size="small"
-                            sx={{
-                              backgroundColor: "rgba(0, 0, 0, 0.7)",
-                              color: "white",
-                              fontSize: "0.6rem",
-                              height: 16,
-                            }}
-                          />
-                          <Chip
-                            label={formatFileSize(image.size)}
-                            size="small"
-                            sx={{
-                              backgroundColor: "rgba(0, 0, 0, 0.7)",
-                              color: "white",
-                              fontSize: "0.6rem",
-                              height: 16,
-                            }}
-                          />
                         </Box>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Box>
 
-            <TextField
-              margin="dense"
-              id="relatedItemIds"
-              label={t("news.relatedItemIds")}
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={relatedItemIds}
-              onChange={(e) => setRelatedItemIds(e.target.value)}
-              helperText={t("news.relatedItemIdsHelper")}
-              disabled={isProcessingImages || isUploading}
-            />
+              <TextField
+                margin="dense"
+                id="relatedItemIds"
+                label={t("news.relatedItemIds")}
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={relatedItemIds}
+                onChange={(e) => setRelatedItemIds(e.target.value)}
+                helperText={t("news.relatedItemIdsHelper")}
+                disabled={isProcessingImages || isUploading}
+              />
 
-            <TextField
-              margin="dense"
-              id="tags"
-              label={t("common.tags")}
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              helperText={t("news.tagsHelper")}
-              disabled={isProcessingImages || isUploading}
-            />
-          </DialogContent>
+              <TextField
+                margin="dense"
+                id="tags"
+                label={t("common.tags")}
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                helperText={t("news.tagsHelper")}
+                disabled={isProcessingImages || isUploading}
+              />
+            </DialogContent>
 
-          <DialogActions sx={{ padding: "16px 24px" }}>
-            <Button
-              onClick={handleClose}
-              color="secondary"
-              disabled={isProcessingImages || isUploading}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={
-                loading ||
-                isProcessingImages ||
-                isUploading ||
-                !title.trim() ||
-                !content.trim()
-              }
-            >
-              {loading || isProcessingImages || isUploading ? (
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                  {isProcessingImages
-                    ? t("common.processingImages")
-                    : isUploading
+            <DialogActions sx={{ padding: "16px 24px" }}>
+              <Button
+                onClick={handleClose}
+                color="secondary"
+                disabled={isProcessingImages || isUploading}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={
+                  loading ||
+                  isProcessingImages ||
+                  isUploading ||
+                  !title.trim() ||
+                  !content.trim()
+                }
+              >
+                {loading || isProcessingImages || isUploading ? (
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    {isProcessingImages
+                      ? t("common.processingImages")
+                      : isUploading
                       ? t("common.uploading")
                       : t("common.creating")}
-                </Box>
-              ) : (
-                t("news.createPost")
-              )}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+                  </Box>
+                ) : (
+                  t("news.createPost")
+                )}
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
+      ) : (
+        <Button variant="contained" onClick={handleClickOpen}>
+          {t("news.create")}
+        </Button>
+      )}
     </Box>
   );
 };

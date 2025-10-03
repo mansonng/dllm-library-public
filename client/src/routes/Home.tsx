@@ -7,25 +7,15 @@ import {
   Typography,
   List,
   ListItem,
-  ListItemButton,
-  ListItemText,
   Pagination,
   Card,
   CardContent,
-  Divider,
   CircularProgress,
   Alert,
-  IconButton,
-  Badge,
 } from "@mui/material";
-import {
-  Person as PersonIcon,
-  Notifications as NotificationsIcon,
-} from "@mui/icons-material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
-import ItemForm from "../components/ItemForm";
 import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
@@ -65,20 +55,6 @@ const GET_EXCHANGE_POINTS_COUNT = gql`
   }
 `;
 
-const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
-  query GetUserOpenTransactionsForCount($userId: ID!) {
-    openTransactionsByUser(userId: $userId) {
-      id
-      status
-      createdAt
-      item {
-        id
-        name
-      }
-    }
-  }
-`;
-
 interface ExchangePoint {
   id: string;
   nickname: string;
@@ -108,27 +84,9 @@ const HomePage: React.FC = () => {
   const [exchangePointsPage, setExchangePointsPage] = useState(1);
   const exchangePointsPerPage = 5;
 
-  // Query for user's open transactions to show notification count
-  const { data: transactionsData } = useQuery(
-    GET_USER_OPEN_TRANSACTIONS_FOR_COUNT,
-    {
-      variables: { userId: user?.id! },
-      skip: !user?.id,
-      pollInterval: 30000, // Poll every 30 seconds for new transactions
-    }
-  );
-
   const handleItemCreated = () => {
     recentCategoriesRefetch();
     hotCategoriesRefetch();
-  };
-
-  const handleUserClick = (userId: string) => {
-    navigate(`/user/${userId}`);
-  };
-
-  const handleTransactionsClick = () => {
-    navigate("/transactions");
   };
 
   const [location, setLocation] = useState<{
@@ -226,88 +184,66 @@ const HomePage: React.FC = () => {
       )
     : 0;
 
-  // Calculate notification count
-  const notificationCount =
-    transactionsData?.openTransactionsByUser?.length || 0;
-
   return (
     <List>
+      {/* Welcome Section */}
       <ListItem>
-        {user ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              width: "100%",
-            }}
-          >
-            <Typography sx={{ flex: 1 }}>
-              {t("home.welcome", { nickname: user.nickname })}
-            </Typography>
-
-            {/* Notifications Bell Icon */}
-            <IconButton
-              onClick={handleTransactionsClick}
-              sx={{ mr: 1 }}
-              title={t("transactions.viewTransactions", "View Transactions")}
-            >
-              <Badge badgeContent={notificationCount} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-
-            {user?.isActive && (
-              <Button
-                variant="contained"
-                startIcon={<PersonIcon />}
-                onClick={() => handleUserClick(user.id)}
-              />
-            )}
-            {user?.isActive && <ItemForm onItemCreated={handleItemCreated} />}
-            <Button variant="contained" onClick={signOut}>
-              {t("auth.signOut")}
-            </Button>
-          </Box>
-        ) : (
-          email && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                width: "100%",
-              }}
-            >
-              <Typography sx={{ flex: 1 }}>
-                {t("home.welcome")} {email}
+        <Box sx={{ width: "100%" }}>
+          {user ? (
+            <Box>
+              <Typography variant="h5" sx={{ mb: 2 }}>
+                {t("home.welcome", { nickname: user.nickname })}
               </Typography>
-              {emailVerified ? (
-                <Button
-                  variant="contained"
-                  onClick={() => setShowCreateUser(true)}
-                >
-                  {t("auth.createProfile")}
-                </Button>
-              ) : (
-                <Button
-                  variant="outlined"
-                  onClick={async () => {
-                    await sendVerificationEmail();
-                    alert(t("auth.verificationEmailSent"));
-                  }}
-                >
-                  {t("auth.resendVerification", "Resend Verification Email")}
-                </Button>
+              {!user.isActive && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {t(
+                    "home.accountPending",
+                    "Your account is pending activation."
+                  )}
+                </Alert>
               )}
-              <Button variant="outlined" onClick={signOut}>
-                {t("auth.signOut")}
-              </Button>
             </Box>
-          )
-        )}
+          ) : (
+            email && (
+              <Box>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  {t("home.welcome")} {email}
+                </Typography>
+                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  {emailVerified ? (
+                    <Button
+                      variant="contained"
+                      onClick={() => setShowCreateUser(true)}
+                      size="large"
+                    >
+                      {t("auth.createProfile")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      onClick={async () => {
+                        await sendVerificationEmail();
+                        alert(t("auth.verificationEmailSent"));
+                      }}
+                      size="large"
+                    >
+                      {t(
+                        "auth.resendVerification",
+                        "Resend Verification Email"
+                      )}
+                    </Button>
+                  )}
+                  <Button variant="outlined" onClick={signOut} size="large">
+                    {t("auth.signOut")}
+                  </Button>
+                </Box>
+              </Box>
+            )
+          )}
+        </Box>
       </ListItem>
 
+      {/* Recent News Banner */}
       <ListItem>
         <RecentNewsBanner user={user} />
       </ListItem>
@@ -402,8 +338,9 @@ const HomePage: React.FC = () => {
         </Box>
       </ListItem>
 
+      {/* View All Items Button */}
       <ListItem>
-        <Button variant="contained" onClick={handleViewAllItems}>
+        <Button variant="contained" onClick={handleViewAllItems} size="large">
           {t("navigation.viewAllItems")}
         </Button>
       </ListItem>
@@ -428,7 +365,7 @@ const HomePage: React.FC = () => {
         </ListItem>
       )}
 
-      {/* Recent Categories Section */}
+      {/* Hot Categories Section */}
       {hotCategoriesData?.hotCategories && (
         <>
           {hotCategoriesData.hotCategories.map((category, index) => (
@@ -439,13 +376,14 @@ const HomePage: React.FC = () => {
         </>
       )}
 
-      {/* Loading state for recent categories */}
-      {recentCategoriesLoading && (
+      {/* Loading state for hot categories */}
+      {hotCategoriesLoading && (
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
         </ListItem>
       )}
 
+      {/* Create User Dialog */}
       {showCreateUser && (
         <UpdateUser
           email={email}
