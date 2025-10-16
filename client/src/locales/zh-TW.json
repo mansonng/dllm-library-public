@@ -315,7 +315,13 @@
     "includeExchangePointItems": "包含交換點快取物品",
     "exchangePointItemsHelper": "啟用時，除了您的個人物品外，還包括在您的交換點快取的物品。",
     "selectCategoryToViewItems": "選擇下面的類別來查看物品。",
-    "noCategories": "沒有可用的類別"
+    "noCategories": "沒有可用的類別",
+    "pinnedItems": "已釘選物品",
+    "loadingPinnedItems": "載入已釘選物品中...",
+    "errorLoadingPinnedItems": "載入已釘選物品時發生錯誤",
+    "noPinnedItemsYou": "您尚未釘選任何物品。",
+    "noPinnedItemsUser": "此用戶尚未釘選任何物品。",
+    "pinnedItemsCount": "{{count}} 個已釘選物品"
   },
   "transactions": {
     "title": "我的交易",

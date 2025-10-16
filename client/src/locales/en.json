@@ -218,7 +218,13 @@
     "exchangePointItemsHelper": "When enabled, includes items cached at your exchange point in addition to your personal items.",
     "selectCategoryToViewItems": "Select a category below to view items.",
     "noCategories": "No categories available",
-    "addressNotSet": "Exchange Address not set"
+    "addressNotSet": "Exchange Address not set",
+    "pinnedItems": "Pinned Items",
+    "loadingPinnedItems": "Loading pinned items...",
+    "errorLoadingPinnedItems": "Error loading pinned items",
+    "noPinnedItemsYou": "You haven't pinned any items yet.",
+    "noPinnedItemsUser": "This user hasn't pinned any items.",
+    "pinnedItemsCount": "{{count}} pinned item(s)"
   },
   "transactions": {
     "title": "My Transactions",
