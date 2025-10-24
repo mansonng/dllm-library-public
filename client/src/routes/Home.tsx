@@ -7,25 +7,15 @@ import {
   Typography,
   List,
   ListItem,
-  ListItemButton,
-  ListItemText,
   Pagination,
   Card,
   CardContent,
-  Divider,
   CircularProgress,
   Alert,
-  IconButton,
-  Badge,
 } from "@mui/material";
-import {
-  Person as PersonIcon,
-  Notifications as NotificationsIcon,
-} from "@mui/icons-material";
-import { User, Item } from "../generated/graphql";
+import { User, Item, RecommendationType } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
-import ItemForm from "../components/ItemForm";
 import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
@@ -41,6 +31,25 @@ const RecentCategoriesQuery = gql`
 const HotCategoriesQuery = gql`
   query HotCategories($limit: Int!) {
     hotCategories(limit: $limit)
+  }
+`;
+
+const RecommendedItemsQuery = gql`
+  query RecommendedItems($type: RecommendationType!, $limit: Int!) {
+    recommendedItems(type: $type, limit: $limit) {
+      id
+      name
+      category
+      status
+      images
+      thumbnails
+      condition
+      location {
+        latitude
+        longitude
+      }
+      ownerId
+    }
   }
 `;
 
@@ -62,20 +71,6 @@ const GET_EXCHANGE_POINTS = gql`
 const GET_EXCHANGE_POINTS_COUNT = gql`
   query GetExchangePointsCount {
     exchangePointsCount
-  }
-`;
-
-const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
-  query GetUserOpenTransactionsForCount($userId: ID!) {
-    openTransactionsByUser(userId: $userId) {
-      id
-      status
-      createdAt
-      item {
-        id
-        name
-      }
-    }
   }
 `;
 
@@ -101,34 +96,14 @@ const HomePage: React.FC = () => {
   const { user, emailVerified, email } = useOutletContext<OutletContext>();
   const navigate = useNavigate();
 
-  // State for controlling CreateUser dialog
   const [showCreateUser, setShowCreateUser] = useState(false);
-
-  // State for exchange points pagination
   const [exchangePointsPage, setExchangePointsPage] = useState(1);
   const exchangePointsPerPage = 5;
-
-  // Query for user's open transactions to show notification count
-  const { data: transactionsData } = useQuery(
-    GET_USER_OPEN_TRANSACTIONS_FOR_COUNT,
-    {
-      variables: { userId: user?.id! },
-      skip: !user?.id,
-      pollInterval: 30000, // Poll every 30 seconds for new transactions
-    }
-  );
 
   const handleItemCreated = () => {
     recentCategoriesRefetch();
     hotCategoriesRefetch();
-  };
-
-  const handleUserClick = (userId: string) => {
-    navigate(`/user/${userId}`);
-  };
-
-  const handleTransactionsClick = () => {
-    navigate("/transactions");
+    userPickedRefetch();
   };
 
   const [location, setLocation] = useState<{
@@ -136,11 +111,27 @@ const HomePage: React.FC = () => {
     longitude: number;
   } | null>(null);
 
+  // Query for USER_PICKED recommendations only
+  const {
+    data: userPickedData,
+    loading: userPickedLoading,
+    error: userPickedError,
+    refetch: userPickedRefetch,
+  } = useQuery<{
+    recommendedItems: Item[];
+  }>(RecommendedItemsQuery, {
+    variables: {
+      type: RecommendationType.UserPicked,
+      limit: 5,
+    },
+    skip: !user?.isActive,
+    errorPolicy: "all",
+  });
+
   // Query for recent categories
   const {
     data: recentCategoriesData,
     loading: recentCategoriesLoading,
-    error: recentCategoriesError,
     refetch: recentCategoriesRefetch,
   } = useQuery<{
     recentUpdateCategories: string[];
@@ -152,7 +143,6 @@ const HomePage: React.FC = () => {
   const {
     data: hotCategoriesData,
     loading: hotCategoriesLoading,
-    error: errorHotCategories,
     refetch: hotCategoriesRefetch,
   } = useQuery<{
     hotCategories: string[];
@@ -178,7 +168,6 @@ const HomePage: React.FC = () => {
   const { data: exchangePointsCountData } = useQuery<{
     exchangePointsCount: number;
   }>(GET_EXCHANGE_POINTS_COUNT);
-
   const getLocation = () => {
     if (user?.location?.latitude) {
       setLocation({
@@ -203,7 +192,6 @@ const HomePage: React.FC = () => {
 
   const handleUserCreated = () => {
     setShowCreateUser(false);
-    // Optionally refresh the page or refetch user data
     window.location.reload();
   };
 
@@ -219,95 +207,72 @@ const HomePage: React.FC = () => {
     setExchangePointsPage(value);
   };
 
-  // Calculate total pages for exchange points
   const totalExchangePointsPages = exchangePointsCountData?.exchangePointsCount
     ? Math.ceil(
         exchangePointsCountData.exchangePointsCount / exchangePointsPerPage
       )
     : 0;
 
-  // Calculate notification count
-  const notificationCount =
-    transactionsData?.openTransactionsByUser?.length || 0;
-
   return (
     <List>
+      {/* Welcome Section */}
       <ListItem>
-        {user ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              width: "100%",
-            }}
-          >
-            <Typography sx={{ flex: 1 }}>
-              {t("home.welcome", { nickname: user.nickname })}
-            </Typography>
-
-            {/* Notifications Bell Icon */}
-            <IconButton
-              onClick={handleTransactionsClick}
-              sx={{ mr: 1 }}
-              title={t("transactions.viewTransactions", "View Transactions")}
-            >
-              <Badge badgeContent={notificationCount} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-
-            {user?.isActive && (
-              <Button
-                variant="contained"
-                startIcon={<PersonIcon />}
-                onClick={() => handleUserClick(user.id)}
-              />
-            )}
-            {user?.isActive && <ItemForm onItemCreated={handleItemCreated} />}
-            <Button variant="contained" onClick={signOut}>
-              {t("auth.signOut")}
-            </Button>
-          </Box>
-        ) : (
-          email && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                width: "100%",
-              }}
-            >
-              <Typography sx={{ flex: 1 }}>
-                {t("home.welcome")} {email}
+        <Box sx={{ width: "100%" }}>
+          {user ? (
+            <Box>
+              <Typography variant="h5" sx={{ mb: 2 }}>
+                {t("home.welcome", { nickname: user.nickname })}
               </Typography>
-              {emailVerified ? (
-                <Button
-                  variant="contained"
-                  onClick={() => setShowCreateUser(true)}
-                >
-                  {t("auth.createProfile")}
-                </Button>
-              ) : (
-                <Button
-                  variant="outlined"
-                  onClick={async () => {
-                    await sendVerificationEmail();
-                    alert(t("auth.verificationEmailSent"));
-                  }}
-                >
-                  {t("auth.resendVerification", "Resend Verification Email")}
-                </Button>
+              {!user.isActive && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {t(
+                    "home.accountPending",
+                    "Your account is pending activation."
+                  )}
+                </Alert>
               )}
-              <Button variant="outlined" onClick={signOut}>
-                {t("auth.signOut")}
-              </Button>
             </Box>
-          )
-        )}
+          ) : (
+            email && (
+              <Box>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  {t("home.welcome")} {email}
+                </Typography>
+                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  {emailVerified ? (
+                    <Button
+                      variant="contained"
+                      onClick={() => setShowCreateUser(true)}
+                      size="large"
+                    >
+                      {t("auth.createProfile")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      onClick={async () => {
+                        await sendVerificationEmail();
+                        alert(t("auth.verificationEmailSent"));
+                      }}
+                      size="large"
+                    >
+                      {t(
+                        "auth.resendVerification",
+                        "Resend Verification Email"
+                      )}
+                    </Button>
+                  )}
+                  <Button variant="outlined" onClick={signOut} size="large">
+                    {t("auth.signOut")}
+                  </Button>
+                </Box>
+              </Box>
+            )
+          )}
+        </Box>
       </ListItem>
 
+      {/* Recent News Banner */}
       <ListItem>
         <RecentNewsBanner user={user} />
       </ListItem>
@@ -362,7 +327,6 @@ const HomePage: React.FC = () => {
                 ))}
               </Box>
 
-              {/* Pagination */}
               {totalExchangePointsPages > 1 && (
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                   <Pagination
@@ -402,11 +366,78 @@ const HomePage: React.FC = () => {
         </Box>
       </ListItem>
 
+      {/* View All Items Button */}
       <ListItem>
-        <Button variant="contained" onClick={handleViewAllItems}>
+        <Button variant="contained" onClick={handleViewAllItems} size="large">
           {t("navigation.viewAllItems")}
         </Button>
       </ListItem>
+
+      {/* User Picked Recommendations Section - Only for active users */}
+      {user?.isActive && (
+        <>
+          {userPickedLoading && (
+            <ListItem>
+              <Box
+                sx={{ display: "flex", alignItems: "center", width: "100%" }}
+              >
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography>
+                  {t(
+                    "home.loadingRecommendations",
+                    "Loading recommendations..."
+                  )}
+                </Typography>
+              </Box>
+            </ListItem>
+          )}
+
+          {userPickedError && (
+            <ListItem>
+              <Alert severity="warning" sx={{ width: "100%" }}>
+                {t(
+                  "home.recommendationsError",
+                  "Unable to load recommendations"
+                )}
+                <Typography variant="caption" display="block">
+                  {userPickedError.message}
+                </Typography>
+              </Alert>
+            </ListItem>
+          )}
+
+          {userPickedData?.recommendedItems &&
+            userPickedData.recommendedItems.length > 0 && (
+              <ListItem>
+                <RecentItemBanner
+                  recommendationType={RecommendationType.UserPicked}
+                  recommendedItems={userPickedData.recommendedItems}
+                  titleOverride={t(
+                    "home.userPickedItems",
+                    "Recommended for You"
+                  )}
+                  descriptionOverride={t(
+                    "home.userPickedDescription",
+                    "Based on your interests and activity"
+                  )}
+                />
+              </ListItem>
+            )}
+
+          {!userPickedLoading &&
+            !userPickedData?.recommendedItems?.length &&
+            !userPickedError && (
+              <ListItem>
+                <Alert severity="info" sx={{ width: "100%" }}>
+                  {t(
+                    "home.noRecommendations",
+                    "No recommendations available at the moment. Browse items to help us learn your preferences!"
+                  )}
+                </Alert>
+              </ListItem>
+            )}
+        </>
+      )}
 
       {/* Recent Categories Section */}
       {recentCategoriesData?.recentUpdateCategories && (
@@ -421,14 +452,13 @@ const HomePage: React.FC = () => {
         </>
       )}
 
-      {/* Loading state for recent categories */}
       {recentCategoriesLoading && (
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
         </ListItem>
       )}
 
-      {/* Recent Categories Section */}
+      {/* Hot Categories Section */}
       {hotCategoriesData?.hotCategories && (
         <>
           {hotCategoriesData.hotCategories.map((category, index) => (
@@ -439,8 +469,7 @@ const HomePage: React.FC = () => {
         </>
       )}
 
-      {/* Loading state for recent categories */}
-      {recentCategoriesLoading && (
+      {hotCategoriesLoading && (
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
         </ListItem>

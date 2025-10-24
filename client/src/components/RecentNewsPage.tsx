@@ -1,5 +1,11 @@
 import React from "react";
-import { Box, Typography, List, IconButton, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  List,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import { gql } from "@apollo/client";
 import { ArrowBack } from "@mui/icons-material";
 import {
@@ -68,7 +74,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
           {t("news.viewAll")}→
         </Typography>
         {user?.role === Role.Admin && (
-          <NewsForm onNewsCreated={handleNewsCreated} />
+          <NewsForm open={false} onNewsCreated={handleNewsCreated} />
         )}
       </Box>
 
