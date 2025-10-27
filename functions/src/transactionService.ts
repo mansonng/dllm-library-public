@@ -344,7 +344,7 @@ export class TransactionService {
       created: Timestamp.now(),
       updated: Timestamp.now(),
       locationType: TransactionLocation.FaceToFace,
-      expired: Timestamp.fromDate(new Date(Date.now() + 60 * 60 * 1000)), // expire in 1 hours,
+      expired: Timestamp.fromDate(new Date(Date.now() + 60 * 60 * 1000)), // expire in 1 hour,
       status: TransactionStatus.Transfered,
       participants: [holder.id, item.ownerId],
       // You can store details in a suitable field, e.g., as part of images or a new field if needed
