@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { useParams, useNavigate } from "react-router-dom"; // Add these imports at the top
 import {
   Dialog,
   DialogTitle,
