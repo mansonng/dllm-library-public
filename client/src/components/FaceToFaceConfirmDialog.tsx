@@ -1,4 +1,3 @@
-// ItemDetail.tsx - Updated version
 import React, { useState } from "react";
 import {
   Box,
