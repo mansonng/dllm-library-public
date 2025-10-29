@@ -11,7 +11,12 @@ import cors from "cors";
 import { resolvers } from "./resolver";
 import { readFileSync } from "fs";
 import { getLoginUserFromToken } from "./platform";
-import { handleHomePageSSR, handleItemDetailSSR } from "./ssrService";
+import {
+  handleHomePageSSR,
+  handleItemDetailSSR,
+  handleUserProfileSSR,
+  handleTransactionDetailSSR,
+} from "./ssrService";
 import { isBotRequest, getBotType } from "./botDetection";
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
@@ -74,10 +79,10 @@ async function startApolloServer() {
   );
 
   // Set up SSR routes
-  app.get('/', (req, res) => handleHomePageSSR(req, res));
+  app.get("/", (req, res) => handleHomePageSSR(req, res));
 
   // Handle /item and /item/:id with bot detection
-  app.get('/item/:id', (req, res) => {
+  app.get("/item/:id", (req, res) => {
     if (isBotRequest(req)) {
       handleItemDetailSSR(req, res);
     } else {
@@ -87,17 +92,17 @@ async function startApolloServer() {
   });
 
   // Handle /item page (listing)
-  app.get('/item', (req, res) => {
+  app.get("/item", (req, res) => {
     if (isBotRequest(req)) {
       handleHomePageSSR(req, res);
     } else {
       // Serve the index.html with the redirect parameter embedded in the URL
-      handleHomePageSSR(req, res, '/item');
+      handleHomePageSSR(req, res, "/item");
     }
   });
 
   // Handle /user/:id with bot detection
-  app.get('/user/:id', (req, res) => {
+  app.get("/user/:id", (req, res) => {
     if (isBotRequest(req)) {
       handleUserProfileSSR(req, res);
     } else {
@@ -107,7 +112,7 @@ async function startApolloServer() {
   });
 
   // Handle /transaction/:id with bot detection
-  app.get('/transaction/:id', (req, res) => {
+  app.get("/transaction/:id", (req, res) => {
     if (isBotRequest(req)) {
       handleTransactionDetailSSR(req, res);
     } else {

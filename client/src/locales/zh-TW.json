@@ -248,7 +248,6 @@
     "borrowedItemsCount": "您有 {{count}} 件借出的物品",
     "showingResults": "顯示 {{start}}-{{end}} 的 {{total}} 項結果",
     "previousHolder": "前持有者",
-    "browseItems": "瀏覽可用物品",
     "faceToFaceTransfer": "面對面交收",
     "quickTransferExpiry": "此交易將在 1 小時內過期",
     "quickTransferExpiryDescription": "接收者必須在 1 小時內確認收貨，否則交易將自動取消。",
@@ -260,7 +259,7 @@
     "faceToFaceNotice": "在創建此交易之前，請確保您與接收者在同一地點。",
     "confirmTransfer": "確認轉移",
     "creating": "創建中...",
-    "itemName": "物品"
+    "itemName": "物品",
     "browseItems": "瀏覽可用物品"
   },
   "userProfile": {

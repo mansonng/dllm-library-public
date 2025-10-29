@@ -177,7 +177,7 @@
     "faceToFaceNotice": "Make sure you are physically present with the recipient before creating this transaction.",
     "confirmTransfer": "Confirm Transfer",
     "creating": "Creating...",
-    "itemName": "Item"
+    "itemName": "Item",
     "peopleInvolved": "People Involved",
     "currentHolder": "Current Holder",
     "transactionLocation": "Transaction Location",
