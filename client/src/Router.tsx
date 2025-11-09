@@ -205,7 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     <BookmarkIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>
-                    {t("item.onLoanItems", "Items On Loan")}
+                    {t("item.myLentItems", "My lent items")}
                   </ListItemText>
                 </MenuItem>
 

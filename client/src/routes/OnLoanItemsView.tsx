@@ -211,7 +211,7 @@ const OnLoanItemsView: React.FC = () => {
         <Alert severity="error">
           {t(
             "common.loginRequired",
-            "Please log in to view your borrowed items"
+            "Please log in to view your lent items"
           )}
         </Alert>
       </Container>
@@ -232,7 +232,7 @@ const OnLoanItemsView: React.FC = () => {
           sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 1 }}
         >
           <BorrowedIcon />
-          {t("item.onLoanItems", "Items I'm Borrowing")}
+          {t("item.myLentItems", "Items I've lent")}
         </Typography>
       </Box>
 
@@ -242,7 +242,7 @@ const OnLoanItemsView: React.FC = () => {
           <CircularProgress />
           <Typography sx={{ ml: 2 }}>
             {loading
-              ? t("item.loadingOnLoanItems", "Loading your borrowed items...")
+              ? t("item.loadingOnLoanItems", "Loading your lent items...")
               : t("item.loadingUserDetails", "Loading user details...")}
           </Typography>
         </Box>
@@ -251,7 +251,7 @@ const OnLoanItemsView: React.FC = () => {
       {/* Error State */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {t("item.errorLoadingOnLoanItems", "Error loading borrowed items")}:{" "}
+          {t("item.errorLoadingOnLoanItems", "Error loading lent items")}:{" "}
           {error.message}
           <Button onClick={() => refetch()} sx={{ ml: 2 }}>
             {t("common.retry", "Retry")}
@@ -265,12 +265,12 @@ const OnLoanItemsView: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             {enrichedItems.length === 0
               ? t(
-                  "item.noBorrowedItems",
-                  "You currently have no borrowed items"
+                  "item.noLentItems",
+                  "You currently have no lent items"
                 )
               : t(
-                  "item.borrowedItemsFound",
-                  "Found {{count}} borrowed item(s) on this page",
+                  "item.lentItemsCount",
+                  "You have {{count}} lent item(s)",
                   {
                     count: enrichedItems.length,
                   }
@@ -497,14 +497,14 @@ const OnLoanItemsView: React.FC = () => {
             />
             <Typography variant="h6" sx={{ mb: 1 }}>
               {t(
-                "item.noBorrowedItems",
-                "You currently have no borrowed items"
+                "item.noLentItems",
+                "You currently have no lent items"
               )}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               {t(
-                "item.noBorrowedItemsDescription",
-                "When you borrow items from other users, they will appear here."
+                "item.noLentItemsDescription",
+                "When you lend items to other users, they will appear here."
               )}
             </Typography>
             <Button variant="contained" onClick={() => navigate("/item/all")}>
