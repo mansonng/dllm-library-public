@@ -74,6 +74,20 @@ const USER_ITEMS_QUERY = gql`
   }
 `;
 
+const USER_ITEMS_COUNT_QUERY = gql`
+  query TotalItemsByUser(
+    $userId: ID!
+    $category: [String!]
+    $isExchangePointItem: Boolean
+  ) {
+    totalItemsCountByUser(
+      userId: $userId
+      category: $category
+      isExchangePointItem: $isExchangePointItem
+    )
+  }
+`;
+
 interface UserDetailProps {
   userId: string | null;
   currentUser?: User | null;
@@ -128,6 +142,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
       userId: userId!,
       limit: ITEMS_PER_PAGE,
       offset: (itemsPage - 1) * ITEMS_PER_PAGE,
+      category: selectedCategory ? [selectedCategory] : undefined,
+      isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
+    },
+    skip: !userId || !selectedCategory, // Only query when category is selected
+  });
+
+  const { data: totalItemsData, loading: totalItemsLoading } = useQuery<{
+    totalItemsCountByUser: number;
+  }>(USER_ITEMS_COUNT_QUERY, {
+    variables: {
+      userId: userId!,
       category: selectedCategory ? [selectedCategory] : undefined,
       isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
     },
@@ -700,7 +725,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 )}
               </Typography>
 
-              {itemsLoading && (
+              {(itemsLoading || totalItemsLoading) && (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                   <CircularProgress />
                 </Box>
@@ -741,6 +766,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     hasNextPage={
                       itemsData.itemsByUser.length === ITEMS_PER_PAGE
                     }
+                    totalItems={totalItemsData?.totalItemsCountByUser}
                     hasPrevPage={itemsPage > 1}
                     isLoading={itemsLoading}
                     itemsPerPage={ITEMS_PER_PAGE}

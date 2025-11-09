@@ -109,6 +109,33 @@ export const resolvers: Resolvers = {
         offset
       );
     },
+    totalItemsCountByLocation: async (
+      _: any,
+      { latitude, longitude, radiusKm, category, status, keyword }: any,
+      __: any
+    ): Promise<number> => {
+      return itemService.totalItemsCountByLocation(
+        latitude,
+        longitude,
+        radiusKm,
+        category,
+        status,
+        keyword
+      );
+    },
+    totalItemsCountByUser: async (
+      _: any,
+      { userId, category, status, keyword, isExchangePointItem }: any,
+      __: any
+    ): Promise<number> => {
+      return itemService.totalItemsCountByUser(
+        userId,
+        category,
+        status,
+        keyword,
+        isExchangePointItem
+      );
+    },
     itemsByUser: async (
       _: any,
       {

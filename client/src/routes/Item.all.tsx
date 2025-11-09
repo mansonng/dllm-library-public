@@ -67,6 +67,24 @@ const ITEMS_QUERY = gql`
   }
 `;
 
+const ITEMS_COUNT_QUERY = gql`
+  query TotalItemsCountByLocation(
+    $latitude: Float!
+    $longitude: Float!
+    $radiusKm: Float!
+    $category: [String!]
+    $keyword: String
+  ) {
+    totalItemsCountByLocation(
+      latitude: $latitude
+      longitude: $longitude
+      radiusKm: $radiusKm
+      category: $category
+      keyword: $keyword
+    )
+  }
+`;
+
 const HotCategoriesQuery = gql`
   query HotCategories($limit: Int!) {
     hotCategories(limit: $limit)
@@ -137,6 +155,21 @@ const ItemAllPage: React.FC = () => {
             keyword: searchKeyword || null,
             limit: ITEMS_PER_PAGE,
             offset: (page - 1) * ITEMS_PER_PAGE,
+          }
+        : undefined,
+    skip: !location || !hasSearched,
+  });
+
+  const { data: totalItemsData, loading: totalItemsLoading } = useQuery<{
+    totalItemsCountByLocation: number;
+  }>(ITEMS_COUNT_QUERY, {
+    variables:
+      location && hasSearched
+        ? {
+            ...location,
+            radiusKm: SEARCH_RADIUS_KM,
+            category: selectedCategory ? [selectedCategory] : undefined,
+            keyword: searchKeyword || null,
           }
         : undefined,
     skip: !location || !hasSearched,
@@ -247,7 +280,7 @@ const ItemAllPage: React.FC = () => {
           <Button
             variant="contained"
             onClick={getLocation}
-            disabled={itemsLoading}
+            disabled={itemsLoading || totalItemsLoading}
             sx={{ mb: 2 }}
           >
             {t("itemsAll.getLocation", "Get My Location")}
@@ -288,7 +321,7 @@ const ItemAllPage: React.FC = () => {
                 )}
                 value={keyword}
                 onChange={handleKeywordChange}
-                disabled={itemsLoading}
+                disabled={itemsLoading || totalItemsLoading}
                 helperText={t(
                   "itemsAll.keywordRequired",
                   "Keyword is required to search"
@@ -320,7 +353,9 @@ const ItemAllPage: React.FC = () => {
                   value={selectedCategory}
                   label={t("itemsAll.selectCategory", "Category (Optional)")}
                   onChange={handleCategoryChange}
-                  disabled={categoriesLoading || itemsLoading}
+                  disabled={
+                    categoriesLoading || itemsLoading || totalItemsLoading
+                  }
                 >
                   <MenuItem value="">
                     <em>{t("itemsAll.allCategories", "All Categories")}</em>
@@ -341,13 +376,17 @@ const ItemAllPage: React.FC = () => {
                 variant="contained"
                 size="large"
                 onClick={handleSearch}
-                disabled={!canSearch || itemsLoading}
+                disabled={!canSearch || itemsLoading || totalItemsLoading}
                 startIcon={
-                  itemsLoading ? <CircularProgress size={20} /> : <SearchIcon />
+                  itemsLoading || totalItemsLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <SearchIcon />
+                  )
                 }
                 sx={{ height: "56px" }}
               >
-                {itemsLoading
+                {itemsLoading || totalItemsLoading
                   ? t("common.searching", "Searching...")
                   : t("common.search", "Search")}
               </Button>
@@ -520,8 +559,9 @@ const ItemAllPage: React.FC = () => {
                     hasNextPage={
                       itemsData.itemsByLocation.length === ITEMS_PER_PAGE
                     }
+                    totalItems={totalItemsData?.totalItemsCountByLocation}
                     hasPrevPage={page > 1}
-                    isLoading={itemsLoading}
+                    isLoading={itemsLoading || totalItemsLoading}
                     itemsPerPage={ITEMS_PER_PAGE}
                     showPageInfo={true}
                   />

@@ -242,6 +242,65 @@ export class ItemService {
     }
   }
 
+  async totalItemsCountByUser(
+    userId: string,
+    category: string[],
+    status?: string,
+    keyword?: string,
+    isExchangePointItem: boolean = false
+  ): Promise<number> {
+    if (isExchangePointItem) {
+      if (!this.userService) {
+        throw new Error("UserService not available for exchange point items");
+      }
+
+      const cachedItemIds = await this.userService.getItemCaches(
+        userId,
+        category && category.length > 0 ? category : undefined,
+        1000000, // Large limit to get all cached items
+        0
+      );
+
+      if (cachedItemIds.length === 0) {
+        return 0;
+      }
+
+      let items = await this.itemsByIds(cachedItemIds);
+
+      // Apply status and keyword filtering
+      if (status) {
+        items = items.filter((item) => item.status === status);
+      }
+      if (keyword) {
+        items = items.filter((item) =>
+          item.name.toLowerCase().includes(keyword.toLowerCase())
+        );
+      }
+
+      console.debug(
+        `Total ${items.length} cached items for exchange point user ${userId} after filtering`
+      );
+
+      return items.length;
+    } else {
+      let query = db.collection("items").where("ownerId", "==", userId);
+      if (category && category.length > 0)
+        query = query.where("category", "array-contains-any", category);
+      if (status && status.length > 0)
+        query = query.where("status", "==", status);
+      if (keyword && keyword.length > 0)
+        query = query
+          .where("name", ">=", keyword)
+          .where("name", "<=", keyword + "\uf8ff");
+
+      const snapshot = await query.get();
+      console.debug(
+        `Total ${snapshot.size} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
+      );
+      return snapshot.size;
+    }
+  }
+
   async itemCategoriesByUser(userId: string) {
     // Assuming that we do not have anyone with large number of entries
     let items: Item[] = [];

@@ -37,31 +37,31 @@ const App: React.FC<AppProps> = ({ user }) => {
 
   // Handle sessionStorage redirects on component mount
   useEffect(() => {
-    const viewItemId = sessionStorage.getItem('viewItemId');
-    const viewUserId = sessionStorage.getItem('viewUserId');
-    const viewTransactionId = sessionStorage.getItem('viewTransactionId');
-    const redirectPath = sessionStorage.getItem('redirectPath');
+    const viewItemId = sessionStorage.getItem("viewItemId");
+    const viewUserId = sessionStorage.getItem("viewUserId");
+    const viewTransactionId = sessionStorage.getItem("viewTransactionId");
+    const redirectPath = sessionStorage.getItem("redirectPath");
 
     if (viewItemId) {
       setInitialPath(`/item/${viewItemId}`);
-      sessionStorage.removeItem('viewItemId');
+      sessionStorage.removeItem("viewItemId");
     } else if (viewUserId) {
       setInitialPath(`/user/${viewUserId}`);
-      sessionStorage.removeItem('viewUserId');
+      sessionStorage.removeItem("viewUserId");
     } else if (viewTransactionId) {
       setInitialPath(`/transaction/${viewTransactionId}`);
-      sessionStorage.removeItem('viewTransactionId');
+      sessionStorage.removeItem("viewTransactionId");
     } else if (redirectPath) {
       setInitialPath(redirectPath);
-      sessionStorage.removeItem('redirectPath');
+      sessionStorage.removeItem("redirectPath");
     }
   }, []);
 
   const router = createRouter(
     user?.email,
     user?.emailVerified,
-    meOutput?.data?.me,
-    initialPath
+    meOutput?.data?.me
+    //    initialPath
   );
 
   return <RouterProvider router={router} />;

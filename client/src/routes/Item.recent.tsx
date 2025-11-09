@@ -9,7 +9,8 @@ import {
   Select,
   FormControl,
   InputLabel,
-  CircularProgress
+  CircularProgress,
+  Container,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +20,7 @@ import {
   RecentAddedItemsQueryVariables,
   User,
 } from "../generated/graphql";
-import ItemPreview from "../components/ItemPreview";
+import ItemPreview2 from "../components/ItemPreview2";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 import PaginationControls from "../components/PaginationControls";
@@ -28,7 +29,7 @@ interface OutletContext {
   user?: User;
 }
 
-const ALL_COMICS_QUERY = gql`
+const ALL_RECENT_ITEMS_QUERY = gql`
   query RecentAddedItems($limit: Int, $offset: Int, $category: [String!]) {
     recentAddedItems(limit: $limit, offset: $offset, category: $category) {
       id
@@ -45,7 +46,7 @@ const ALL_COMICS_QUERY = gql`
   }
 `;
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12; // Changed to 12 for better grid layout (3 columns x 4 rows)
 
 const ItemRecentPage: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
@@ -58,7 +59,7 @@ const ItemRecentPage: React.FC = () => {
   const { data, loading, error, refetch } = useQuery<
     RecentAddedItemsQuery,
     RecentAddedItemsQueryVariables
-  >(ALL_COMICS_QUERY, {
+  >(ALL_RECENT_ITEMS_QUERY, {
     variables: {
       category: selectedCategory ? [selectedCategory] : [],
       limit: ITEMS_PER_PAGE,
@@ -66,7 +67,7 @@ const ItemRecentPage: React.FC = () => {
     },
   });
 
-  const handleComicClick = (itemId: string) => {
+  const handleItemClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
   };
 
@@ -79,6 +80,8 @@ const ItemRecentPage: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Refetch when category, page, or status changes
@@ -96,92 +99,142 @@ const ItemRecentPage: React.FC = () => {
     ) || [];
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ pb: 4 }}>
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={() => navigate("/")} sx={{ mr: 1 }}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          {t("item.allItems")}
-        </Typography>
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          backgroundColor: "background.paper",
+          borderBottom: 1,
+          borderColor: "divider",
+          mb: 2,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ display: "flex", alignItems: "center", py: 2 }}>
+            <IconButton onClick={() => navigate("/")} sx={{ mr: 1 }}>
+              <ArrowBack />
+            </IconButton>
+            <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: "bold" }}>
+              {t("item.allItems", "All Items")}
+            </Typography>
+          </Box>
+        </Container>
       </Box>
 
-      {/* Filters */}
-      <Box sx={{ mb: 3, display: "flex", gap: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel>{t("item.status")}</InputLabel>
-          <Select
-            value={statusFilter}
-            label={t("item.status")}
-            onChange={(e) => setStatusFilter(e.target.value)}
+      <Container maxWidth="lg">
+        {/* Filters */}
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>{t("item.status")}</InputLabel>
+            <Select
+              value={statusFilter}
+              label={t("item.status")}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="">{t("common.all", "All")}</MenuItem>
+              <MenuItem value="AVAILABLE">{t("item.available")}</MenuItem>
+              <MenuItem value="EXCHANGEABLE">{t("item.exchangeable")}</MenuItem>
+              <MenuItem value="GIFT">{t("item.gift")}</MenuItem>
+              <MenuItem value="RESERVED">{t("item.reserved")}</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Results count */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ ml: "auto" }}
           >
-            <MenuItem value="">{t("common.all", "All")}</MenuItem>
-            <MenuItem value="AVAILABLE">{t("item.available")}</MenuItem>
-            <MenuItem value="EXCHANGEABLE">{t("item.exchangeable")}</MenuItem>
-            <MenuItem value="GIFT">{t("item.gift")}</MenuItem>
-            <MenuItem value="RESERVED">{t("item.reserved")}</MenuItem>
-          </Select>
-        </FormControl>
-        {/* Category filter (optional, if you want to show) */}
-        {/*
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel>{t("item.category")}</InputLabel>
-          <Select
-            value={selectedCategory}
-            label={t("item.category")}
-            onChange={handleCategoryChange}
+            {loading
+              ? t("common.loading", "Loading...")
+              : t("item.itemsFound", "{{count}} items found", {
+                  count: filteredItems.length,
+                })}
+          </Typography>
+        </Box>
+
+        {/* Loading State */}
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <Box sx={{ py: 4, textAlign: "center" }}>
+            <Typography color="error">
+              {t("common.error", "Error")}: {error.message}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Items Grid - 3 columns on mobile, 4 on tablet, 6 on desktop */}
+        {!loading && filteredItems.length > 0 && (
+          <>
+            <Grid
+              container
+              spacing={{ xs: 1, sm: 2 }}
+              sx={{
+                mb: 3,
+              }}
+            >
+              {filteredItems.map((item) => (
+                <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
+                  <ItemPreview2 item={item} onClick={handleItemClick} />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Pagination Controls */}
+            <Box sx={{ mt: 4 }}>
+              <PaginationControls
+                currentPage={page}
+                onPageChange={handlePageChange}
+                hasNextPage={filteredItems.length === ITEMS_PER_PAGE}
+                hasPrevPage={page > 1}
+                isLoading={loading}
+                itemsPerPage={ITEMS_PER_PAGE}
+                showPageInfo={true}
+              />
+            </Box>
+          </>
+        )}
+
+        {/* Empty State */}
+        {!loading && filteredItems.length === 0 && (
+          <Box
+            sx={{
+              py: 8,
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}
           >
-            <MenuItem value="">{t("common.all", "All")}</MenuItem>
-            // Add your categories here
-          </Select>
-        </FormControl>
-        */}
-      </Box>
-
-      {/* Comics Grid */}
-      {loading && <CircularProgress />}
-
-      {error && (
-        <Typography color="error">
-          {t("common.error", "Error")}: {error.message}
-        </Typography>
-      )}
-
-      {filteredItems.length > 0 && (
-        <>
-          <Grid container spacing={2}>
-            {filteredItems.map((item) => (
-              <Grid key={item.id}>
-                <ItemPreview
-                  item={item}
-                  width="100%"
-                  height="300px"
-                  showImage={true}
-                  onClick={handleComicClick}
-                  isPortrait={false}
-                />
-              </Grid>
-            ))}
-          </Grid>
-          {/* Pagination Controls */}
-          <PaginationControls
-            currentPage={page}
-            onPageChange={handlePageChange}
-            hasNextPage={filteredItems.length === ITEMS_PER_PAGE}
-            hasPrevPage={page > 1}
-            isLoading={loading}
-            itemsPerPage={ITEMS_PER_PAGE}
-            showPageInfo={true}
-          />
-        </>
-      )}
-
-      {filteredItems.length === 0 && !loading && (
-        <Typography variant="h6" sx={{ textAlign: "center", mt: 4 }}>
-          {t("item.noComicsFound")}
-        </Typography>
-      )}
+            <Typography variant="h6" color="text.secondary">
+              {t("item.noItemsFound", "No items found")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {statusFilter || selectedCategory
+                ? t("item.tryDifferentFilters", "Try adjusting your filters")
+                : t("item.noItemsYet", "No items available yet")}
+            </Typography>
+          </Box>
+        )}
+      </Container>
     </Box>
   );
 };

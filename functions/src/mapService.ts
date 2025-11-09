@@ -145,6 +145,29 @@ export class MapService {
     });
     return documentDatas;
   }
+
+  async getLocationsByRadiusCount(
+    query: FirebaseFirestore.Query,
+    geolocation: Location,
+    radiusKm: number
+  ): Promise<number> {
+    let center: geofire.Geopoint = [
+      geolocation.latitude,
+      geolocation.longitude,
+    ];
+    const radiusInM = radiusKm * 1000;
+    const bounds = geofire.geohashQueryBounds(center, radiusInM);
+    const promises = bounds.map((b) => {
+      const q = query.orderBy("geohash").startAt(b[0]).endAt(b[1]);
+      return q.get();
+    });
+    const snapshots = await Promise.all(promises);
+    let count = 0;
+    snapshots.forEach((snapshot) => {
+      count += snapshot.docs.length;
+    });
+    return count;
+  }
 }
 
 // Factory function to create MapService with Google Maps

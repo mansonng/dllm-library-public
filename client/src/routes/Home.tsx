@@ -7,14 +7,10 @@ import {
   Typography,
   List,
   ListItem,
-  Pagination,
-  Card,
-  CardContent,
   CircularProgress,
   Alert,
 } from "@mui/material";
 import { User, Item, RecommendationType } from "../generated/graphql";
-import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
 import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
@@ -53,38 +49,6 @@ const RecommendedItemsQuery = gql`
   }
 `;
 
-const GET_EXCHANGE_POINTS = gql`
-  query GetExchangePoints($limit: Int, $offset: Int) {
-    exchangePoints(limit: $limit, offset: $offset) {
-      id
-      nickname
-      address
-      location {
-        latitude
-        longitude
-        geohash
-      }
-    }
-  }
-`;
-
-const GET_EXCHANGE_POINTS_COUNT = gql`
-  query GetExchangePointsCount {
-    exchangePointsCount
-  }
-`;
-
-interface ExchangePoint {
-  id: string;
-  nickname: string;
-  address: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    geohash: string;
-  };
-}
-
 interface OutletContext {
   email?: string | undefined | null;
   emailVerified?: boolean | undefined | null;
@@ -97,19 +61,12 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [exchangePointsPage, setExchangePointsPage] = useState(1);
-  const exchangePointsPerPage = 5;
 
   const handleItemCreated = () => {
     recentCategoriesRefetch();
     hotCategoriesRefetch();
     userPickedRefetch();
   };
-
-  const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
 
   // Query for USER_PICKED recommendations only
   const {
@@ -150,42 +107,6 @@ const HomePage: React.FC = () => {
     variables: { limit: 3 },
   });
 
-  // Query for exchange points with pagination
-  const {
-    data: exchangePointsData,
-    loading: exchangePointsLoading,
-    error: exchangePointsError,
-  } = useQuery<{
-    exchangePoints: ExchangePoint[];
-  }>(GET_EXCHANGE_POINTS, {
-    variables: {
-      limit: exchangePointsPerPage,
-      offset: (exchangePointsPage - 1) * exchangePointsPerPage,
-    },
-  });
-
-  // Query for total count of exchange points
-  const { data: exchangePointsCountData } = useQuery<{
-    exchangePointsCount: number;
-  }>(GET_EXCHANGE_POINTS_COUNT);
-  const getLocation = () => {
-    if (user?.location?.latitude) {
-      setLocation({
-        latitude: user?.location.latitude,
-        longitude: user?.location.longitude,
-      });
-    } else {
-      navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          setLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          }),
-        (err) => console.error(err)
-      );
-    }
-  };
-
   const signOut = async () => {
     await auth.signOut();
   };
@@ -199,22 +120,8 @@ const HomePage: React.FC = () => {
     navigate("/item/all");
   };
 
-  const handleExchangePointClick = (exchangePointId: string) => {
-    navigate(`/user/${exchangePointId}`);
-  };
-
-  const handleExchangePointsPageChange = (value: number) => {
-    setExchangePointsPage(value);
-  };
-
-  const totalExchangePointsPages = exchangePointsCountData?.exchangePointsCount
-    ? Math.ceil(
-        exchangePointsCountData.exchangePointsCount / exchangePointsPerPage
-      )
-    : 0;
-
   return (
-    <List>
+    <List sx={{ px: 2 }}>
       {/* Welcome Section */}
       <ListItem>
         <Box sx={{ width: "100%" }}>
@@ -272,103 +179,14 @@ const HomePage: React.FC = () => {
         </Box>
       </ListItem>
 
-      {/* Recent News Banner */}
-      <ListItem>
-        <RecentNewsBanner user={user} />
-      </ListItem>
-
-      {/* Exchange Points Section */}
-      <ListItem>
-        <Box sx={{ width: "100%" }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            {t("home.exchangePoints", "Exchange Points")}
-          </Typography>
-
-          {exchangePointsLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-              <CircularProgress size={24} />
-              <Typography sx={{ ml: 1 }}>
-                {t("home.loadingExchangePoints", "Loading exchange points...")}
-              </Typography>
-            </Box>
-          )}
-
-          {exchangePointsError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {t("home.exchangePointsError", "Error loading exchange points")}:{" "}
-              {exchangePointsError.message}
-            </Alert>
-          )}
-
-          {exchangePointsData?.exchangePoints && (
-            <>
-              <Box sx={{ mb: 2 }}>
-                {exchangePointsData.exchangePoints.map((point) => (
-                  <Card
-                    key={point.id}
-                    sx={{
-                      mb: 1,
-                      cursor: "pointer",
-                      "&:hover": {
-                        backgroundColor: "action.hover",
-                      },
-                    }}
-                    onClick={() => handleExchangePointClick(point.id)}
-                  >
-                    <CardContent sx={{ py: 2, "&:last-child": { pb: 2 } }}>
-                      <Typography variant="subtitle1" fontWeight="medium">
-                        {point.nickname}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {point.address}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-
-              {totalExchangePointsPages > 1 && (
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                  <Pagination
-                    count={totalExchangePointsPages}
-                    page={exchangePointsPage}
-                    onChange={(_, value) =>
-                      handleExchangePointsPageChange(value)
-                    }
-                    color="primary"
-                    size="small"
-                  />
-                </Box>
-              )}
-
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
-              >
-                {t(
-                  "home.exchangePointsCount",
-                  "{{current}} of {{total}} exchange points",
-                  {
-                    current: exchangePointsData.exchangePoints.length,
-                    total: exchangePointsCountData?.exchangePointsCount || 0,
-                  }
-                )}
-              </Typography>
-            </>
-          )}
-
-          {exchangePointsData?.exchangePoints?.length === 0 && (
-            <Alert severity="info">
-              {t("home.noExchangePoints", "No exchange points available.")}
-            </Alert>
-          )}
-        </Box>
-      </ListItem>
-
       {/* View All Items Button */}
       <ListItem>
-        <Button variant="contained" onClick={handleViewAllItems} size="large">
+        <Button
+          variant="contained"
+          onClick={handleViewAllItems}
+          size="large"
+          fullWidth
+        >
           {t("navigation.viewAllItems")}
         </Button>
       </ListItem>

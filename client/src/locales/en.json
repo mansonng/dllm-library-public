@@ -33,10 +33,9 @@
   "navigation": {
     "home": "Home",
     "news": "News",
-    "viewNews": "View News",
-    "viewAllNews": "View All News",
-    "viewAllItems": "View Nearby Items",
-    "allNews": "All News"
+    "exchangePoints": "Exchange Points",
+    "profile": "Profile",
+    "viewAllItems": "View All Items"
   },
   "home": {
     "welcome": "Welcome, {{nickname}}",

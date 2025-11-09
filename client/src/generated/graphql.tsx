@@ -348,6 +348,9 @@ export type Query = {
   recentAddedItems: Array<Item>;
   recentUpdateCategories: Array<Scalars['String']['output']>;
   recommendedItems: Array<Item>;
+  totalItemsCount: Scalars['Int']['output'];
+  totalItemsCountByLocation: Scalars['Int']['output'];
+  totalItemsCountByUser: Scalars['Int']['output'];
   transaction?: Maybe<Transaction>;
   transactions: Array<Transaction>;
   transactionsByItem: Array<Transaction>;
@@ -476,6 +479,33 @@ export type QueryRecommendedItemsArgs = {
   category?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   type: RecommendationType;
+};
+
+
+export type QueryTotalItemsCountArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ItemStatus>;
+};
+
+
+export type QueryTotalItemsCountByLocationArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+  radiusKm: Scalars['Float']['input'];
+  status?: InputMaybe<ItemStatus>;
+};
+
+
+export type QueryTotalItemsCountByUserArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  isExchangePointItem?: InputMaybe<Scalars['Boolean']['input']>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ItemStatus>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -764,17 +794,6 @@ export type CancelTransactionMutationVariables = Exact<{
 
 
 export type CancelTransactionMutation = { __typename?: 'Mutation', cancelTransaction: boolean };
-
-export type ItemsByUserQueryVariables = Exact<{
-  userId: Scalars['ID']['input'];
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  isExchangePointItem?: InputMaybe<Scalars['Boolean']['input']>;
-}>;
-
-
-export type ItemsByUserQuery = { __typename?: 'Query', itemsByUser: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type GeocodeAddressQueryVariables = Exact<{
   address: Scalars['String']['input'];
@@ -1951,66 +1970,6 @@ export function useCancelTransactionMutation(baseOptions?: Apollo.MutationHookOp
 export type CancelTransactionMutationHookResult = ReturnType<typeof useCancelTransactionMutation>;
 export type CancelTransactionMutationResult = Apollo.MutationResult<CancelTransactionMutation>;
 export type CancelTransactionMutationOptions = Apollo.BaseMutationOptions<CancelTransactionMutation, CancelTransactionMutationVariables>;
-export const ItemsByUserDocument = gql`
-    query ItemsByUser($userId: ID!, $limit: Int, $offset: Int, $category: [String!], $isExchangePointItem: Boolean) {
-  itemsByUser(
-    userId: $userId
-    limit: $limit
-    offset: $offset
-    category: $category
-    isExchangePointItem: $isExchangePointItem
-  ) {
-    id
-    name
-    condition
-    status
-    images
-    thumbnails
-    category
-    location {
-      latitude
-      longitude
-    }
-  }
-}
-    `;
-
-/**
- * __useItemsByUserQuery__
- *
- * To run a query within a React component, call `useItemsByUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useItemsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useItemsByUserQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
- *      category: // value for 'category'
- *      isExchangePointItem: // value for 'isExchangePointItem'
- *   },
- * });
- */
-export function useItemsByUserQuery(baseOptions: Apollo.QueryHookOptions<ItemsByUserQuery, ItemsByUserQueryVariables> & ({ variables: ItemsByUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ItemsByUserQuery, ItemsByUserQueryVariables>(ItemsByUserDocument, options);
-      }
-export function useItemsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemsByUserQuery, ItemsByUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ItemsByUserQuery, ItemsByUserQueryVariables>(ItemsByUserDocument, options);
-        }
-export function useItemsByUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemsByUserQuery, ItemsByUserQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ItemsByUserQuery, ItemsByUserQueryVariables>(ItemsByUserDocument, options);
-        }
-export type ItemsByUserQueryHookResult = ReturnType<typeof useItemsByUserQuery>;
-export type ItemsByUserLazyQueryHookResult = ReturnType<typeof useItemsByUserLazyQuery>;
-export type ItemsByUserSuspenseQueryHookResult = ReturnType<typeof useItemsByUserSuspenseQuery>;
-export type ItemsByUserQueryResult = Apollo.QueryResult<ItemsByUserQuery, ItemsByUserQueryVariables>;
 export const GeocodeAddressDocument = gql`
     query GeocodeAddress($address: String!) {
   geocodeAddress(address: $address) {

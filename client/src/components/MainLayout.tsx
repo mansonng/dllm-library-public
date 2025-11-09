@@ -1,49 +1,41 @@
-import React from "react";
-import { createBrowserRouter, Outlet, Navigate } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import React, { useState } from "react";
 import {
+  Box,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
   AppBar,
   Toolbar,
   Typography,
-  Container,
   IconButton,
   Badge,
   Menu,
   MenuItem,
-  Box,
   ListItemIcon,
   ListItemText,
+  Container,
 } from "@mui/material";
 import {
+  Home as HomeIcon,
+  Newspaper as NewsIcon,
+  LocationOn as LocationIcon,
+  Person as PersonIcon,
   Notifications as NotificationsIcon,
   Menu as MenuIcon,
-  Person as PersonIcon,
   Add as AddIcon,
-  Article as NewsIcon,
+  Article as ArticleIcon,
   ExitToApp as LogoutIcon,
   Bookmark as BookmarkIcon,
 } from "@mui/icons-material";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import { auth } from "./firebase";
-import { User, Role } from "./generated/graphql";
-import Home from "./routes/Home";
-import NewsPage from "./routes/News";
-import NewsDetailPage from "./routes/News.$id";
-import AllNewsPage from "./routes/News.all";
-import ItemDetailPage from "./routes/Item.$id";
-import ItemRecentPage from "./routes/Item.recent";
-import ItemAllPage from "./routes/Item.all";
-import UserDetailPage from "./routes/User.$id";
-import TransactionsPage from "./routes/Transactions";
-import TransactionDetailPage from "./components/TransactionDetail";
-import LanguageSwitcher from "./components/LanguageSwitcher";
-
-import ItemForm from "./components/ItemForm";
-import NewsForm from "./components/NewsForm";
-import { gql, useMutation, useApolloClient } from "@apollo/client";
-import OnLoanItemsView from "./routes/OnLoanItemsView";
-import BorrowedItemsView from "./routes/BorrowedItemsView";
+import { useQuery, gql } from "@apollo/client";
+import { auth } from "../firebase";
+import { User, Role } from "../generated/graphql";
+import { AuthDialog } from "./Auth";
+import LanguageSwitcher from "./LanguageSwitcher";
+import ItemForm from "./ItemForm";
+import NewsForm from "./NewsForm";
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -59,31 +51,90 @@ const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   }
 `;
 
-interface LayoutProps {
+interface MainLayoutProps {
   email?: string | null;
   emailVerified?: boolean | null;
   user?: User;
 }
 
-const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({
+  email,
+  emailVerified,
+  user,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [showItemForm, setShowItemForm] = React.useState(false);
-  const [showNewsForm, setShowNewsForm] = React.useState(false);
+  const location = useLocation();
 
-  // Query for user's open transactions to show notification count
+  // State management
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [showItemForm, setShowItemForm] = useState(false);
+  const [showNewsForm, setShowNewsForm] = useState(false);
+
+  // Query for user's open transactions
   const { data: transactionsData } = useQuery(
     GET_USER_OPEN_TRANSACTIONS_FOR_COUNT,
     {
       variables: { userId: user?.id! },
       skip: !user?.id,
-      pollInterval: 30000, // Poll every 30 seconds for new transactions
+      pollInterval: 30000, // Poll every 30 seconds
     }
   );
 
   const notificationCount =
     transactionsData?.openTransactionsByUser?.length || 0;
+
+  // Determine active bottom nav tab based on current route
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path === "/" || path === "/home") return 0;
+    if (path.startsWith("/news")) return 1;
+    if (path.startsWith("/exchange-points")) return 2;
+    if (path.startsWith("/profile") || path.startsWith("/user/")) return 3;
+    return 0; // Default to home
+  };
+
+  const [bottomNavValue, setBottomNavValue] = useState(getActiveTab());
+
+  // Update bottom nav when route changes
+  React.useEffect(() => {
+    setBottomNavValue(getActiveTab());
+  }, [location.pathname]);
+
+  // Handlers
+  const handleBottomNavigation = (
+    _: React.SyntheticEvent,
+    newValue: number
+  ) => {
+    setBottomNavValue(newValue);
+
+    switch (newValue) {
+      case 0:
+        navigate("/");
+        break;
+      case 1:
+        navigate("/news");
+        break;
+      case 2:
+        navigate("/exchange-points");
+        break;
+      case 3:
+        if (user?.isVerified) {
+          navigate("/profile");
+        } else {
+          setAuthDialogOpen(true);
+        }
+        break;
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setAuthDialogOpen(false);
+    setTimeout(() => {
+      navigate("/profile");
+    }, 500);
+  };
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -123,15 +174,9 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
     navigate("/items/on-loan");
     handleMenuClose();
   };
-  
-  const handleBorrowedItems = () => {
-    navigate("/items/borrowed-items");
-    handleMenuClose();
-  };
 
   const handleItemCreated = () => {
     setShowItemForm(false);
-    // Refresh the home page if needed
     if (window.location.pathname === "/") {
       window.location.reload();
     }
@@ -139,14 +184,14 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
 
   const handleNewsCreated = () => {
     setShowNewsForm(false);
-    // Refresh the home page if needed
     if (window.location.pathname === "/") {
       window.location.reload();
     }
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      {/* Top AppBar */}
       <AppBar position="sticky">
         <Toolbar>
           <Typography
@@ -157,7 +202,9 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
           >
             {t("app.title", "DLLM Library")}
           </Typography>
+
           <LanguageSwitcher />
+
           {/* Notification Bell - only show for authenticated users */}
           {user && (
             <IconButton
@@ -172,8 +219,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
             </IconButton>
           )}
 
-          {/* Menu Button - only show for authenticated users */}
-
+          {/* Menu Button - only show for active users */}
           {user && user.isActive && (
             <>
               <IconButton
@@ -211,20 +257,11 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     <BookmarkIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>
-                    {t("item.myLentItems", "My lent items")}
+                    {t("item.onLoanItems", "Items On Loan")}
                   </ListItemText>
                 </MenuItem>
 
-                <MenuItem onClick={handleBorrowedItems}>
-                  <ListItemIcon>
-                    <BookmarkIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("item.myBorrowedItems", "My borrowed items")}
-                  </ListItemText>
-                </MenuItem>
-
-                {user?.isVerified && ( // Only show add options if user is verified
+                {user?.isVerified && (
                   <MenuItem onClick={handleAddItem}>
                     <ListItemIcon>
                       <AddIcon fontSize="small" />
@@ -233,10 +270,10 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                   </MenuItem>
                 )}
 
-                {user?.role === Role.Admin && ( // Only show add news option for admin users
+                {user?.role === Role.Admin && (
                   <MenuItem onClick={handleAddNews}>
                     <ListItemIcon>
-                      <NewsIcon fontSize="small" />
+                      <ArticleIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>{t("news.add", "Add News")}</ListItemText>
                   </MenuItem>
@@ -254,11 +291,61 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
+      {/* Main Content Area */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          pb: 7, // Space for bottom navigation
+          overflow: "auto",
+        }}
+      >
         <Outlet context={{ email, emailVerified, user }} />
-      </Container>
+      </Box>
 
-      {/* Item Form Dialog */}
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+        }}
+        elevation={3}
+      >
+        <BottomNavigation
+          value={bottomNavValue}
+          onChange={handleBottomNavigation}
+          showLabels
+        >
+          <BottomNavigationAction
+            label={t("navigation.home", "Home")}
+            icon={<HomeIcon />}
+          />
+          <BottomNavigationAction
+            label={t("navigation.news", "News")}
+            icon={<NewsIcon />}
+          />
+          <BottomNavigationAction
+            label={t("navigation.exchangePoints", "Exchange Points")}
+            icon={<LocationIcon />}
+          />
+          <BottomNavigationAction
+            label={t("navigation.profile", "Profile")}
+            icon={<PersonIcon />}
+          />
+        </BottomNavigation>
+      </Paper>
+
+      {/* Dialogs */}
+      <AuthDialog
+        open={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
+        onSuccess={handleAuthSuccess}
+        defaultIsSignUp={false}
+      />
+
       {showItemForm && (
         <ItemForm
           open={showItemForm}
@@ -267,7 +354,6 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
         />
       )}
 
-      {/* News Form Dialog */}
       {showNewsForm && (
         <NewsForm
           open={showNewsForm}
@@ -279,80 +365,4 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
   );
 };
 
-export const createRouter = (
-  email?: string | null,
-  emailVerified?: boolean | null,
-  user?: User
-  //  initialPath?: string | null
-) => {
-  return createBrowserRouter([
-    {
-      path: "/",
-      element: (
-        <MainLayout email={email} emailVerified={emailVerified} user={user} />
-      ),
-      children: [
-        {
-          index: true,
-          element: <Home />,
-        },
-        {
-          path: "home",
-          element: <Home />,
-        },
-        {
-          path: "news",
-          element: <NewsPage />,
-        },
-        {
-          path: "news/all",
-          element: <AllNewsPage />,
-        },
-        {
-          path: "news/:id",
-          element: <NewsDetailPage />,
-        },
-        {
-          path: "exchange-points",
-          element: <ExchangePointsPage />,
-        },
-        {
-          path: "profile",
-          element: <ProfilePage />,
-        },
-        {
-          path: "item/all",
-          element: <ItemAllPage />,
-        },
-        {
-          path: "item/recent",
-          element: <ItemRecentPage />,
-        },
-        {
-          path: "item/:id",
-          element: <ItemDetailPage />,
-        },
-        {
-          path: "user/:id",
-          element: <UserDetailPage />,
-        },
-        {
-          path: "transactions",
-          element: <TransactionsPage />,
-        },
-        {
-          path: "transaction/:transactionId",
-          element: <TransactionDetailPage />,
-        },
-        {
-          path: "items/on-loan",
-          element: <OnLoanItemsView />,
-        },
-        {
-          path: "items/borrowed-items",
-          element: <BorrowedItemsView />,
-        },
-      ],
-    },
-  ]);
-};
+export default MainLayout;

@@ -1,12 +1,13 @@
 import React from "react";
+import { Box, Typography, Container } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router-dom";
 import { User } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
-import { Link } from "react-router";
-import { Button, Box } from "@mui/material";
-import { useOutletContext } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 
 interface OutletContext {
+  email?: string | undefined | null;
+  emailVerified?: boolean | undefined | null;
   user?: User;
 }
 
@@ -15,14 +16,12 @@ const NewsPage: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
 
   return (
-    <Box>
-      <Box sx={{ mb: 2 }}>
-        <Button component={Link} to="/news/all" variant="outlined">
-          {t("news.viewAll")}
-        </Button>
-      </Box>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold" }}>
+        {t("navigation.news", "News")}
+      </Typography>
       <RecentNewsBanner user={user} />
-    </Box>
+    </Container>
   );
 };
 
