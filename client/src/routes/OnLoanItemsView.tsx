@@ -391,7 +391,7 @@ const OnLoanItemsView: React.FC = () => {
                                 color="text.secondary"
                               >
                                 <strong>
-                                  {t("item.previousHolder", "Previous Holder")}:
+                                  {t("item.currentHolder", "Current Holder")}:
                                 </strong>{" "}
                                 {item.holder?.nickname ||
                                   t("common.loading", "Loading...")}
