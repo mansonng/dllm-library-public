@@ -151,15 +151,7 @@ const HomePage: React.FC = () => {
                   {t("home.welcome")} {email}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                  {emailVerified ? (
-                    <Button
-                      variant="contained"
-                      onClick={() => setShowCreateUser(true)}
-                      size="large"
-                    >
-                      {t("auth.createProfile")}
-                    </Button>
-                  ) : (
+                  {!emailVerified && (
                     <Button
                       variant="outlined"
                       onClick={async () => {

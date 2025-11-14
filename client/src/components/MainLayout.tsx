@@ -183,6 +183,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     navigate("/items/borrowed-items");
     handleMenuClose();
   };
+
   const handleItemCreated = () => {
     setShowItemForm(false);
     if (window.location.pathname === "/") {

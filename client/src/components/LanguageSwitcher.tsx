@@ -23,8 +23,20 @@ const LanguageSwitcher: React.FC = () => {
         <Select
           value={i18n.language}
           onChange={handleLanguageChange}
-          displayEmpty
+          displayEmpty={true}
           variant="outlined"
+          sx={{
+            color: "#757575", // Grey color for selected value
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#bdbdbd", // Grey border
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#9e9e9e", // Darker grey on hover
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#757575", // Grey when focused
+            },
+          }}
         >
           <MenuItem value="en">{t("languages.en")}</MenuItem>
           <MenuItem value="zh-TW">{t("languages.zh-TW")}</MenuItem>
