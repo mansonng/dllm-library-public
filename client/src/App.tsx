@@ -33,7 +33,7 @@ interface AppProps {
 const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const meOutput = useQuery<{ me: User }>(ME_QUERY, {
     skip: !user,
-    fetchPolicy: "cache-and-network", // Use cache first but also fetch from network
+    fetchPolicy: "cache-first", // Use cache first, refetch manually when needed
   });
   const [initialPath, setInitialPath] = useState<string | null>(null);
   const previousUserIdRef = useRef<string | null>(null);
