@@ -179,6 +179,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     handleMenuClose();
   };
 
+  const handleBorrowedItems = () => {
+    navigate("/items/borrowed-items");
+    handleMenuClose();
+  };
   const handleItemCreated = () => {
     setShowItemForm(false);
     if (window.location.pathname === "/") {
@@ -252,7 +256,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     <PersonIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>
-                    {t("user.profile", "User Profile")}
+                    {t("home.profile", "User Profile")}
                   </ListItemText>
                 </MenuItem>
 
@@ -261,7 +265,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     <BookmarkIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>
-                    {t("item.onLoanItems", "Items On Loan")}
+                    {t("home.onLoanItems", "Items On Loan")}
+                  </ListItemText>
+                </MenuItem>
+
+                <MenuItem onClick={handleBorrowedItems}>
+                  <ListItemIcon>
+                    <BookmarkIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>
+                    {t("home.onBorrowItems", "Items I've Borrowed")}
                   </ListItemText>
                 </MenuItem>
 
@@ -270,7 +283,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     <ListItemIcon>
                       <AddIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>{t("item.add", "Add Item")}</ListItemText>
+                    <ListItemText>{t("item.create", "Add Item")}</ListItemText>
                   </MenuItem>
                 )}
 
@@ -279,7 +292,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     <ListItemIcon>
                       <ArticleIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>{t("news.add", "Add News")}</ListItemText>
+                    <ListItemText>{t("news.create", "Add News")}</ListItemText>
                   </MenuItem>
                 )}
 

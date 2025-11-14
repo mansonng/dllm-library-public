@@ -16,6 +16,7 @@ import {
   TextField,
   Grid,
   Chip,
+  FormHelperText
 } from "@mui/material";
 import {
   ArrowBack,
@@ -155,13 +156,13 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched
         ? {
-            ...location,
-            radiusKm: SEARCH_RADIUS_KM,
-            category: selectedCategory ? [selectedCategory] : null,
-            keyword: searchKeyword || null,
-            limit: ITEMS_PER_PAGE,
-            offset: (page - 1) * ITEMS_PER_PAGE,
-          }
+          ...location,
+          radiusKm: SEARCH_RADIUS_KM,
+          category: selectedCategory ? [selectedCategory] : null,
+          keyword: searchKeyword || null,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
+        }
         : undefined,
     skip: !location || !hasSearched,
   });
@@ -172,11 +173,11 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched
         ? {
-            ...location,
-            radiusKm: SEARCH_RADIUS_KM,
-            category: selectedCategory ? [selectedCategory] : undefined,
-            keyword: searchKeyword || null,
-          }
+          ...location,
+          radiusKm: SEARCH_RADIUS_KM,
+          category: selectedCategory ? [selectedCategory] : undefined,
+          keyword: searchKeyword || null,
+        }
         : undefined,
     skip: !location || !hasSearched,
   });
@@ -300,11 +301,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              location.latitude,
-              location.longitude
-            )
+            item.location.latitude,
+            item.location.longitude,
+            location.latitude,
+            location.longitude
+          )
           : 0,
     })) || [];
 
@@ -520,26 +521,26 @@ const ItemAllPage: React.FC = () => {
               <Typography variant="h6">
                 {searchKeyword && selectedCategory
                   ? t(
-                      "itemsAll.searchResultsWithCategory",
-                      'Search results for "{{keyword}}" in {{category}}',
-                      {
-                        keyword: searchKeyword,
-                        category: selectedCategory,
-                      }
-                    )
+                    "itemsAll.searchResultsWithCategory",
+                    'Search results for "{{keyword}}" in {{category}}',
+                    {
+                      keyword: searchKeyword,
+                      category: selectedCategory,
+                    }
+                  )
                   : searchKeyword
-                  ? t(
+                    ? t(
                       "itemsAll.searchResults",
                       'Search results for "{{keyword}}"',
                       {
                         keyword: searchKeyword,
                       }
                     )
-                  : selectedCategory
-                  ? t("itemsAll.categoryResults", "Items in {{category}}", {
-                      category: selectedCategory,
-                    })
-                  : t("itemsAll.allItems", "All Items")}
+                    : selectedCategory
+                      ? t("itemsAll.categoryResults", "Items in {{category}}", {
+                        category: selectedCategory,
+                      })
+                      : t("item.allItems", "All Items")}
               </Typography>
 
               {/* Results count */}
@@ -547,10 +548,10 @@ const ItemAllPage: React.FC = () => {
                 {itemsLoading || totalItemsLoading
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
-                  ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
+                    ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
                       count: totalItemsData.totalItemsCountByLocation,
                     })
-                  : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
+                    : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
                       count: itemsWithDistance.length,
                     })}
               </Typography>
@@ -623,16 +624,16 @@ const ItemAllPage: React.FC = () => {
                 <Alert severity="info" sx={{ maxWidth: 600 }}>
                   {searchKeyword && selectedCategory
                     ? t(
-                        "itemsAll.noSearchResultsWithCategory",
-                        'No items found for "{{keyword}}" in {{category}} within {{radius}}km.',
-                        {
-                          keyword: searchKeyword,
-                          category: selectedCategory,
-                          radius: SEARCH_RADIUS_KM,
-                        }
-                      )
+                      "itemsAll.noSearchResultsWithCategory",
+                      'No items found for "{{keyword}}" in {{category}} within {{radius}}km.',
+                      {
+                        keyword: searchKeyword,
+                        category: selectedCategory,
+                        radius: SEARCH_RADIUS_KM,
+                      }
+                    )
                     : searchKeyword
-                    ? t(
+                      ? t(
                         "itemsAll.noSearchResults",
                         'No items found for "{{keyword}}" within {{radius}}km.',
                         {
@@ -640,7 +641,7 @@ const ItemAllPage: React.FC = () => {
                           radius: SEARCH_RADIUS_KM,
                         }
                       )
-                    : t(
+                      : t(
                         "itemsAll.noCategoryResults",
                         "No items found in {{category}} within {{radius}}km.",
                         {
