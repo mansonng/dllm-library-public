@@ -833,7 +833,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   </Alert>
                 )
               )}
-            </Paper >
+            </Paper>
           )}
         </>
       )}
