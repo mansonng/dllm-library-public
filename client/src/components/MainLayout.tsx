@@ -156,11 +156,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     setAnchorEl(null);
   };
 
-  const handleAddItem = () => {
-    setShowItemForm(true);
-    handleMenuClose();
-  };
-
   const handleAddNews = () => {
     setShowNewsForm(true);
     handleMenuClose();
@@ -168,13 +163,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   const handleNotificationsClick = () => {
     navigate("/transactions");
-  };
-
-  const handleItemCreated = () => {
-    setShowItemForm(false);
-    if (window.location.pathname === "/") {
-      window.location.reload();
-    }
   };
 
   const handleNewsCreated = () => {
