@@ -96,6 +96,7 @@ interface UserDetailProps {
   userId: string | null;
   currentUser?: User | null;
   onBack?: () => void;
+  signOut?: () => Promise<void> | undefined;
 }
 
 interface TagCloudData {
@@ -109,6 +110,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
   userId,
   currentUser,
   onBack,
+  signOut,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -257,9 +259,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -305,11 +307,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude
+            )
           : 0,
     })) || [];
 
@@ -320,11 +322,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude
+            )
           : 0,
     })) || [];
 
@@ -353,9 +355,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header with Back Button */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-          <ArrowBack />
-        </IconButton>
+        {onBack && (
+          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+            <ArrowBack />
+          </IconButton>
+        )}
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
           {userData?.user ? (
             <>
@@ -384,6 +388,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   size="small"
                   sx={{ ml: 1 }}
                 />
+              )}
+              {signOut && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  sx={{ ml: 2 }}
+                  onClick={signOut}
+                >
+                  {t("auth.signOut", "Sign Out")}
+                </Button>
               )}
             </>
           ) : (
@@ -532,13 +547,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Alert severity="info">
                 {isCurrentUser
                   ? t(
-                    "user.noPinnedItemsYou",
-                    "You haven't pinned any items yet."
-                  )
+                      "user.noPinnedItemsYou",
+                      "You haven't pinned any items yet."
+                    )
                   : t(
-                    "user.noPinnedItemsUser",
-                    "This user hasn't pinned any items."
-                  )}
+                      "user.noPinnedItemsUser",
+                      "This user hasn't pinned any items."
+                    )}
               </Alert>
             )}
           </Paper>
@@ -733,16 +748,16 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 <Typography variant="h6">
                   {isCurrentUser
                     ? t("user.yourItemsInCategory", "Your {{category}} Items", {
-                      category: selectedCategory,
-                    })
-                    : t(
-                      "user.userItemsInCategory",
-                      "{{name}}'s {{category}} Items",
-                      {
-                        name: userData.user.nickname || userData.user.email,
                         category: selectedCategory,
-                      }
-                    )}
+                      })
+                    : t(
+                        "user.userItemsInCategory",
+                        "{{name}}'s {{category}} Items",
+                        {
+                          name: userData.user.nickname || userData.user.email,
+                          category: selectedCategory,
+                        }
+                      )}
                   {isExchangePointAdmin && includeExchangePointItems && (
                     <Chip
                       label={t(
@@ -761,10 +776,10 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   {itemsLoading || totalItemsLoading
                     ? t("common.loading", "Loading...")
                     : totalItemsData?.totalItemsCountByUser
-                      ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                    ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
                         count: totalItemsData.totalItemsCountByUser,
                       })
-                      : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                    : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
                         count: itemsWithDistance.length,
                       })}
                 </Typography>
@@ -817,19 +832,19 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   <Alert severity="info">
                     {isCurrentUser
                       ? t(
-                        "user.noItemsInCategoryYou",
-                        "You haven't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        }
-                      )
+                          "user.noItemsInCategoryYou",
+                          "You haven't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          }
+                        )
                       : t(
-                        "user.noItemsInCategoryUser",
-                        "This user hasn't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        }
-                      )}
+                          "user.noItemsInCategoryUser",
+                          "This user hasn't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          }
+                        )}
                   </Alert>
                 )
               )}

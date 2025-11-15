@@ -37,7 +37,7 @@ import ItemAllPage from "./routes/Item.all";
 import UserDetailPage from "./routes/User.$id";
 import TransactionsPage from "./routes/Transactions";
 import TransactionDetailPage from "./components/TransactionDetail";
-import LanguageSwitcher from "./components/LanguageSwitcher";
+import LoanItems from "./routes/LoanItems";
 
 import ItemForm from "./components/ItemForm";
 import NewsForm from "./components/NewsForm";
@@ -67,7 +67,6 @@ export const createRouter = (
   emailVerified?: boolean | null,
   user?: User,
   onSignOut?: () => Promise<void>
-  //  initialPath?: string | null
 ) => {
   return createBrowserRouter([
     {
@@ -140,6 +139,10 @@ export const createRouter = (
         {
           path: "items/borrowed-items",
           element: <BorrowedItemsView />,
+        },
+        {
+          path: "loan-items",
+          element: <LoanItems />,
         },
       ],
     },

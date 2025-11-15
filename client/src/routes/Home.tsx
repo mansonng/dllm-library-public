@@ -16,6 +16,7 @@ import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
+import ItemForm from "../components/ItemForm";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -57,6 +58,7 @@ interface OutletContext {
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
+  const [showItemForm, setShowItemForm] = useState(false);
   const { user, emailVerified, email, onSignOut } =
     useOutletContext<OutletContext>();
   const navigate = useNavigate();
@@ -64,9 +66,13 @@ const HomePage: React.FC = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
 
   const handleItemCreated = () => {
+    setShowItemForm(false);
     recentCategoriesRefetch();
     hotCategoriesRefetch();
     userPickedRefetch();
+    if (window.location.pathname === "/") {
+      window.location.reload();
+    }
   };
 
   // Query for USER_PICKED recommendations only
@@ -107,6 +113,10 @@ const HomePage: React.FC = () => {
   }>(HotCategoriesQuery, {
     variables: { limit: 3 },
   });
+
+  const handleAddItem = () => {
+    setShowItemForm(true);
+  };
 
   const handleUserCreated = () => {
     setShowCreateUser(false);
@@ -190,6 +200,17 @@ const HomePage: React.FC = () => {
         >
           {t("navigation.viewAllItems")}
         </Button>
+        {user?.isVerified && (
+          <Button
+            variant="contained"
+            onClick={handleAddItem}
+            size="large"
+            fullWidth
+            sx={{ ml: 2 }}
+          >
+            {t("item.create", "Add Item")}
+          </Button>
+        )}
       </ListItem>
 
       {/* User Picked Recommendations Section - Only for active users */}
@@ -301,6 +322,14 @@ const HomePage: React.FC = () => {
           open={showCreateUser}
           isCreateUser={true}
           onClose={() => setShowCreateUser(false)}
+        />
+      )}
+
+      {showItemForm && (
+        <ItemForm
+          open={showItemForm}
+          onClose={() => setShowItemForm(false)}
+          onItemCreated={handleItemCreated}
         />
       )}
     </List>
