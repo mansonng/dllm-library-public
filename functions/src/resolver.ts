@@ -88,12 +88,46 @@ export const resolvers: Resolvers = {
     ): Promise<User | null> => {
       return userService.me(loginUser);
     },
+    items: async (
+      _: any,
+      {
+        classifications,
+        category,
+        status,
+        keyword,
+        limit = 20,
+        offset = 0,
+      }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.items(
+        classifications,
+        category,
+        status,
+        keyword,
+        limit,
+        offset
+      );
+    },
+    totalItemsCount: async (
+      _: any,
+      { classifications, category, status, keyword }: any,
+      __: any
+    ): Promise<number> => {
+      return itemService.totalItemsCount(
+        classifications,
+        category,
+        status,
+        keyword
+      );
+    },
     itemsByLocation: async (
       _: any,
       {
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword,
@@ -106,6 +140,7 @@ export const resolvers: Resolvers = {
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword,
@@ -115,13 +150,22 @@ export const resolvers: Resolvers = {
     },
     totalItemsCountByLocation: async (
       _: any,
-      { latitude, longitude, radiusKm, category, status, keyword }: any,
+      {
+        latitude,
+        longitude,
+        radiusKm,
+        classifications,
+        category,
+        status,
+        keyword,
+      }: any,
       __: any
     ): Promise<number> => {
       return itemService.totalItemsCountByLocation(
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword

@@ -7,6 +7,7 @@ import {
   ItemStatus,
   Language,
   User,
+  Role,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 import { MapService, createMapService } from "./mapService";
@@ -39,10 +40,8 @@ export class ItemService {
     this.userService = userService;
   }
 
-  async itemsByLocation(
-    latitude: number,
-    longitude: number,
-    radiusKm: number,
+  async items(
+    classifications: string[],
     category: string[],
     status: string,
     keyword: string,
@@ -50,8 +49,60 @@ export class ItemService {
     offset: number = 0
   ): Promise<Item[]> {
     let query = db.collection("items").where("geohash", ">=", "");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const snapshot = await query.limit(limit).offset(offset).get();
+    const results: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      })
+    );
+    return results;
+  }
+  async totalItemsCount(
+    classifications: string[],
+    category: string[],
+    status: string,
+    keyword: string
+  ): Promise<number> {
+    let query = db.collection("items").where("geohash", ">=", "");
+    if (category && category.length > 0)
+      query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const snapshot = await query.get();
+    return snapshot.size;
+  }
+  async itemsByLocation(
+    latitude: number,
+    longitude: number,
+    radiusKm: number,
+    classifications: string[],
+    category: string[],
+    status: string,
+    keyword: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    let query = db.collection("items").where("geohash", ">=", "");
+    if (category && category.length > 0)
+      query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
     if (status) query = query.where("status", "==", status);
     if (keyword)
       query = query
@@ -80,13 +131,16 @@ export class ItemService {
     latitude: number,
     longitude: number,
     radiusKm: number,
+    classifications: string[],
     category: string[],
     status: string,
     keyword: string
   ): Promise<number> {
     let query = db.collection("items").where("geohash", ">=", "");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
     if (status) query = query.where("status", "==", status);
     if (keyword)
       query = query
@@ -543,6 +597,7 @@ export class ItemService {
       status: status,
       language: language,
       deposit: deposit,
+      clssfctns: null,
       created: Timestamp.now(),
       updated: Timestamp.now(),
     };
@@ -622,7 +677,7 @@ export class ItemService {
     let existingData = itemDoc.data() as ItemModel;
 
     // Verify the user owns this item
-    if (existingData.ownerId !== user.id) {
+    if (existingData.ownerId !== user.id && user.role !== Role.Admin) {
       throw new Error(
         `User ${user.id} does not have permission to update item ${itemId}`
       );

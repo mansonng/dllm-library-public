@@ -20,6 +20,7 @@ export class SystemService {
     en: string,
     categoryMaps: [CategoryMapInput]
   ): Promise<[CategoryMap]> {
+    en = en.trim().toLowerCase();
     const categoryMapsRef = await SYSTEM_DB.doc("category")
       .collection("categoryMaps")
       .doc(en)
@@ -51,6 +52,7 @@ export class SystemService {
     } else {
       newCategoryPath = leafCategory;
     }
+    newCategoryPath = newCategoryPath.trim().toLowerCase();
 
     const categoryTreesRef = SYSTEM_DB.doc("category")
       .collection("categoryTrees")

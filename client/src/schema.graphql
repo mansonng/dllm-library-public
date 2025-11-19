@@ -221,7 +221,7 @@ type Query {
   # 藏品相關
   item(id: ID!): Item
   items(
-    category: [String!]
+    classifications: [String!]
     address: String # 備用字段
     status: ItemStatus
     keyword: String
@@ -229,7 +229,7 @@ type Query {
     offset: Int
   ): [Item!]! # 按條件篩選藏品（舊方式）
   totalItemsCount(
-    category: [String!]
+    classifications: [String!]
     address: String # 備用字段
     status: ItemStatus
     keyword: String
@@ -243,6 +243,7 @@ type Query {
     latitude: Float!
     longitude: Float!
     radiusKm: Float! # 搜尋半徑（公里）
+    classifications: [String!]
     category: [String!]
     status: ItemStatus
     keyword: String
@@ -253,6 +254,7 @@ type Query {
     latitude: Float!
     longitude: Float!
     radiusKm: Float! # 搜尋半徑（公里）
+    classifications: [String!]
     category: [String!]
     status: ItemStatus
     keyword: String

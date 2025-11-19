@@ -442,7 +442,7 @@ export type QueryItemArgs = {
 
 export type QueryItemsArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -452,6 +452,7 @@ export type QueryItemsArgs = {
 
 export type QueryItemsByLocationArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   latitude: Scalars['Float']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -552,7 +553,7 @@ export type QueryRecommendedItemsArgs = {
 
 export type QueryTotalItemsCountArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ItemStatus>;
 };
@@ -560,6 +561,7 @@ export type QueryTotalItemsCountArgs = {
 
 export type QueryTotalItemsCountByLocationArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   latitude: Scalars['Float']['input'];
   longitude: Scalars['Float']['input'];
@@ -711,6 +713,22 @@ export type UpdateItemClassificationMutationVariables = Exact<{
 
 
 export type UpdateItemClassificationMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, clssfctns?: Array<string> | null } };
+
+export type UpsertCategoryMapMutationVariables = Exact<{
+  en: Scalars['String']['input'];
+  categoryMaps: Array<CategoryMapInput> | CategoryMapInput;
+}>;
+
+
+export type UpsertCategoryMapMutation = { __typename?: 'Mutation', upsertCategoryMap?: Array<{ __typename?: 'CategoryMap', language: string, value: string }> | null };
+
+export type AddCategoryTreeMutationVariables = Exact<{
+  parentPath?: InputMaybe<Scalars['String']['input']>;
+  leafCategory: Scalars['String']['input'];
+}>;
+
+
+export type AddCategoryTreeMutation = { __typename?: 'Mutation', addCategoryTree: string };
 
 export type UpdateItemMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1291,6 +1309,73 @@ export function useUpdateItemClassificationMutation(baseOptions?: Apollo.Mutatio
 export type UpdateItemClassificationMutationHookResult = ReturnType<typeof useUpdateItemClassificationMutation>;
 export type UpdateItemClassificationMutationResult = Apollo.MutationResult<UpdateItemClassificationMutation>;
 export type UpdateItemClassificationMutationOptions = Apollo.BaseMutationOptions<UpdateItemClassificationMutation, UpdateItemClassificationMutationVariables>;
+export const UpsertCategoryMapDocument = gql`
+    mutation UpsertCategoryMap($en: String!, $categoryMaps: [CategoryMapInput!]!) {
+  upsertCategoryMap(en: $en, categoryMaps: $categoryMaps) {
+    language
+    value
+  }
+}
+    `;
+export type UpsertCategoryMapMutationFn = Apollo.MutationFunction<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>;
+
+/**
+ * __useUpsertCategoryMapMutation__
+ *
+ * To run a mutation, you first call `useUpsertCategoryMapMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertCategoryMapMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertCategoryMapMutation, { data, loading, error }] = useUpsertCategoryMapMutation({
+ *   variables: {
+ *      en: // value for 'en'
+ *      categoryMaps: // value for 'categoryMaps'
+ *   },
+ * });
+ */
+export function useUpsertCategoryMapMutation(baseOptions?: Apollo.MutationHookOptions<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>(UpsertCategoryMapDocument, options);
+      }
+export type UpsertCategoryMapMutationHookResult = ReturnType<typeof useUpsertCategoryMapMutation>;
+export type UpsertCategoryMapMutationResult = Apollo.MutationResult<UpsertCategoryMapMutation>;
+export type UpsertCategoryMapMutationOptions = Apollo.BaseMutationOptions<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>;
+export const AddCategoryTreeDocument = gql`
+    mutation AddCategoryTree($parentPath: String, $leafCategory: String!) {
+  addCategoryTree(parentPath: $parentPath, leafCategory: $leafCategory)
+}
+    `;
+export type AddCategoryTreeMutationFn = Apollo.MutationFunction<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>;
+
+/**
+ * __useAddCategoryTreeMutation__
+ *
+ * To run a mutation, you first call `useAddCategoryTreeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddCategoryTreeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addCategoryTreeMutation, { data, loading, error }] = useAddCategoryTreeMutation({
+ *   variables: {
+ *      parentPath: // value for 'parentPath'
+ *      leafCategory: // value for 'leafCategory'
+ *   },
+ * });
+ */
+export function useAddCategoryTreeMutation(baseOptions?: Apollo.MutationHookOptions<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>(AddCategoryTreeDocument, options);
+      }
+export type AddCategoryTreeMutationHookResult = ReturnType<typeof useAddCategoryTreeMutation>;
+export type AddCategoryTreeMutationResult = Apollo.MutationResult<AddCategoryTreeMutation>;
+export type AddCategoryTreeMutationOptions = Apollo.BaseMutationOptions<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>;
 export const UpdateItemDocument = gql`
     mutation UpdateItem($id: ID!, $name: String, $category: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int) {
   updateItem(
