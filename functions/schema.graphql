@@ -11,6 +11,7 @@ enum ItemCondition {
   GOOD
   FAIR
   POOR
+  LIKE_NEW
 }
 
 enum ContactMethodType {

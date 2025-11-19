@@ -106,6 +106,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const apolloClient = useApolloClient();
   const { t } = useTranslation();
 
+
   // Refs for file inputs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +137,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   // Image processing settings
   const maxImageSize = 1920;
   const imageQuality = 0.5;
+
 
   const [createItem, { data, loading, error }] = useMutation<
     CreateItemMutation,
@@ -309,10 +311,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
+                  ...img,
+                  isUploading: true,
+                  uploadProgress: progress.percentage,
+                }
                 : img
             )
           );
@@ -329,11 +331,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
+                  ...img,
+                  isUploading: false,
+                  uploadProgress: 100,
+                  gsUrl: gsUrl,
+                }
                 : img
             )
           );
@@ -352,10 +354,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
+              ...img,
+              isUploading: false,
+              uploadError: `Upload failed: ${error}`,
+            }
             : img
         )
       );
@@ -468,10 +470,25 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 required
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as ItemCondition)}
+                SelectProps={{
+                  renderValue: (value) => {
+                    // Only show the condition name in the preview, not the description
+                    return t(`item.conditions.${value}`, value as string);
+                  },
+                }}
               >
                 {Object.values(ItemCondition).map((cond) => (
                   <MenuItem key={cond} value={cond}>
-                    {cond}
+                    <ListItemText
+                      primary={t(`item.conditions.${cond}`, cond)}
+                      secondary={t(`item.conditionDescription.${cond}`, cond)}
+                      secondaryTypographyProps={{
+                        style: {
+                          whiteSpace: "normal",
+                          maxWidth: "90%",
+                        },
+                      }}
+                    />
                   </MenuItem>
                 ))}
               </TextField>
@@ -693,10 +710,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 {isProcessingImages
                   ? t("common.processingImages")
                   : isUploading
-                  ? t("common.uploading")
-                  : loading
-                  ? t("common.creating")
-                  : t("item.create")}
+                    ? t("common.uploading")
+                    : loading
+                      ? t("common.creating")
+                      : t("item.create")}
               </Button>
             </DialogActions>
           </form>
