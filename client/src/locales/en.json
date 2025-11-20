@@ -180,6 +180,7 @@
       "LIKE_NEW": "Like New",
       "GOOD": "Good",
       "FAIR": "Fair",
+      "AFFORDABLE": "Affordable",
       "POOR": "Poor"
     },
     "conditionDescription": {

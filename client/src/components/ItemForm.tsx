@@ -172,7 +172,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [deposit, setDeposit] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [language, setLanguage] = useState<Language>(
-    i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En
+    i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
   );
   const [publishedYear, setPublishedYear] = useState<number | "">("");
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
@@ -217,7 +217,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       const itemStatus = item.status || ItemStatus.Available;
       const itemLanguage =
         item.language ||
-        (i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En);
+        (i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En);
       const itemImages = item.images || [];
       const itemDeposit = item.deposit || 0;
 
@@ -306,7 +306,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setCondition(ItemCondition.New);
     setDescription("");
     setImageFiles([]);
-    setLanguage(i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En);
+    setLanguage(i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En);
     setPublishedYear("");
     setStatus(ItemStatus.Available);
     setFormError(null);
