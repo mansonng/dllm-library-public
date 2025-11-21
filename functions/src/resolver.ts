@@ -13,17 +13,21 @@ import {
   SignedUrlResponse,
   Transaction,
   TransactionStatus,
+  Role,
+  CategoryMap,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
 import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
 import { RecommendService } from "./recommendService";
+import { SystemService } from "./systemService";
 
 interface Context {
   loginUser: LoginUser | null;
 }
 
+const systemService = new SystemService();
 const categoryService = new CategoryService();
 const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
@@ -84,12 +88,46 @@ export const resolvers: Resolvers = {
     ): Promise<User | null> => {
       return userService.me(loginUser);
     },
+    items: async (
+      _: any,
+      {
+        classifications,
+        category,
+        status,
+        keyword,
+        limit = 20,
+        offset = 0,
+      }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.items(
+        classifications,
+        category,
+        status,
+        keyword,
+        limit,
+        offset
+      );
+    },
+    totalItemsCount: async (
+      _: any,
+      { classifications, category, status, keyword }: any,
+      __: any
+    ): Promise<number> => {
+      return itemService.totalItemsCount(
+        classifications,
+        category,
+        status,
+        keyword
+      );
+    },
     itemsByLocation: async (
       _: any,
       {
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword,
@@ -102,6 +140,7 @@ export const resolvers: Resolvers = {
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword,
@@ -111,13 +150,22 @@ export const resolvers: Resolvers = {
     },
     totalItemsCountByLocation: async (
       _: any,
-      { latitude, longitude, radiusKm, category, status, keyword }: any,
+      {
+        latitude,
+        longitude,
+        radiusKm,
+        classifications,
+        category,
+        status,
+        keyword,
+      }: any,
       __: any
     ): Promise<number> => {
       return itemService.totalItemsCountByLocation(
         latitude,
         longitude,
         radiusKm,
+        classifications,
         category,
         status,
         keyword
@@ -333,6 +381,29 @@ export const resolvers: Resolvers = {
         startAfterDate
       );
     },
+    itemConfig: async (_: any, __: any): Promise<any> => {
+      const categoryMaps = await systemService.getAllCategoryMaps();
+      const defaultCategoryTrees =
+        await systemService.getDefaultCategoryTrees();
+      return {
+        defaultCategoryTrees,
+        categoryMaps,
+      };
+    },
+    recentItemsWithoutClassifications: async (
+      _: any,
+      { limit = 20 }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.recentItemsWithoutClassifications(limit, 0);
+    },
+    itemsByKeywordExperimental: async (
+      _: any,
+      { keyword = "" }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.itemsByKeywordExperimental(keyword);
+    },
   },
   Mutation: {
     createUser: async (
@@ -397,7 +468,8 @@ export const resolvers: Resolvers = {
         args.language,
         args.description,
         args.images,
-        args.deposit
+        args.deposit,
+        args.classifications
       );
     },
     pinItem: async (
@@ -553,6 +625,34 @@ export const resolvers: Resolvers = {
       if (!owner) throw new Error("Owner not found");
       const { itemId, commentId, content } = args;
       return commentService.editItemComment(owner, itemId, commentId, content);
+    },
+    upsertCategoryMap: async (
+      _: any,
+      { en, categoryMaps }: any,
+      { loginUser }: Context
+    ): Promise<CategoryMap[]> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user || user.role !== Role.Admin) throw new Error("Admin only");
+      return systemService.upsertCategoryMap(en, categoryMaps);
+    },
+    addCategoryTree: async (
+      _: any,
+      { parentPath, leafCategory }: any,
+      { loginUser }: Context
+    ): Promise<string> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user || user.role !== Role.Admin) throw new Error("Admin only");
+      return systemService.addCategoryTree(parentPath, leafCategory);
+    },
+    generateItemIndex: async (
+      _parent: any,
+      _args: any,
+      _context: any
+    ): Promise<boolean> => {
+      // TODO: Make this admin only.
+      return itemService.generateItemIndex();
     },
   },
 };

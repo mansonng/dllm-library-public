@@ -7,6 +7,7 @@ import {
   ItemStatus,
   Language,
   User,
+  Role,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 import { MapService, createMapService } from "./mapService";
@@ -39,10 +40,8 @@ export class ItemService {
     this.userService = userService;
   }
 
-  async itemsByLocation(
-    latitude: number,
-    longitude: number,
-    radiusKm: number,
+  async items(
+    classifications: string[],
     category: string[],
     status: string,
     keyword: string,
@@ -50,8 +49,60 @@ export class ItemService {
     offset: number = 0
   ): Promise<Item[]> {
     let query = db.collection("items").where("geohash", ">=", "");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const snapshot = await query.limit(limit).offset(offset).get();
+    const results: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      })
+    );
+    return results;
+  }
+  async totalItemsCount(
+    classifications: string[],
+    category: string[],
+    status: string,
+    keyword: string
+  ): Promise<number> {
+    let query = db.collection("items").where("geohash", ">=", "");
+    if (category && category.length > 0)
+      query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const snapshot = await query.get();
+    return snapshot.size;
+  }
+  async itemsByLocation(
+    latitude: number,
+    longitude: number,
+    radiusKm: number,
+    classifications: string[],
+    category: string[],
+    status: string,
+    keyword: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    let query = db.collection("items").where("geohash", ">=", "");
+    if (category && category.length > 0)
+      query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
     if (status) query = query.where("status", "==", status);
     if (keyword)
       query = query
@@ -76,18 +127,20 @@ export class ItemService {
     return filteredItems;
   }
 
-
   async totalItemsCountByLocation(
     latitude: number,
     longitude: number,
     radiusKm: number,
+    classifications: string[],
     category: string[],
     status: string,
     keyword: string
   ): Promise<number> {
     let query = db.collection("items").where("geohash", ">=", "");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
+    if (classifications && classifications.length > 0)
+      query = query.where("clssfctns", "array-contains-any", classifications);
     if (status) query = query.where("status", "==", status);
     if (keyword)
       query = query
@@ -132,7 +185,7 @@ export class ItemService {
     );
     return results;
   }
-  
+
   async itemsOnLoanByOwner(
     userId: string,
     category: string[],
@@ -184,8 +237,6 @@ export class ItemService {
       query = query
         .where("name", ">=", keyword)
         .where("name", "<=", keyword + "\uf8ff");
-
-    
 
     const snapshot = await query.limit(limit).offset(offset).get();
     const results: Item[] = [];
@@ -546,6 +597,7 @@ export class ItemService {
       status: status,
       language: language,
       deposit: deposit,
+      clssfctns: null,
       created: Timestamp.now(),
       updated: Timestamp.now(),
     };
@@ -614,7 +666,8 @@ export class ItemService {
     language?: Language,
     description?: string,
     images?: string[],
-    deposit?: number
+    deposit?: number,
+    clssfctns?: string[]
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await db.collection("items").doc(itemId).get();
@@ -624,7 +677,7 @@ export class ItemService {
     let existingData = itemDoc.data() as ItemModel;
 
     // Verify the user owns this item
-    if (existingData.ownerId !== user.id) {
+    if (existingData.ownerId !== user.id && user.role !== Role.Admin) {
       throw new Error(
         `User ${user.id} does not have permission to update item ${itemId}`
       );
@@ -689,6 +742,11 @@ export class ItemService {
     if (deposit !== undefined && existingData.deposit !== deposit) {
       updateData.deposit = deposit;
       existingData.deposit = deposit;
+    }
+
+    if (clssfctns !== undefined) {
+      updateData.clssfctns = clssfctns;
+      existingData.clssfctns = clssfctns;
     }
 
     // Handle category changes with comparison
@@ -905,6 +963,50 @@ export class ItemService {
     return items;
   }
 
+  async recentItemsWithoutClassifications(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    // for the eariest items with classifications
+    let query = db
+      .collection("items")
+      .orderBy("clssfctns")
+      .orderBy("updated", "asc");
+    const snapshot = await query.limit(1).offset(offset).get();
+    const items: Item[] = [];
+
+    let earliestClassificationsUpdatedAt: Timestamp | null = null;
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const data = doc.data() as ItemModel;
+        if (data.updated) {
+          earliestClassificationsUpdatedAt = data.updated;
+        }
+      })
+    );
+    let itemsQuery = db.collection("items").orderBy("updated", "desc");
+
+    if (earliestClassificationsUpdatedAt) {
+      // now get items which are older than earliest classifications updated at
+      itemsQuery = itemsQuery.where(
+        "updated",
+        "<",
+        earliestClassificationsUpdatedAt
+      );
+    }
+    const itemsSnapshot = await itemsQuery.limit(limit).get();
+    await Promise.all(
+      itemsSnapshot.docs.map(async (doc) => {
+        const data = doc.data() as ItemModel;
+        if (data.clssfctns === undefined || data.clssfctns === null) {
+          const rv = await this._itemQueryToItem(doc);
+          items.push(rv);
+        }
+      })
+    );
+    return items;
+  }
+
   /**
    * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
    * and uploading back to Google Cloud Storage
@@ -1050,5 +1152,128 @@ export class ItemService {
 
     // Convert to .jpg for thumbnails regardless of original format
     return `${nameWithoutExt}_thumbnail.jpg`;
+  }
+
+
+  // Used for generating name index for search optimization.
+  // And also for when we try to search using the created index.
+  //
+  // tokenizes a name: split by spaces, group ASCII letters/digits together,
+  // and make every non-ASCII-or-digit character a separate token.
+  private tokenizeName(name: string): string[] {
+      const tokens: string[] = [];
+      if (!name) return tokens;
+      const parts = name.toLowerCase().split(" ").filter(Boolean);
+      const asciiOrDigit = /[A-Za-z0-9]/;
+      for (const part of parts) {
+        let cur = "";
+        for (const ch of part) {
+          if (asciiOrDigit.test(ch)) {
+            cur += ch;
+          } else {
+            if (cur) {
+              tokens.push(cur);
+              cur = "";
+            }
+            tokens.push(ch);
+          }
+        }
+        if (cur) tokens.push(cur);
+      }
+      return tokens.filter(Boolean);
+  };
+
+  public generateItemIndex() : Promise<boolean>{
+    console.log("generateItemIndex mutation called.");
+
+    return (async () => {
+      try {
+        const BATCH_READ_SIZE = 500;
+        let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
+        let processed = 0;
+
+        while (true) {
+          let q = db
+            .collection("items")
+            .orderBy(firebase.firestore.FieldPath.documentId())
+            .limit(BATCH_READ_SIZE);
+
+          if (lastDoc) q = q.startAfter(lastDoc);
+
+          const snap = await q.get();
+          if (snap.empty) break;
+
+          // Create a write batch for this page (<= 500)
+          const batch = db.batch();
+          snap.docs.forEach((doc) => {
+            const data = doc.data();
+            const name = (data && data.name) ? String(data.name) : "";
+            const nameIndex = this.tokenizeName(name);
+            batch.update(doc.ref, { nameIndex: nameIndex });
+          });
+
+          await batch.commit();
+          processed += snap.size;
+
+          lastDoc = snap.docs[snap.docs.length - 1];
+          if (snap.size < BATCH_READ_SIZE) break;
+        }
+
+        console.log(`generateItemIndex: processed ${processed} items`);
+        return true;
+      } catch (error) {
+        console.error("generateItemIndex failed:", error);
+        return false;
+      }
+    })();
+  }
+
+
+  /**
+   * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
+   * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
+   */
+  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
+    if (!keyword || keyword.trim() === "") return [];
+
+    // Tokenize and normalize to lowercase for matching
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return [];
+
+    console.log("itemsByKeywordExperimental: searching for tokens:", tokens);
+
+    // Firestore limits array-contains-any to 10 values. Query in chunks and
+    // collect candidate documents, then filter client-side to ensure all
+    // tokens are present in the document's nameIndex.
+    const MAX_CHUNK = 10;
+    const docMap = new Map<string, firebase.firestore.QueryDocumentSnapshot>();
+
+    for (let i = 0; i < tokens.length; i += MAX_CHUNK) {
+      const chunk = tokens.slice(i, i + MAX_CHUNK);
+      const snap = await db
+        .collection("items")
+        .where("nameIndex", "array-contains-any", chunk)
+        .get();
+      snap.docs.forEach((doc) => {
+        if (!docMap.has(doc.id)) docMap.set(doc.id, doc);
+      });
+    }
+
+    const results: Item[] = [];
+    for (const doc of Array.from(docMap.values())) {
+      const data = doc.data();
+      const idx = Array.isArray(data.nameIndex)
+        ? data.nameIndex.map((v: any) => String(v).toLowerCase())
+        : [];
+      const hasAll = tokens.every((t) => idx.includes(t));
+      if (hasAll) {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      }
+    }
+
+    return results;
   }
 }

@@ -24,6 +24,17 @@ export type Category = {
   count: Scalars['Int']['output'];
 };
 
+export type CategoryMap = {
+  __typename?: 'CategoryMap';
+  language: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type CategoryMapInput = {
+  language: Scalars['String']['input'];
+  value: Scalars['String']['input'];
+};
+
 export type ContactMethod = {
   __typename?: 'ContactMethod';
   isPublic: Scalars['Boolean']['output'];
@@ -47,6 +58,7 @@ export enum ContactMethodType {
 export type Item = {
   __typename?: 'Item';
   category: Array<Scalars['String']['output']>;
+  clssfctns?: Maybe<Array<Scalars['String']['output']>>;
   condition: ItemCondition;
   createdAt: Scalars['Date']['output'];
   deposit?: Maybe<Scalars['Int']['output']>;
@@ -116,6 +128,12 @@ export enum ItemCondition {
   LikeNew = 'LIKE_NEW'
 }
 
+export type ItemConfig = {
+  __typename?: 'ItemConfig';
+  categoryMaps: Array<Array<CategoryMap>>;
+  defaultCategoryTrees: Array<Scalars['String']['output']>;
+};
+
 export enum ItemStatus {
   Available = 'AVAILABLE',
   Exchangeable = 'EXCHANGEABLE',
@@ -143,6 +161,7 @@ export type LocationInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
   approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
@@ -151,6 +170,7 @@ export type Mutation = {
   createQuickTransaction: Transaction;
   createTransaction: Transaction;
   createUser: User;
+  deleleteCategoryTree: Scalars['Boolean']['output'];
   deleteItem: Scalars['Boolean']['output'];
   deleteItemComment: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
@@ -164,6 +184,13 @@ export type Mutation = {
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
+  upsertCategoryMap?: Maybe<Array<CategoryMap>>;
+};
+
+
+export type MutationAddCategoryTreeArgs = {
+  leafCategory: Scalars['String']['input'];
+  parentPath?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -226,6 +253,11 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationDeleleteCategoryTreeArgs = {
+  categoryPath: Scalars['String']['input'];
+};
+
+
 export type MutationDeleteItemArgs = {
   id: Scalars['ID']['input'];
 };
@@ -284,6 +316,7 @@ export type MutationUnpinItemArgs = {
 
 export type MutationUpdateItemArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   condition?: InputMaybe<ItemCondition>;
   deposit?: InputMaybe<Scalars['Int']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -313,6 +346,12 @@ export type MutationUpdateUserArgs = {
   nickname?: InputMaybe<Scalars['String']['input']>;
 };
 
+
+export type MutationUpsertCategoryMapArgs = {
+  categoryMaps: Array<CategoryMapInput>;
+  en: Scalars['String']['input'];
+};
+
 export type NewsPost = {
   __typename?: 'NewsPost';
   content: Scalars['String']['output'];
@@ -337,6 +376,7 @@ export type Query = {
   geocodeAddress?: Maybe<Location>;
   hotCategories: Array<Scalars['String']['output']>;
   item?: Maybe<Item>;
+  itemConfig: ItemConfig;
   items: Array<Item>;
   itemsByLocation: Array<Item>;
   itemsByUser: Array<Item>;
@@ -349,6 +389,7 @@ export type Query = {
   openTransactionsByItem: Array<Transaction>;
   openTransactionsByUser: Array<Transaction>;
   recentAddedItems: Array<Item>;
+  recentItemsWithoutClassifications?: Maybe<Array<Item>>;
   recentUpdateCategories: Array<Scalars['String']['output']>;
   recommendedItems: Array<Item>;
   totalItemsCount: Scalars['Int']['output'];
@@ -402,7 +443,7 @@ export type QueryItemArgs = {
 
 export type QueryItemsArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -412,6 +453,7 @@ export type QueryItemsArgs = {
 
 export type QueryItemsByLocationArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   latitude: Scalars['Float']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -493,6 +535,11 @@ export type QueryRecentAddedItemsArgs = {
 };
 
 
+export type QueryRecentItemsWithoutClassificationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryRecentUpdateCategoriesArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -507,7 +554,7 @@ export type QueryRecommendedItemsArgs = {
 
 export type QueryTotalItemsCountArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ItemStatus>;
 };
@@ -515,6 +562,7 @@ export type QueryTotalItemsCountArgs = {
 
 export type QueryTotalItemsCountByLocationArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   latitude: Scalars['Float']['input'];
   longitude: Scalars['Float']['input'];
@@ -646,6 +694,42 @@ export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
 
 
 export type GetUserOpenTransactionsForCountQuery = { __typename?: 'Query', openTransactionsByUser: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, item: { __typename?: 'Item', id: string, name: string } }> };
+
+export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type RecentItemsWithoutClassificationsQuery = { __typename?: 'Query', recentItemsWithoutClassifications?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, category: Array<string>, updatedAt: any, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, status: ItemStatus, language: Language, publishedYear?: number | null, clssfctns?: Array<string> | null }> | null };
+
+export type GetItemConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetItemConfigQuery = { __typename?: 'Query', itemConfig: { __typename?: 'ItemConfig', defaultCategoryTrees: Array<string>, categoryMaps: Array<Array<{ __typename?: 'CategoryMap', language: string, value: string }>> } };
+
+export type UpdateItemClassificationMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  classifications?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type UpdateItemClassificationMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, clssfctns?: Array<string> | null } };
+
+export type UpsertCategoryMapMutationVariables = Exact<{
+  en: Scalars['String']['input'];
+  categoryMaps: Array<CategoryMapInput> | CategoryMapInput;
+}>;
+
+
+export type UpsertCategoryMapMutation = { __typename?: 'Mutation', upsertCategoryMap?: Array<{ __typename?: 'CategoryMap', language: string, value: string }> | null };
+
+export type AddCategoryTreeMutationVariables = Exact<{
+  parentPath?: InputMaybe<Scalars['String']['input']>;
+  leafCategory: Scalars['String']['input'];
+}>;
+
+
+export type AddCategoryTreeMutation = { __typename?: 'Mutation', addCategoryTree: string };
 
 export type UpdateItemMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -834,7 +918,7 @@ export type ItemsByUserQueryVariables = Exact<{
 }>;
 
 
-export type ItemsByUserQuery = { __typename?: 'Query', itemsByUser: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
+export type ItemsByUserQuery = { __typename?: 'Query', itemsByUser: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, publishedYear?: number | null, language: Language, createdAt: any, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type TotalItemsByUserQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -940,7 +1024,7 @@ export type ItemsByLocationQueryVariables = Exact<{
 }>;
 
 
-export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, publishedYear?: number | null, language: Language, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
+export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, publishedYear?: number | null, language: Language, createdAt: any, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type TotalItemsCountByLocationQueryVariables = Exact<{
   latitude: Scalars['Float']['input'];
@@ -1097,6 +1181,202 @@ export type GetUserOpenTransactionsForCountQueryHookResult = ReturnType<typeof u
 export type GetUserOpenTransactionsForCountLazyQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountLazyQuery>;
 export type GetUserOpenTransactionsForCountSuspenseQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountSuspenseQuery>;
 export type GetUserOpenTransactionsForCountQueryResult = Apollo.QueryResult<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>;
+export const RecentItemsWithoutClassificationsDocument = gql`
+    query RecentItemsWithoutClassifications($limit: Int) {
+  recentItemsWithoutClassifications(limit: $limit) {
+    id
+    name
+    description
+    category
+    updatedAt
+    images
+    thumbnails
+    condition
+    status
+    language
+    publishedYear
+    clssfctns
+  }
+}
+    `;
+
+/**
+ * __useRecentItemsWithoutClassificationsQuery__
+ *
+ * To run a query within a React component, call `useRecentItemsWithoutClassificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRecentItemsWithoutClassificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRecentItemsWithoutClassificationsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useRecentItemsWithoutClassificationsQuery(baseOptions?: Apollo.QueryHookOptions<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>(RecentItemsWithoutClassificationsDocument, options);
+      }
+export function useRecentItemsWithoutClassificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>(RecentItemsWithoutClassificationsDocument, options);
+        }
+export function useRecentItemsWithoutClassificationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>(RecentItemsWithoutClassificationsDocument, options);
+        }
+export type RecentItemsWithoutClassificationsQueryHookResult = ReturnType<typeof useRecentItemsWithoutClassificationsQuery>;
+export type RecentItemsWithoutClassificationsLazyQueryHookResult = ReturnType<typeof useRecentItemsWithoutClassificationsLazyQuery>;
+export type RecentItemsWithoutClassificationsSuspenseQueryHookResult = ReturnType<typeof useRecentItemsWithoutClassificationsSuspenseQuery>;
+export type RecentItemsWithoutClassificationsQueryResult = Apollo.QueryResult<RecentItemsWithoutClassificationsQuery, RecentItemsWithoutClassificationsQueryVariables>;
+export const GetItemConfigDocument = gql`
+    query GetItemConfig {
+  itemConfig {
+    defaultCategoryTrees
+    categoryMaps {
+      language
+      value
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetItemConfigQuery__
+ *
+ * To run a query within a React component, call `useGetItemConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetItemConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetItemConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetItemConfigQuery(baseOptions?: Apollo.QueryHookOptions<GetItemConfigQuery, GetItemConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetItemConfigQuery, GetItemConfigQueryVariables>(GetItemConfigDocument, options);
+      }
+export function useGetItemConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetItemConfigQuery, GetItemConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetItemConfigQuery, GetItemConfigQueryVariables>(GetItemConfigDocument, options);
+        }
+export function useGetItemConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetItemConfigQuery, GetItemConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetItemConfigQuery, GetItemConfigQueryVariables>(GetItemConfigDocument, options);
+        }
+export type GetItemConfigQueryHookResult = ReturnType<typeof useGetItemConfigQuery>;
+export type GetItemConfigLazyQueryHookResult = ReturnType<typeof useGetItemConfigLazyQuery>;
+export type GetItemConfigSuspenseQueryHookResult = ReturnType<typeof useGetItemConfigSuspenseQuery>;
+export type GetItemConfigQueryResult = Apollo.QueryResult<GetItemConfigQuery, GetItemConfigQueryVariables>;
+export const UpdateItemClassificationDocument = gql`
+    mutation UpdateItemClassification($id: ID!, $classifications: [String!]) {
+  updateItem(id: $id, classifications: $classifications) {
+    id
+    clssfctns
+  }
+}
+    `;
+export type UpdateItemClassificationMutationFn = Apollo.MutationFunction<UpdateItemClassificationMutation, UpdateItemClassificationMutationVariables>;
+
+/**
+ * __useUpdateItemClassificationMutation__
+ *
+ * To run a mutation, you first call `useUpdateItemClassificationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateItemClassificationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateItemClassificationMutation, { data, loading, error }] = useUpdateItemClassificationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      classifications: // value for 'classifications'
+ *   },
+ * });
+ */
+export function useUpdateItemClassificationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateItemClassificationMutation, UpdateItemClassificationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateItemClassificationMutation, UpdateItemClassificationMutationVariables>(UpdateItemClassificationDocument, options);
+      }
+export type UpdateItemClassificationMutationHookResult = ReturnType<typeof useUpdateItemClassificationMutation>;
+export type UpdateItemClassificationMutationResult = Apollo.MutationResult<UpdateItemClassificationMutation>;
+export type UpdateItemClassificationMutationOptions = Apollo.BaseMutationOptions<UpdateItemClassificationMutation, UpdateItemClassificationMutationVariables>;
+export const UpsertCategoryMapDocument = gql`
+    mutation UpsertCategoryMap($en: String!, $categoryMaps: [CategoryMapInput!]!) {
+  upsertCategoryMap(en: $en, categoryMaps: $categoryMaps) {
+    language
+    value
+  }
+}
+    `;
+export type UpsertCategoryMapMutationFn = Apollo.MutationFunction<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>;
+
+/**
+ * __useUpsertCategoryMapMutation__
+ *
+ * To run a mutation, you first call `useUpsertCategoryMapMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertCategoryMapMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertCategoryMapMutation, { data, loading, error }] = useUpsertCategoryMapMutation({
+ *   variables: {
+ *      en: // value for 'en'
+ *      categoryMaps: // value for 'categoryMaps'
+ *   },
+ * });
+ */
+export function useUpsertCategoryMapMutation(baseOptions?: Apollo.MutationHookOptions<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>(UpsertCategoryMapDocument, options);
+      }
+export type UpsertCategoryMapMutationHookResult = ReturnType<typeof useUpsertCategoryMapMutation>;
+export type UpsertCategoryMapMutationResult = Apollo.MutationResult<UpsertCategoryMapMutation>;
+export type UpsertCategoryMapMutationOptions = Apollo.BaseMutationOptions<UpsertCategoryMapMutation, UpsertCategoryMapMutationVariables>;
+export const AddCategoryTreeDocument = gql`
+    mutation AddCategoryTree($parentPath: String, $leafCategory: String!) {
+  addCategoryTree(parentPath: $parentPath, leafCategory: $leafCategory)
+}
+    `;
+export type AddCategoryTreeMutationFn = Apollo.MutationFunction<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>;
+
+/**
+ * __useAddCategoryTreeMutation__
+ *
+ * To run a mutation, you first call `useAddCategoryTreeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddCategoryTreeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addCategoryTreeMutation, { data, loading, error }] = useAddCategoryTreeMutation({
+ *   variables: {
+ *      parentPath: // value for 'parentPath'
+ *      leafCategory: // value for 'leafCategory'
+ *   },
+ * });
+ */
+export function useAddCategoryTreeMutation(baseOptions?: Apollo.MutationHookOptions<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>(AddCategoryTreeDocument, options);
+      }
+export type AddCategoryTreeMutationHookResult = ReturnType<typeof useAddCategoryTreeMutation>;
+export type AddCategoryTreeMutationResult = Apollo.MutationResult<AddCategoryTreeMutation>;
+export type AddCategoryTreeMutationOptions = Apollo.BaseMutationOptions<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>;
 export const UpdateItemDocument = gql`
     mutation UpdateItem($id: ID!, $name: String, $category: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int) {
   updateItem(
@@ -2109,15 +2389,19 @@ export const ItemsByUserDocument = gql`
   ) {
     id
     name
+    description
     condition
     status
     images
     thumbnails
     category
+    publishedYear
+    language
     location {
       latitude
       longitude
     }
+    createdAt
   }
 }
     `;
@@ -2753,6 +3037,7 @@ export const ItemsByLocationDocument = gql`
     category
     publishedYear
     language
+    createdAt
   }
 }
     `;

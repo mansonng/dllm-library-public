@@ -17,6 +17,8 @@ type CategoryModel = {
   recommended: boolean;
 };
 
+const CATEGORY_DB = db.collection("categories");
+
 export class CategoryService {
   constructor() {}
 
@@ -30,7 +32,7 @@ export class CategoryService {
     const now = Timestamp.now();
 
     for (const category of categories) {
-      const categoryRef = db.collection("categories").doc(category);
+      const categoryRef = CATEGORY_DB.doc(category);
       batch.set(
         categoryRef,
         {
@@ -109,7 +111,7 @@ export class CategoryService {
     // Update global categories
     for (const [category, count] of Object.entries(categoriesMap)) {
       if (!category || typeof count !== "number") continue;
-      const categoryRef = db.collection("categories").doc(category);
+      const categoryRef = CATEGORY_DB.doc(category);
       batch.set(
         categoryRef,
         {
@@ -387,7 +389,7 @@ export class CategoryService {
       }
 
       // Reduce global category count
-      const globalCategoryRef = db.collection("categories").doc(category);
+      const globalCategoryRef = CATEGORY_DB.doc(category);
       const globalCategoryDoc = await globalCategoryRef.get();
 
       if (globalCategoryDoc.exists) {
@@ -474,7 +476,7 @@ export class CategoryService {
       if (!category || typeof countToRemove !== "number" || countToRemove <= 0)
         continue;
 
-      const globalCategoryRef = db.collection("categories").doc(category);
+      const globalCategoryRef = CATEGORY_DB.doc(category);
       const globalCategoryDoc = await globalCategoryRef.get();
 
       if (globalCategoryDoc.exists) {
