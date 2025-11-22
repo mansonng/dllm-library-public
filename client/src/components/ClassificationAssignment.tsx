@@ -241,8 +241,8 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {parentPath
               ? t("classification.addingUnder", "Adding under: {{path}}", {
-                  path: parentPath,
-                })
+                path: parentPath,
+              })
               : t("classification.addingRoot", "Adding as root category")}
           </Typography>
 
@@ -267,13 +267,13 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
                   helperText={
                     lang === "en"
                       ? t(
-                          "classification.keyHelper",
-                          "Used as system key (letters, numbers, spaces, and hyphens only)"
-                        )
+                        "classification.keyHelper",
+                        "Used as system key (letters, numbers, spaces, and hyphens only)"
+                      )
                       : t(
-                          "classification.translationHelper",
-                          "Translation for this language"
-                        )
+                        "classification.translationHelper",
+                        "Translation for this language"
+                      )
                   }
                   disabled={loading}
                   autoFocus={lang === "en"}
@@ -453,12 +453,7 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
   // Add current selection to classifications
   const handleAddClassification = () => {
     if (currentSelection.length === 0) return;
-
-    const newClassification = currentSelection.join("/");
-    if (!classifications.includes(newClassification)) {
-      setClassifications([...classifications, newClassification]);
-    }
-
+    setClassifications(currentSelection);
     // Reset selection
     setCurrentSelection([]);
     setAvailableOptions([getRootCategories()]);
@@ -786,9 +781,8 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                             onChange={(e: SelectChangeEvent) =>
                               handleLevelChange(level, e.target.value)
                             }
-                            label={`${t("classification.level", "Level")} ${
-                              level + 1
-                            }`}
+                            label={`${t("classification.level", "Level")} ${level + 1
+                              }`}
                           >
                             <MenuItem value="">
                               <em>{t("common.selectOption", "Select...")}</em>
