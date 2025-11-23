@@ -27,6 +27,7 @@ jobs:
         working-directory: ./functions/dist
       - name: Test functions
         run: |
+             echo '${{secrets.DLLM_ADMINSDK}}' > src/dllm-libray-firebase-adminsdk.json
              npm run test
         working-directory: ./functions
       - name: My deploy to Firebase
