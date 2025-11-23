@@ -34,6 +34,7 @@ import {
   Chip,
   SvgIcon,
   Snackbar,
+  Tooltip,
 } from "@mui/material";
 import {
   UpdateUserMutation,
@@ -65,7 +66,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 // Import icons for social platforms from Material UI
-import { Wifi as SignalIcon, Telegram as TelegramIcon } from "@mui/icons-material";
+import {
+  Wifi as SignalIcon,
+  Telegram as TelegramIcon,
+} from "@mui/icons-material";
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/535/535239.png",
@@ -166,9 +170,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
-  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  // NEW: track whether current address differs from initial
+  const [isAddressDirty, setIsAddressDirty] = useState(false);
 
   // Query for exchange points
   const { data: exchangePointsData, loading: exchangePointsLoading } = useQuery(
@@ -284,23 +287,28 @@ const UserProfile: React.FC<UserProfileProps> = ({
     setAddress(newAddress);
     setLocationError(null);
 
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
+    const initial = (initialAddress || "").trim();
+    const current = newAddress.trim();
+    setIsAddressDirty(current !== initial);
 
-    if (!newAddress.trim()) {
+    // Clear previous resolution when user edits
+    setResolvedLocation(null);
+  };
+
+  // NEW: explicit resolver triggered on blur or Enter
+  const resolveAddress = () => {
+    if (!address.trim()) {
       setResolvedLocation(null);
+      setLocationError(null);
       return;
     }
-
-    const timeoutId = setTimeout(() => {
-      setIsGeocodingAddress(true);
-      geocodeAddress({
-        variables: { address: newAddress.trim() },
-      });
-    }, 1500);
-
-    setDebounceTimeout(timeoutId);
+    // Only resolve if changed from initial address
+    if (!isAddressDirty) {
+      // unchanged: allow submit without geocode
+      return;
+    }
+    setIsGeocodingAddress(true);
+    geocodeAddress({ variables: { address: address.trim() } });
   };
 
   const handleExchangePointToggle = (pointId: string) => {
@@ -592,6 +600,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
     return !validation.isValid;
   };
 
+  // UPDATE submit disabled logic
+  const submitDisabled =
+    loading ||
+    nickname.trim() === "" ||
+    address.trim() === "" ||
+    isGeocodingAddress ||
+    // If address changed, require successful geocode
+    (isAddressDirty && !resolvedLocation) ||
+    // If backend failed to resolve
+    locationError !== null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -645,9 +664,48 @@ const UserProfile: React.FC<UserProfileProps> = ({
               margin="normal"
               value={address}
               onChange={(e) => handleAddressChange(e.target.value)}
+              onBlur={resolveAddress}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  resolveAddress();
+                }
+              }}
               placeholder={t("userProfile.searchAddress")}
               disabled={isGeocodingAddress}
               required
+              error={Boolean(locationError)}
+              InputProps={{
+                endAdornment: (
+                  <>
+                    {isGeocodingAddress && (
+                      <CircularProgress size={18} sx={{ mr: 1 }} />
+                    )}
+                    {locationError && (
+                      <Tooltip
+                        title={t(
+                          "userProfile.geocodeErrorTooltip",
+                          "Failed to resolve address"
+                        )}
+                      >
+                        <SignalIcon color="error" fontSize="small" />
+                      </Tooltip>
+                    )}
+                    {resolvedLocation &&
+                      !locationError &&
+                      !isGeocodingAddress && (
+                        <Tooltip
+                          title={t(
+                            "userProfile.geocodeResolvedTooltip",
+                            "Address resolved"
+                          )}
+                        >
+                          <SignalIcon color="success" fontSize="small" />
+                        </Tooltip>
+                      )}
+                  </>
+                ),
+              }}
             />
 
             {isGeocodingAddress && (
@@ -847,12 +905,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               type="submit"
               variant="contained"
               fullWidth
-              disabled={
-                loading ||
-                address?.trim() === "" ||
-                nickname?.trim() === "" ||
-                isGeocodingAddress
-              }
+              disabled={submitDisabled}
             >
               {loading
                 ? isCreateUser
