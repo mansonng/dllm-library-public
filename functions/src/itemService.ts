@@ -92,7 +92,6 @@ export class ItemService {
     keyword: string
   ): Promise<number> {
     let query = this._itemsQuery(classifications, category, status, keyword);
-    query = this.applyKeywordNameFilter(query, keyword);
     const snapshot = await query.get();
     return snapshot.size;
   }
