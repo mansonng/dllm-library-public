@@ -15,6 +15,8 @@ import {
   TransactionStatus,
   Role,
   CategoryMap,
+  HostConfig,
+  HostConfigInput,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -81,6 +83,10 @@ export const DateScalar = new GraphQLScalarType({
 export const resolvers: Resolvers = {
   Date: DateScalar,
   Query: {
+    hostConfig: async (_: any, __: any, ___: any): Promise<HostConfig> => {
+      const config = await systemService.getHostConfig();
+      return config;
+    },
     me: async (
       _: any,
       __: any,
@@ -659,6 +665,16 @@ export const resolvers: Resolvers = {
     ): Promise<boolean> => {
       // TODO: Make this admin only.
       return itemService.generateItemIndexIncremental();
+    },
+    updateHostConfig: async (
+      _: any,
+      { input }: any,
+      { loginUser }: Context
+    ): Promise<HostConfig> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user || user.role !== Role.Admin) throw new Error("Admin only");
+      return systemService.updateHostConfig(input);
     },
   },
 };

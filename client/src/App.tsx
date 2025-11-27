@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { User as fireUser } from "firebase/auth";
-import { User } from "./generated/graphql"; // Adjust the import path as necessary
+import { User, HostConfig } from "./generated/graphql"; // Adjust the import path as necessary
 import { createRouter } from "./Router";
 import { RouterProvider, useNavigate, useLocation } from "react-router";
 
@@ -25,6 +25,15 @@ const ME_QUERY = gql`
   }
 `;
 
+const HostConfigQuery = gql`
+  query HostConfig {
+    hostConfig {
+      aboutUsText
+      chatLink
+    }
+  }
+`;
+
 interface AppProps {
   user: fireUser | null;
   onSignOut: () => Promise<void>;
@@ -35,6 +44,12 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
     skip: !user,
     fetchPolicy: "cache-first", // Use cache first, refetch manually when needed
   });
+  const hostConfigOutput = useQuery<{ hostConfig: HostConfig }>(
+    HostConfigQuery,
+    {
+      fetchPolicy: "cache-first",
+    }
+  );
   const [initialPath, setInitialPath] = useState<string | null>(null);
   const previousUserIdRef = useRef<string | null>(null);
 
@@ -55,6 +70,9 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
         meOutput.refetch().catch((error) => {
           console.error("Error refetching ME_QUERY:", error);
         });
+        hostConfigOutput.refetch().catch((error) => {
+          console.error("Error refetching HostConfigQuery:", error);
+        });
       }, 100);
 
       // Cleanup timeout if component unmounts
@@ -66,7 +84,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
     // Update the ref with current user ID
     previousUserIdRef.current = currentUserId;
-  }, [user?.uid, meOutput]);
+  }, [user?.uid, meOutput, hostConfigOutput]);
 
   // Handle sessionStorage redirects on component mount
   useEffect(() => {
@@ -94,6 +112,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
     user?.email,
     user?.emailVerified,
     meOutput?.data?.me,
+    hostConfigOutput?.data?.hostConfig,
     onSignOut
     //    initialPath
   );

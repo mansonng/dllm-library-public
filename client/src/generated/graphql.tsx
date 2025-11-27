@@ -176,13 +176,14 @@ export type Mutation = {
   deleteItemComment: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
   editItemComment: Scalars['Boolean']['output'];
-  generateItemIndex: Scalars['Boolean']['output'];
+  generateItemIndexIncremental: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
   pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
   transferTransaction: Transaction;
   unpinItem: Scalars['Boolean']['output'];
+  updateHostConfig: HostConfig;
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
@@ -316,6 +317,11 @@ export type MutationUnpinItemArgs = {
 };
 
 
+export type MutationUpdateHostConfigArgs = {
+  input: HostConfigInput;
+};
+
+
 export type MutationUpdateItemArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   classifications?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -376,6 +382,7 @@ export type Query = {
   exchangePoints: Array<User>;
   exchangePointsCount: Scalars['Int']['output'];
   geocodeAddress?: Maybe<Location>;
+  hostConfig: HostConfig;
   hotCategories: Array<Scalars['String']['output']>;
   item?: Maybe<Item>;
   itemConfig: ItemConfig;
@@ -691,10 +698,26 @@ export type User = {
   role: Role;
 };
 
+export type HostConfig = {
+  __typename?: 'hostConfig';
+  aboutUsText: Scalars['String']['output'];
+  chatLink: Scalars['String']['output'];
+};
+
+export type HostConfigInput = {
+  aboutUsText: Scalars['String']['input'];
+  chatLink: Scalars['String']['input'];
+};
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: any, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, exchangePoints?: Array<string> | null, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+
+export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'hostConfig', aboutUsText: string, chatLink: string } };
 
 export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1145,6 +1168,46 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const HostConfigDocument = gql`
+    query HostConfig {
+  hostConfig {
+    aboutUsText
+    chatLink
+  }
+}
+    `;
+
+/**
+ * __useHostConfigQuery__
+ *
+ * To run a query within a React component, call `useHostConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useHostConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHostConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useHostConfigQuery(baseOptions?: Apollo.QueryHookOptions<HostConfigQuery, HostConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<HostConfigQuery, HostConfigQueryVariables>(HostConfigDocument, options);
+      }
+export function useHostConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<HostConfigQuery, HostConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<HostConfigQuery, HostConfigQueryVariables>(HostConfigDocument, options);
+        }
+export function useHostConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<HostConfigQuery, HostConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<HostConfigQuery, HostConfigQueryVariables>(HostConfigDocument, options);
+        }
+export type HostConfigQueryHookResult = ReturnType<typeof useHostConfigQuery>;
+export type HostConfigLazyQueryHookResult = ReturnType<typeof useHostConfigLazyQuery>;
+export type HostConfigSuspenseQueryHookResult = ReturnType<typeof useHostConfigSuspenseQuery>;
+export type HostConfigQueryResult = Apollo.QueryResult<HostConfigQuery, HostConfigQueryVariables>;
 export const GetUserOpenTransactionsForCountDocument = gql`
     query GetUserOpenTransactionsForCount($userId: ID!) {
   openTransactionsByUser(userId: $userId) {

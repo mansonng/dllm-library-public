@@ -28,7 +28,7 @@ import {
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, gql } from "@apollo/client";
-import { User, Role } from "../generated/graphql";
+import { User, Role, HostConfig } from "../generated/graphql";
 import { AuthDialog } from "./Auth";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NewsForm from "./NewsForm";
@@ -52,6 +52,7 @@ interface MainLayoutProps {
   email?: string | null;
   emailVerified?: boolean | null;
   user?: User;
+  hostConfig?: HostConfig;
   onSignOut?: () => Promise<void>;
 }
 
@@ -59,6 +60,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   email,
   emailVerified,
   user,
+  hostConfig,
   onSignOut,
 }) => {
   const { t } = useTranslation();
@@ -261,7 +263,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           overflow: "auto",
         }}
       >
-        <Outlet context={{ email, emailVerified, user, onSignOut }} />
+        <Outlet
+          context={{ email, emailVerified, user, hostConfig, onSignOut }}
+        />
       </Box>
 
       {/* Bottom Navigation */}
