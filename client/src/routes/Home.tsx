@@ -152,7 +152,12 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-      <List sx={{ px: 2, pb: 10 }}>
+      <List
+        sx={{
+          px: 2,
+          pb: hostConfig?.chatLink ? 8 : 2, // Add extra bottom padding only if chat button is visible
+        }}
+      >
         {/* Welcome Section */}
         <ListItem>
           <Box sx={{ width: "100%" }}>
