@@ -64,6 +64,11 @@ type ItemConfig {
   categoryMaps: [[CategoryMap!]!]!
 }
 
+type HostConfig {
+  chatLink: String!
+  aboutUsText: String!
+}
+
 enum RecommendationType {
   USER_PICKED
   NEW_ARRIVALS
@@ -214,6 +219,8 @@ type SignedUrlResponse {
 
 # 查詢
 type Query {
+  # 主機配置
+  hostConfig: HostConfig!
   # 用戶相關
   user(id: ID!): User
   me: User # 當前登錄用戶
@@ -358,6 +365,8 @@ type Query {
 
 # 變更
 type Mutation {
+  # 主機配置管理
+  updateHostConfig(input: HostConfigInput!): HostConfig!
   # 用戶管理
   createUser(email: String!, address: String, nickname: String): User!
   updateUser(
@@ -464,4 +473,9 @@ input ContactMethodInput {
   type: String!
   value: String!
   isPublic: Boolean!
+}
+
+input HostConfigInput {
+  chatLink: String!
+  aboutUsText: String!
 }

@@ -8,8 +8,16 @@ import {
   ListItem,
   CircularProgress,
   Alert,
+  Fab,
+  Tooltip,
 } from "@mui/material";
-import { User, Item, RecommendationType } from "../generated/graphql";
+import { Chat as ChatIcon } from "@mui/icons-material";
+import {
+  User,
+  Item,
+  RecommendationType,
+  HostConfig,
+} from "../generated/graphql";
 import RecentItemBanner from "../components/RecentItemBanner";
 import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
@@ -53,13 +61,14 @@ interface OutletContext {
   email?: string | undefined | null;
   emailVerified?: boolean | undefined | null;
   user?: User;
+  hostConfig?: HostConfig;
   onSignOut: () => Promise<void>;
 }
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const [showItemForm, setShowItemForm] = useState(false);
-  const { user, emailVerified, email, onSignOut } =
+  const { user, emailVerified, email, hostConfig, onSignOut } =
     useOutletContext<OutletContext>();
   const navigate = useNavigate();
 
@@ -135,204 +144,239 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleChatClick = () => {
+    if (hostConfig?.chatLink) {
+      window.open(hostConfig.chatLink, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
-    <List sx={{ px: 2 }}>
-      {/* Welcome Section */}
-      <ListItem>
-        <Box sx={{ width: "100%" }}>
-          {user?.isVerified ? (
-            <Box>
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                {t("home.welcome", { nickname: user.nickname })}
-              </Typography>
-              {!user.isActive && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  {t(
-                    "home.accountPending",
-                    "Your account is pending activation."
-                  )}
-                </Alert>
-              )}
-            </Box>
-          ) : (
-            email && (
+    <>
+      <List
+        sx={{
+          px: 2,
+          pb: hostConfig?.chatLink ? 8 : 2, // Add extra bottom padding only if chat button is visible
+        }}
+      >
+        {/* Welcome Section */}
+        <ListItem>
+          <Box sx={{ width: "100%" }}>
+            {user?.isVerified ? (
               <Box>
                 <Typography variant="h5" sx={{ mb: 2 }}>
-                  {t("home.welcome")} {email}
+                  {t("home.welcome", { nickname: user.nickname })}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                  {!emailVerified && (
+                {!user.isActive && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    {t(
+                      "home.accountPending",
+                      "Your account is pending activation."
+                    )}
+                  </Alert>
+                )}
+              </Box>
+            ) : (
+              email && (
+                <Box>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    {t("home.welcome")} {email}
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                    {!emailVerified && (
+                      <Button
+                        variant="outlined"
+                        onClick={async () => {
+                          await sendVerificationEmail();
+                          alert(t("auth.verificationEmailSent"));
+                        }}
+                        size="large"
+                      >
+                        {t(
+                          "auth.resendVerification",
+                          "Resend Verification Email"
+                        )}
+                      </Button>
+                    )}
                     <Button
                       variant="outlined"
-                      onClick={async () => {
-                        await sendVerificationEmail();
-                        alert(t("auth.verificationEmailSent"));
-                      }}
+                      onClick={handleSignOut}
                       size="large"
                     >
-                      {t(
-                        "auth.resendVerification",
-                        "Resend Verification Email"
-                      )}
+                      {t("auth.signOut")}
                     </Button>
-                  )}
-                  <Button
-                    variant="outlined"
-                    onClick={handleSignOut}
-                    size="large"
-                  >
-                    {t("auth.signOut")}
-                  </Button>
+                  </Box>
                 </Box>
-              </Box>
-            )
-          )}
-        </Box>
-      </ListItem>
+              )
+            )}
+          </Box>
+        </ListItem>
 
-      {/* View All Items Button */}
-      <ListItem>
-        <Button
-          variant="contained"
-          onClick={handleViewAllItems}
-          size="large"
-          fullWidth
-        >
-          {t("navigation.viewAllItems")}
-        </Button>
-        {user?.isVerified && (
+        {/* View All Items Button */}
+        <ListItem>
           <Button
             variant="contained"
-            onClick={handleAddItem}
+            onClick={handleViewAllItems}
             size="large"
             fullWidth
-            sx={{ ml: 2 }}
           >
-            {t("item.create", "Add Item")}
+            {t("navigation.viewAllItems")}
           </Button>
-        )}
-      </ListItem>
-
-      {/* User Picked Recommendations Section - Only for active users */}
-      {user?.isActive && (
-        <>
-          {userPickedLoading && (
-            <ListItem>
-              <Box
-                sx={{ display: "flex", alignItems: "center", width: "100%" }}
-              >
-                <CircularProgress size={20} sx={{ mr: 1 }} />
-                <Typography>
-                  {t(
-                    "home.loadingRecommendations",
-                    "Loading recommendations..."
-                  )}
-                </Typography>
-              </Box>
-            </ListItem>
+          {user?.isVerified && (
+            <Button
+              variant="contained"
+              onClick={handleAddItem}
+              size="large"
+              fullWidth
+              sx={{ ml: 2 }}
+            >
+              {t("item.create", "Add Item")}
+            </Button>
           )}
+        </ListItem>
 
-          {userPickedError && (
-            <ListItem>
-              <Alert severity="warning" sx={{ width: "100%" }}>
-                {t(
-                  "home.recommendationsError",
-                  "Unable to load recommendations"
-                )}
-                <Typography variant="caption" display="block">
-                  {userPickedError.message}
-                </Typography>
-              </Alert>
-            </ListItem>
-          )}
-
-          {userPickedData?.recommendedItems &&
-            userPickedData.recommendedItems.length > 0 && (
+        {/* User Picked Recommendations Section - Only for active users */}
+        {user?.isActive && (
+          <>
+            {userPickedLoading && (
               <ListItem>
-                <RecentItemBanner
-                  recommendationType={RecommendationType.UserPicked}
-                  recommendedItems={userPickedData.recommendedItems}
-                  titleOverride={t(
-                    "home.userPickedItems",
-                    "Recommended for You"
-                  )}
-                  descriptionOverride={t(
-                    "home.userPickedDescription",
-                    "Based on your interests and activity"
-                  )}
-                />
+                <Box
+                  sx={{ display: "flex", alignItems: "center", width: "100%" }}
+                >
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  <Typography>
+                    {t(
+                      "home.loadingRecommendations",
+                      "Loading recommendations..."
+                    )}
+                  </Typography>
+                </Box>
               </ListItem>
             )}
 
-          {!userPickedLoading &&
-            !userPickedData?.recommendedItems?.length &&
-            !userPickedError && (
+            {userPickedError && (
               <ListItem>
-                <Alert severity="info" sx={{ width: "100%" }}>
+                <Alert severity="warning" sx={{ width: "100%" }}>
                   {t(
-                    "home.noRecommendations",
-                    "No recommendations available at the moment. Browse items to help us learn your preferences!"
+                    "home.recommendationsError",
+                    "Unable to load recommendations"
                   )}
+                  <Typography variant="caption" display="block">
+                    {userPickedError.message}
+                  </Typography>
                 </Alert>
               </ListItem>
             )}
-        </>
-      )}
 
-      {/* Recent Categories Section */}
-      {recentCategoriesData?.recentUpdateCategories && (
-        <>
-          {recentCategoriesData.recentUpdateCategories.map(
-            (category, index) => (
-              <ListItem key={`recent-category-${index}`}>
-                <RecentItemBanner category={category} isRecent={true} />
+            {userPickedData?.recommendedItems &&
+              userPickedData.recommendedItems.length > 0 && (
+                <ListItem>
+                  <RecentItemBanner
+                    recommendationType={RecommendationType.UserPicked}
+                    recommendedItems={userPickedData.recommendedItems}
+                    titleOverride={t(
+                      "home.userPickedItems",
+                      "Recommended for You"
+                    )}
+                    descriptionOverride={t(
+                      "home.userPickedDescription",
+                      "Based on your interests and activity"
+                    )}
+                  />
+                </ListItem>
+              )}
+
+            {!userPickedLoading &&
+              !userPickedData?.recommendedItems?.length &&
+              !userPickedError && (
+                <ListItem>
+                  <Alert severity="info" sx={{ width: "100%" }}>
+                    {t(
+                      "home.noRecommendations",
+                      "No recommendations available at the moment. Browse items to help us learn your preferences!"
+                    )}
+                  </Alert>
+                </ListItem>
+              )}
+          </>
+        )}
+
+        {/* Recent Categories Section */}
+        {recentCategoriesData?.recentUpdateCategories && (
+          <>
+            {recentCategoriesData.recentUpdateCategories.map(
+              (category, index) => (
+                <ListItem key={`recent-category-${index}`}>
+                  <RecentItemBanner category={category} isRecent={true} />
+                </ListItem>
+              )
+            )}
+          </>
+        )}
+
+        {recentCategoriesLoading && (
+          <ListItem>
+            <Typography>{t("common.loading")}</Typography>
+          </ListItem>
+        )}
+
+        {/* Hot Categories Section */}
+        {hotCategoriesData?.hotCategories && (
+          <>
+            {hotCategoriesData.hotCategories.map((category, index) => (
+              <ListItem key={`hot-category-${index}`}>
+                <RecentItemBanner category={category} isRecent={false} />
               </ListItem>
-            )
-          )}
-        </>
-      )}
+            ))}
+          </>
+        )}
 
-      {recentCategoriesLoading && (
-        <ListItem>
-          <Typography>{t("common.loading")}</Typography>
-        </ListItem>
-      )}
+        {hotCategoriesLoading && (
+          <ListItem>
+            <Typography>{t("common.loading")}</Typography>
+          </ListItem>
+        )}
 
-      {/* Hot Categories Section */}
-      {hotCategoriesData?.hotCategories && (
-        <>
-          {hotCategoriesData.hotCategories.map((category, index) => (
-            <ListItem key={`hot-category-${index}`}>
-              <RecentItemBanner category={category} isRecent={false} />
-            </ListItem>
-          ))}
-        </>
-      )}
+        {showCreateUser && (
+          <UpdateUser
+            email={email}
+            onUserCreated={handleUserCreated}
+            open={showCreateUser}
+            isCreateUser={true}
+            onClose={() => setShowCreateUser(false)}
+          />
+        )}
 
-      {hotCategoriesLoading && (
-        <ListItem>
-          <Typography>{t("common.loading")}</Typography>
-        </ListItem>
-      )}
+        {showItemForm && (
+          <ItemForm
+            open={showItemForm}
+            onClose={() => setShowItemForm(false)}
+            onItemCreated={handleItemCreated}
+          />
+        )}
+      </List>
 
-      {showCreateUser && (
-        <UpdateUser
-          email={email}
-          onUserCreated={handleUserCreated}
-          open={showCreateUser}
-          isCreateUser={true}
-          onClose={() => setShowCreateUser(false)}
-        />
+      {/* Floating Chat Button */}
+      {hostConfig?.chatLink && (
+        <Tooltip
+          title={t("home.joinCommunityChat", "Join Community Chat")}
+          placement="left"
+        >
+          <Fab
+            color="primary"
+            aria-label="chat"
+            onClick={handleChatClick}
+            sx={{
+              position: "fixed",
+              bottom: 80, // Increased from 64 to 80 to avoid overlap with bottom navigation bar
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            <ChatIcon />
+          </Fab>
+        </Tooltip>
       )}
-
-      {showItemForm && (
-        <ItemForm
-          open={showItemForm}
-          onClose={() => setShowItemForm(false)}
-          onItemCreated={handleItemCreated}
-        />
-      )}
-    </List>
+    </>
   );
 };
 

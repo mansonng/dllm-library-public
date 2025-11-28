@@ -1,5 +1,10 @@
 import { db } from "./platform";
-import { CategoryMap, CategoryMapInput } from "./generated/graphql";
+import {
+  CategoryMap,
+  CategoryMapInput,
+  HostConfig,
+  HostConfigInput,
+} from "./generated/graphql";
 
 const SYSTEM_DB = db.collection("system");
 
@@ -13,6 +18,29 @@ export class SystemService {
           categoryMapsRef.ref.set({});
         }
       });
+  }
+  async getHostConfig(): Promise<HostConfig> {
+    const hostConfigRef = await SYSTEM_DB.doc("hostConfig").get();
+    let hostConfig: HostConfig;
+    if (hostConfigRef.exists === false) {
+      const defaultHostConfig: HostConfigInput = {
+        aboutUsText: "Welcome to our platform!",
+        chatLink: "https://chat.example.com", // provide default values here
+      };
+      hostConfig = await this.updateHostConfig(defaultHostConfig);
+    } else {
+      const data = hostConfigRef.data();
+      hostConfig = data as HostConfig;
+    }
+    return hostConfig;
+  }
+  async updateHostConfig(
+    hostConfigInput: HostConfigInput
+  ): Promise<HostConfig> {
+    const hostConfigRef = SYSTEM_DB.doc("hostConfig");
+    console.log("Updating host config:", hostConfigInput);
+    await hostConfigRef.set(hostConfigInput, { merge: true });
+    return this.getHostConfig();
   }
   async upsertCategoryMap(
     en: string,
