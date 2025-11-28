@@ -58,7 +58,7 @@ const NewsPage: React.FC = () => {
   const [aboutUsText, setAboutUsText] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
-  const isAdmin = user?.role === "ADMIN" || user?.role === "MODERATOR";
+  const isAdmin = user?.role === "ADMIN";
 
   // Query host config
   const { data, loading, error, refetch } = useQuery(GET_HOST_CONFIG, {
