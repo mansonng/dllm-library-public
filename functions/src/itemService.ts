@@ -83,7 +83,9 @@ export class ItemService {
         results.push(item);
       })
     );
-    return results;
+
+    // Filter client-side by keyword tokens to ensure nameIndex contains all tokens
+    return this.filterItemsByKeyword(results, keyword);
   }
   async totalItemsCount(
     classifications: string[],
@@ -123,7 +125,9 @@ export class ItemService {
         filteredItems.push(rv);
       })
     );
-    return filteredItems;
+
+    // Ensure results satisfy full keyword token match on nameIndex
+    return this.filterItemsByKeyword(filteredItems, keyword);
   }
 
   async totalItemsCountByLocation(
@@ -166,7 +170,8 @@ export class ItemService {
         results.push(item);
       })
     );
-    return results;
+
+    return this.filterItemsByKeyword(results, keyword);
   }
 
   async itemsOnLoanByOwner(
@@ -191,7 +196,8 @@ export class ItemService {
         results.push(item);
       })
     );
-    return results;
+
+    return this.filterItemsByKeyword(results, keyword);
   }
 
   async itemsOnLoanByHolder(
@@ -213,7 +219,8 @@ export class ItemService {
         results.push(item);
       })
     );
-    return results;
+
+    return this.filterItemsByKeyword(results, keyword);
   }
 
   async itemById(itemId: string): Promise<Item | null> {
@@ -288,7 +295,7 @@ export class ItemService {
         `Found ${items.length} cached items for exchange point user ${userId}`
       );
 
-      return items;
+      return this.filterItemsByKeyword(items, keyword);
     } else {
       let query = this._itemsQuery([], category, status, keyword);
       query = query.where("ownerId", "==", userId).orderBy("updated", "desc");
@@ -303,7 +310,8 @@ export class ItemService {
       console.debug(
         `Found ${results.length} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
       );
-      return results;
+
+      return this.filterItemsByKeyword(results, keyword);
     }
   }
 
@@ -1130,8 +1138,7 @@ export class ItemService {
       .map((t) => t.toLowerCase())
       .filter(Boolean);
     if (tokens.length === 0) return query;
-    query.where("nameIndex", "array-contains", tokens[1]);
-    return query;
+    return query.where("nameIndex", "array-contains", tokens[0]);
   }
 
   // Used for generating name index for search optimization.
@@ -1188,6 +1195,24 @@ export class ItemService {
       if (cur && !this.SKIP_INDEX.has(cur)) tokens.add(cur);
     }
     return Array.from(tokens).filter(Boolean);
+  }
+
+  // Filter items so that item's nameIndex contains all tokens from keyword
+  private filterItemsByKeyword(items: Item[], keyword?: string | null): Item[] {
+    if (!keyword || String(keyword).trim().length === 0) return items;
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return items;
+
+    console.log("filterItemsByKeyword: filtering for tokens:", tokens);
+
+    return items.filter((item) => {
+      const idx = Array.isArray((item as any).nameIndex)
+        ? (item as any).nameIndex.map((v: any) => String(v).toLowerCase())
+        : [];
+      return tokens.every((t) => idx.includes(t));
+    });
   }
 
   public generateItemIndexIncremental(): Promise<boolean> {
