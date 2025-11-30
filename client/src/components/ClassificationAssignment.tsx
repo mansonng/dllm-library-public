@@ -131,7 +131,7 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   // Define supported languages
-  const languages = ["en", "zh-TW", "zh-CN"];
+  const languages = ["en", "zh-TW"];
   const [translations, setTranslations] = useState<{ [key: string]: string }>(
     {}
   );
