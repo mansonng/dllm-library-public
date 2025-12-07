@@ -27,12 +27,12 @@ interface NSFWPrediction {
  * SafeImage component that uses NSFWJS to detect and blur NSFW content.
  * Users can consent to view the original image if it is flagged as NSFW.
  */
-const SafeImage: React.FC<SafeImageProps> = ({ 
-  src, 
-  alt = "Image", 
-  style = {}, 
-  maxWidth = "200px", 
-  maxHeight = "200px" 
+const SafeImage: React.FC<SafeImageProps> = ({
+  src,
+  alt = "Image",
+  style = {},
+  maxWidth = "200px",
+  maxHeight = "200px"
 }) => {
   const [model, setModel] = useState<nsfwjs.NSFWJS | null>(null);
   const [isNSFW, setIsNSFW] = useState<boolean | null>(null);
@@ -47,23 +47,23 @@ const SafeImage: React.FC<SafeImageProps> = ({
     loadModel();
   }, []);
 
-const loadModel = async () => {
+  const loadModel = async () => {
     try {
-    //const loadedModel = await nsfwjs.load("/mobilenet_v2/");
-    const loadedModel = await nsfwjs.load();
-    if (loadedModel) {
-       setModel(loadedModel);
-    }
-    if (loading) {
+      //const loadedModel = await nsfwjs.load("/mobilenet_v2/");
+      const loadedModel = await nsfwjs.load();
+      if (loadedModel) {
+        setModel(loadedModel);
+      }
+      if (loading) {
         console.log('Image is loading, will check after load');
         checkImage();
-    }
+      }
     } catch (err) {
-    console.error('Error loading NSFWJS model:', err);
-    setError('Failed to load content filter');
-    setLoading(false);
+      console.error('Error loading NSFWJS model:', err);
+      setError('Failed to load content filter');
+      setLoading(false);
     }
-};
+  };
 
 
   // Check image when model is loaded and image is loaded
@@ -75,13 +75,13 @@ const loadModel = async () => {
     try {
       setLoading(true);
       const predictions: NSFWPrediction[] = await model.classify(imgRef.current);
-      
+
       // Check if any NSFW categories have high probability
       const nsfwThreshold = 0.6; // Adjust this threshold as needed
       const hasNSFWContent = predictions.some(prediction => {
         const nsfwCategories = ['Porn', 'Hentai', 'Sexy'];
-        return nsfwCategories.includes(prediction.className) && 
-               prediction.probability > nsfwThreshold;
+        return nsfwCategories.includes(prediction.className) &&
+          prediction.probability > nsfwThreshold;
       });
 
       setIsNSFW(hasNSFWContent);
@@ -96,7 +96,7 @@ const loadModel = async () => {
   };
 
   const handleImageLoad = () => {
-    
+
     if (model) {
       checkImage();
     } else {
@@ -137,6 +137,7 @@ const loadModel = async () => {
         ref={imgRef}
         src={src}
         alt={alt}
+        crossOrigin="anonymous"
         style={{ display: 'none' }}
         onLoad={handleImageLoad}
         onError={() => {
@@ -200,7 +201,7 @@ const loadModel = async () => {
               <Checkbox
                 checked={userConsent}
                 onChange={handleConsentChange}
-                sx={{ 
+                sx={{
                   color: 'white',
                   '&.Mui-checked': {
                     color: 'orange'
