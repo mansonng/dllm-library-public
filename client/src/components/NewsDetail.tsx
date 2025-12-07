@@ -276,7 +276,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
           >
             {/* Close Button */}
             <Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}>
-              <IconButton onClick={handleCloseModal} color="primary">
+              <IconButton onClick={handleCloseModal} color="primary" aria-label="Close image modal">
                 <Close />
               </IconButton>
             </Box>
@@ -296,6 +296,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                     onClick={handlePrevImage}
                     sx={{ position: "absolute", left: -50, zIndex: 1 }}
                     color="primary"
+                    aria-label="Previous image"
                   >
                     <PrevIcon />
                   </IconButton>
@@ -322,6 +323,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                     onClick={handleNextImage}
                     sx={{ position: "absolute", right: -50, zIndex: 1 }}
                     color="primary"
+                    aria-label="Next image"
                   >
                     <NextIcon />
                   </IconButton>
