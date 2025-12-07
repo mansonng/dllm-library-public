@@ -41,6 +41,7 @@ import {
   TransactionStatus,
   TransactionLocation,
   CategoryMap,
+  Role,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -305,6 +306,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   );
 
   const isOwner = user && data?.item.ownerId === user.id;
+  const isAdmin = user && user.role === Role.Admin;
   const isHolder =
     user &&
     (data?.item.holderId === user.id ||
@@ -1150,7 +1152,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               </Button>
             )}
 
-            {isOwner && (
+            {(isOwner || isAdmin) && (
               <>
                 <Button
                   variant="contained"

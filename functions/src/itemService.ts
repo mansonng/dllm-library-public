@@ -76,7 +76,7 @@ export class ItemService {
     const results: Item[] = [];
     let currentOffset = initialOffset;
 
-    while (results.length < requestedLimit ) {
+    while (results.length < requestedLimit) {
       const query = queryBuilder(currentOffset);
       const snapshot = await query.limit(requestedLimit).get();
 
@@ -253,14 +253,21 @@ export class ItemService {
     );
   }
 
-  async itemById(itemId: string): Promise<Item | null> {
+  async itemModelByid(
+    itemId: string
+  ): Promise<firebase.firestore.DocumentData | null> {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;
     let data = itemDoc.data();
-
     if (!data) return null;
     data.id = itemId;
-    const item: Item = await this._itemModelToItem(data);
+    return data;
+  }
+
+  async itemById(itemId: string): Promise<Item | null> {
+    const data = await this.itemModelByid(itemId);
+    if (!data) return null;
+    let item: Item = await this._itemModelToItem(data);
     return item;
   }
 
@@ -654,11 +661,10 @@ export class ItemService {
     clssfctns?: string[]
   ): Promise<Item> {
     // First, get the existing item to verify ownership
-    const itemDoc = await db.collection("items").doc(itemId).get();
-    if (!itemDoc.exists)
-      throw new Error(`Item with ID ${itemId} does not exist`);
+    const itemDoc = await this.itemModelByid(itemId);
+    if (!itemDoc) throw new Error(`Item with ID ${itemId} does not exist`);
 
-    let existingData = itemDoc.data() as ItemModel;
+    let existingData = itemDoc as ItemModel;
 
     // Verify the user owns this item
     if (existingData.ownerId !== user.id && user.role !== Role.Admin) {
@@ -1147,7 +1153,6 @@ export class ItemService {
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
     keyword: string
   ): firebase.firestore.Query<firebase.firestore.DocumentData> {
-
     /* Keep the classical implementation for reference
     if (keyword && String(keyword).trim().length > 0) {
       const k = String(keyword);
