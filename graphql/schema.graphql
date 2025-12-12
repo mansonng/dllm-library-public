@@ -217,6 +217,28 @@ type SignedUrlResponse {
   expires: Float!
 }
 
+enum BindType {
+  ITEM
+  BINDER
+}
+
+type Bind {
+  type: BindType!
+  id: ID! # Item ID or Binder ID
+  name: String! # Item name or Binder name for preview
+}
+
+type Binder {
+  id: ID! # User's root binder same as User ID
+  name: String!
+  description: String
+  owner: User!
+  images: [String!] # 圖片URL列表
+  thumbnails: [String!] # 縮略圖URL列表
+  binds: [Bind!]! # List of bound items
+  updatedAt: Date!
+}
+
 # 查詢
 type Query {
   # 主機配置
@@ -361,6 +383,9 @@ type Query {
 
   # Get recent items without classifications assigned for admin review
   recentItemsWithoutClassifications(limit: Int): [Item!]
+
+  # Get Binder by ID
+  binder(Id: ID!): Binder
 }
 
 # 變更
@@ -461,6 +486,21 @@ type Mutation {
   ): SignedUrlResponse!
 
   generateItemIndexIncremental: Boolean!
+
+  createBinder(
+    parentId: ID!
+    bind: ID!
+    bindType: BindType!
+    name: String!
+  ): Binder!
+
+  updateBinder(
+    id: ID!
+    name: String
+    description: String
+    images: [String!]
+    binds: [BindInput!]
+  ): Binder!
 }
 
 # 輸入類型
