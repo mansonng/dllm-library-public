@@ -19,7 +19,7 @@ jobs:
       - name: Build client
         run: |
              npm install
-             npm run build
+             export NODE_OPTIONS=--max-old-space-size=4096 && npm run build
         working-directory: ./client
       - name: Add DLLM-Adminsdk
         run: |
@@ -33,7 +33,7 @@ jobs:
       - name: My deploy to Firebase
         run: |
              npm install firebase-tools
-             npx firebase deploy --token ${{ secrets.FIREBASE_TOKEN }}
+             export NODE_OPTIONS=--max-old-space-size=5120 && npx firebase deploy --token ${{ secrets.FIREBASE_TOKEN }}
    
 
 

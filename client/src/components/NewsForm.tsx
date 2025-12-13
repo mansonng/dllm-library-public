@@ -619,7 +619,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
   };
 
   const handleContentTabChange = (
-    event: React.SyntheticEvent,
+    _: React.SyntheticEvent,
     newValue: number
   ) => {
     setContentTab(newValue);
