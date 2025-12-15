@@ -496,11 +496,10 @@ type Mutation {
 
   generateItemIndexIncremental: Boolean!
 
-  createBinder(parentId: ID!, name: String!, bind: Bind!): Binder!
-
   addBindToBinder(
-    binderId: ID!
-    bind: Bind!
+    parentId: ID!
+    newBinderName: String # if newBinderName is provided, a new Binder bind to Binder
+    bind: BindInput!
     beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
   ): Binder!
 
@@ -512,15 +511,11 @@ type Mutation {
     bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
   ): Binder!
 
-  removeBindFromBinder(
-    binderId: ID!
+  moveBind(
+    originalBinderId: ID!
     bindId: ID! # Item ID or Binder ID
-  ): Binder!
-
-  updateBindInBinder(
-    binderId: ID!
-    bindId: ID! # Item ID or Binder ID
-    newName: String!
+    targetBinderId: ID # if targetBinderId is null, remove from original binder
+    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
   ): Binder!
 }
 
@@ -528,6 +523,12 @@ type Mutation {
 input LocationInput {
   latitude: Float!
   longitude: Float!
+}
+
+input BindInput {
+  type: BindType!
+  id: ID! # Item ID or Binder ID
+  name: String! # Item name or Binder name for preview
 }
 
 input ContactMethodInput {

@@ -101,7 +101,9 @@
     "selectOption": "請選擇...",
     "notAvailable": "不適用",
     "noCategory": "無分類",
-    "errorLoading": "載入資料時發生錯誤"
+    "errorLoading": "載入資料時發生錯誤",
+    "bind": "綁定",
+    "binding": "綁定中..."    
   },
   "time": {
     "secondsAgo": "幾秒鐘前",
@@ -757,5 +759,26 @@
     "list": "列表",
     "code": "程式碼",
     "previewEmpty": "預覽將在您輸入時顯示..."
+  },
+  "binder": {
+    "bindItem": "綁定到資料夾",
+    "bindingItem": "綁定項目",
+    "bindMode": "綁定模式",
+    "bindToExisting": "綁定到現有資料夾",
+    "createNewAndBind": "創建新資料夾並綁定",
+    "selectBinder": "選擇資料夾",
+    "selectParentBinder": "選擇父資料夾",
+    "newBinderName": "新資料夾名稱",
+    "newBinderNamePlaceholder": "輸入新資料夾名稱",
+    "newBinderHelp": "新資料夾將在所選父資料夾內創建",
+    "createAndBind": "創建並綁定",
+    "selectBinderError": "請選擇一個資料夾",
+    "newBinderNameError": "請輸入新資料夾的名稱",
+    "selectParentBinderError": "請選擇一個父資料夾來創建新資料夾",
+    "bindError": "綁定項目失敗",
+    "loadError": "載入資料夾失敗",
+    "noBindersYet": "您還沒有任何資料夾。當您綁定第一個項目時，將自動創建根資料夾。",
+    "verificationRequired": "請驗證您的電子郵件以使用資料夾",
+    "bindSuccess": "項目綁定成功！"
   }
 }

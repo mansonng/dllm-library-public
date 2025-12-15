@@ -33,6 +33,7 @@ import {
   PushPin as PinIcon, // Add this import
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
+  Folder as BinderIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -56,6 +57,7 @@ import { AuthDialog } from "./Auth";
 import ImageGalleryModal from "./ImageGalleryModal";
 import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
+import BindItemDialog from "./BindItemDialog";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -209,6 +211,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
+
+  // Add state for bind dialog
+  const [bindDialogOpen, setBindDialogOpen] = useState(false);
 
   const { data, loading, error, refetch } = useQuery<{ item: Item }>(
     ITEM_DETAIL_QUERY,
@@ -399,6 +404,37 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   const handleCreateNewsClick = () => {
     setNewsFormOpen(true);
+  };
+
+  const handleBindClick = () => {
+    if (!user) {
+      setAuthDefaultSignUp(false);
+      setAuthDialogOpen(true);
+      return;
+    }
+
+    if (!user.isVerified) {
+      setErrorMessage(
+        t(
+          "binder.verificationRequired",
+          "Please verify your email to use binders"
+        )
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setBindDialogOpen(true);
+  };
+
+  const handleBindSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    setBindDialogOpen(false);
+  };
+
+  const handleBindError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
   };
 
   const handleConfirmRequest = async (
@@ -1148,6 +1184,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           <Box
             sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
           >
+            {/* Bind Button - Show for all verified users */}
+            {user && user.isVerified && (
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={handleBindClick}
+                startIcon={<BinderIcon />}
+              >
+                {t("binder.bindItem", "Bind to Binder")}
+              </Button>
+            )}
+
             {/* Face-to-Face Transfer Button - Show for owner or holder */}
             {(isOwner || isHolder) && (
               <Button
@@ -1312,6 +1361,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           relatedItem={data?.item || null}
           onSuccess={handleEditSuccess}
           onError={handleEditError}
+        />
+      )}
+
+      {/* Bind Item Dialog */}
+      {user && user.isVerified && (
+        <BindItemDialog
+          open={bindDialogOpen}
+          onClose={() => setBindDialogOpen(false)}
+          item={data?.item!}
+          user={user}
+          onSuccess={handleBindSuccess}
+          onError={handleBindError}
         />
       )}
     </Container>

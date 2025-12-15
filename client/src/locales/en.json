@@ -629,5 +629,26 @@
     "addingRoot": "Adding as root category",
     "zh-TW": "正體中文",
     "zh-HK": "港文"
+  },
+  "binder": {
+    "bindItem": "Bind to Binder",
+    "bindingItem": "Binding Item",
+    "bindMode": "Bind Mode",
+    "bindToExisting": "Bind to existing binder",
+    "createNewAndBind": "Create new binder and bind",
+    "selectBinder": "Select Binder",
+    "selectParentBinder": "Select Parent Binder",
+    "newBinderName": "New Binder Name",
+    "newBinderNamePlaceholder": "Enter name for new binder",
+    "newBinderHelp": "A new binder will be created inside the selected parent binder",
+    "createAndBind": "Create & Bind",
+    "selectBinderError": "Please select a binder",
+    "newBinderNameError": "Please enter a name for the new binder",
+    "selectParentBinderError": "Please select a parent binder to create the new binder in",
+    "bindError": "Failed to bind item",
+    "loadError": "Failed to load binders",
+    "noBindersYet": "You don't have any binders yet. A root binder will be created automatically when you bind your first item.",
+    "verificationRequired": "Please verify your email to use binders",
+    "bindSuccess": "Item bound successfully!"
   }
 }
