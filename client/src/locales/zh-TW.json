@@ -794,8 +794,18 @@
     "columnTitle": "書名",
     "columnAuthor": "作者",
     "columnPublisher": "出版社",
+    "columnStatus": "狀態",
     "booksFound": "找到 {{total}} 本書，已選擇 {{selected}} 本",
+    "existingCount": "{{count}} 本已在您的書庫中",
+    "existing": "已存在",
+    "checkingDuplicates": "正在檢查已有書籍...",
+    "importing": "正在匯入書籍...",
+    "importError": "匯入書籍失敗。",
     "import": "匯入",
-    "importSuccess": "成功匯入 {{count}} 本書！"
+    "imported": "已匯入",
+    "importSuccess": "成功匯入 {{count}} 本書！",
+    "pageImportSuccess": "第 {{page}} 頁匯入成功！",
+    "allImported": "所有頁面已匯入完成！您現在可以返回。",
+    "pagesImported": "已匯入 {{done}} / {{total}} 頁"
   }
 }

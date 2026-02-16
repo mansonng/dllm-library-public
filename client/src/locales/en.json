@@ -666,8 +666,18 @@
     "columnTitle": "Title",
     "columnAuthor": "Author",
     "columnPublisher": "Publisher",
+    "columnStatus": "Status",
     "booksFound": "{{total}} book(s) found, {{selected}} selected",
+    "existingCount": "{{count}} already in your library",
+    "existing": "Existing",
+    "checkingDuplicates": "Checking for existing books...",
+    "importing": "Importing books...",
+    "importError": "Failed to import books.",
     "import": "Import",
-    "importSuccess": "{{count}} book(s) imported successfully!"
+    "imported": "Imported",
+    "importSuccess": "{{count}} book(s) imported successfully!",
+    "pageImportSuccess": "Page {{page}} imported successfully!",
+    "allImported": "All pages have been imported! You can now go back.",
+    "pagesImported": "{{done}} of {{total}} page(s) imported"
   }
 }

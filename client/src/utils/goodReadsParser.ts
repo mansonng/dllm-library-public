@@ -14,13 +14,19 @@ export interface GoodReadsBook {
   title: string;
   author: string;
   publisher: string;
+  isbn?: string;
+  isbn13?: string;
+  publishedYear?: string;
 }
 
 /**
  * Parse a raw CSV string (GoodReads export) into an array of books.
  * Handles quoted fields that may contain commas and newlines.
  */
-export function parseGoodReadsCsv(csvText: string): GoodReadsBook[] {
+export function parseGoodReadsCsv(
+  csvText: string,
+  display: boolean,
+): GoodReadsBook[] {
   const rows = parseCsvRows(csvText);
   if (rows.length < 2) return [];
 
@@ -28,6 +34,11 @@ export function parseGoodReadsCsv(csvText: string): GoodReadsBook[] {
   const titleIdx = header.findIndex((h) => h === "title");
   const authorIdx = header.findIndex((h) => h === "author");
   const publisherIdx = header.findIndex((h) => h === "publisher");
+  const isbnIdx = header.findIndex((h) => h === "isbn");
+  const isbn13Idx = header.findIndex((h) => h === "isbn13");
+  const publishedYearIdx = header.findIndex(
+    (h) => h === "year published" || h === "published year",
+  );
 
   if (titleIdx === -1) {
     throw new Error(
@@ -42,11 +53,33 @@ export function parseGoodReadsCsv(csvText: string): GoodReadsBook[] {
     if (row.length === 0 || (row.length === 1 && row[0].trim() === ""))
       continue;
 
-    books.push({
-      title: row[titleIdx]?.trim() ?? "",
-      author: authorIdx !== -1 ? (row[authorIdx]?.trim() ?? "") : "",
-      publisher: publisherIdx !== -1 ? (row[publisherIdx]?.trim() ?? "") : "",
-    });
+    if (display) {
+      books.push({
+        title: row[titleIdx]?.trim() ?? "",
+        author: authorIdx !== -1 ? (row[authorIdx]?.trim() ?? "") : "",
+        publisher: publisherIdx !== -1 ? (row[publisherIdx]?.trim() ?? "") : "",
+      });
+    } else {
+      let isbn: string = isbnIdx !== -1 ? (row[isbnIdx]?.trim() ?? "") : "";
+      let isbn13: string =
+        isbn13Idx !== -1 ? (row[isbn13Idx]?.trim() ?? "") : "";
+      if (isbn[0] === "=") {
+        isbn = isbn.slice(1).replace(/"/g, "");
+      }
+      if (isbn13[0] === "=") {
+        isbn13 = isbn13.slice(1).replace(/"/g, "");
+      }
+      books.push({
+        title: row[titleIdx]?.trim() ?? "",
+        author: authorIdx !== -1 ? (row[authorIdx]?.trim() ?? "") : "",
+        publisher: publisherIdx !== -1 ? (row[publisherIdx]?.trim() ?? "") : "",
+        // Optional: You could also include ISBN and published year if desired
+        isbn: isbn,
+        isbn13: isbn13,
+        publishedYear:
+          publishedYearIdx !== -1 ? (row[publishedYearIdx]?.trim() ?? "") : "",
+      });
+    }
   }
 
   return books;

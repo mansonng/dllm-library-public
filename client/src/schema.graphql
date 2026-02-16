@@ -119,6 +119,7 @@ type Item {
   location: Location # 藏品所在地（繼承自擁有者）
   createdAt: Date!
   updatedAt: Date!
+  ISBN: String # 可選ISBN （針對書籍）or ISBN13
   clssfctns: [String!] # Classifications 分類標籤 with ordering assigned by admin
 }
 
@@ -283,6 +284,7 @@ type Query {
     offset: Int
     isExchangePointItem: Boolean
   ): [Item!]! # 基於User的搜尋
+  duplicateTitlesByUser(userId: ID!, names: [String!]): [String!]! # 查詢用戶藏品中重複的名稱列表
   totalItemsCountByUser(
     userId: ID!
     category: [String!]
@@ -390,6 +392,7 @@ type Mutation {
     publishedYear: Int
     language: Language!
     deposit: Int! = 0
+    ISBN: String
   ): Item!
   updateItem(
     id: ID!
@@ -403,7 +406,9 @@ type Mutation {
     deposit: Int
     language: Language
     classifications: [String!]
+    ISBN: String
   ): Item!
+  createItemsFromJSON(bookJson: [String!], deposit: Int! = 0): [Item!]!
   deleteItem(id: ID!): Boolean!
   pinItem(itemId: ID!): Boolean!
   unpinItem(itemId: ID!): Boolean!

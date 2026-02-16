@@ -73,6 +73,7 @@ export type HostConfigInput = {
 
 export type Item = {
   __typename?: 'Item';
+  ISBN?: Maybe<Scalars['String']['output']>;
   category: Array<Scalars['String']['output']>;
   clssfctns?: Maybe<Array<Scalars['String']['output']>>;
   condition: ItemCondition;
@@ -182,6 +183,7 @@ export type Mutation = {
   approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
   createItem: Item;
+  createItemsFromGoodReads: Array<Item>;
   createNewsPost: NewsPost;
   createQuickTransaction: Transaction;
   createTransaction: Transaction;
@@ -229,6 +231,7 @@ export type MutationCancelTransactionArgs = {
 
 
 export type MutationCreateItemArgs = {
+  ISBN?: InputMaybe<Scalars['String']['input']>;
   category: Array<Scalars['String']['input']>;
   condition: ItemCondition;
   deposit?: Scalars['Int']['input'];
@@ -238,6 +241,12 @@ export type MutationCreateItemArgs = {
   name: Scalars['String']['input'];
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
   status: ItemStatus;
+};
+
+
+export type MutationCreateItemsFromGoodReadsArgs = {
+  csv?: InputMaybe<Array<Scalars['String']['input']>>;
+  deposit?: Scalars['Int']['input'];
 };
 
 
@@ -338,6 +347,7 @@ export type MutationUpdateHostConfigArgs = {
 
 
 export type MutationUpdateItemArgs = {
+  ISBN?: InputMaybe<Scalars['String']['input']>;
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   classifications?: InputMaybe<Array<Scalars['String']['input']>>;
   condition?: InputMaybe<ItemCondition>;
@@ -394,6 +404,7 @@ export type Query = {
   commentsByItemId: ItemCommentsConnection;
   commentsByUserId: ItemCommentsByUserConnection;
   defaultCategories: Array<Scalars['String']['output']>;
+  duplicateTitlesByUser: Array<Scalars['String']['output']>;
   exchangePoints: Array<User>;
   exchangePointsCount: Scalars['Int']['output'];
   geocodeAddress?: Maybe<Location>;
@@ -441,6 +452,12 @@ export type QueryCommentsByUserIdArgs = {
   first: Scalars['Int']['input'];
   startAfterDate?: InputMaybe<Scalars['Date']['input']>;
   startAfterId?: InputMaybe<Scalars['ID']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QueryDuplicateTitlesByUserArgs = {
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
   userId: Scalars['ID']['input'];
 };
 
@@ -721,7 +738,7 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string } };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1039,6 +1056,14 @@ export type GetExchangePointsCountQueryVariables = Exact<{ [key: string]: never;
 
 export type GetExchangePointsCountQuery = { __typename?: 'Query', exchangePointsCount: number };
 
+export type DuplicateTitlesByUserQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  names?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type DuplicateTitlesByUserQuery = { __typename?: 'Query', duplicateTitlesByUser: Array<string> };
+
 export type RecentCategoriesQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
 }>;
@@ -1104,14 +1129,14 @@ export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Ar
 export type GetHostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
 
 export type UpdateHostConfigMutationVariables = Exact<{
   input: HostConfigInput;
 }>;
 
 
-export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
 
 export type GetOnLoanItemsByOwnerQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1202,6 +1227,8 @@ export const HostConfigDocument = gql`
   hostConfig {
     aboutUsText
     chatLink
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
@@ -3046,6 +3073,45 @@ export type GetExchangePointsCountQueryHookResult = ReturnType<typeof useGetExch
 export type GetExchangePointsCountLazyQueryHookResult = ReturnType<typeof useGetExchangePointsCountLazyQuery>;
 export type GetExchangePointsCountSuspenseQueryHookResult = ReturnType<typeof useGetExchangePointsCountSuspenseQuery>;
 export type GetExchangePointsCountQueryResult = Apollo.QueryResult<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>;
+export const DuplicateTitlesByUserDocument = gql`
+    query DuplicateTitlesByUser($userId: ID!, $names: [String!]) {
+  duplicateTitlesByUser(userId: $userId, names: $names)
+}
+    `;
+
+/**
+ * __useDuplicateTitlesByUserQuery__
+ *
+ * To run a query within a React component, call `useDuplicateTitlesByUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDuplicateTitlesByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDuplicateTitlesByUserQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      names: // value for 'names'
+ *   },
+ * });
+ */
+export function useDuplicateTitlesByUserQuery(baseOptions: Apollo.QueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables> & ({ variables: DuplicateTitlesByUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+      }
+export function useDuplicateTitlesByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+        }
+export function useDuplicateTitlesByUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+        }
+export type DuplicateTitlesByUserQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserQuery>;
+export type DuplicateTitlesByUserLazyQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserLazyQuery>;
+export type DuplicateTitlesByUserSuspenseQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserSuspenseQuery>;
+export type DuplicateTitlesByUserQueryResult = Apollo.QueryResult<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>;
 export const RecentCategoriesDocument = gql`
     query RecentCategories($limit: Int!) {
   recentUpdateCategories(limit: $limit)
@@ -3388,6 +3454,8 @@ export const GetHostConfigDocument = gql`
   hostConfig {
     chatLink
     aboutUsText
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
@@ -3428,6 +3496,8 @@ export const UpdateHostConfigDocument = gql`
   updateHostConfig(input: $input) {
     chatLink
     aboutUsText
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
