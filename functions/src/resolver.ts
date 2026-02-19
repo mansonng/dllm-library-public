@@ -471,13 +471,13 @@ export const resolvers: Resolvers = {
     },
     createItemsFromJSON: async (
       _: any,
-      { bookJson }: any,
+      { bookJson, deposit }: any,
       { loginUser }: Context,
     ): Promise<Item[]> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
       if (!owner) throw new Error("Owner not found");
-      return itemService.createItemsFromJSON(owner, bookJson);
+      return itemService.createItemsFromJSON(owner, bookJson, deposit);
     },
     updateItem: async (
       _: any,
