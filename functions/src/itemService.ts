@@ -806,7 +806,7 @@ export class ItemService {
     images?: string[],
     deposit?: number,
     clssfctns?: string[],
-    ISBN?: string | null | undefined,
+    isbn?: string | null | undefined,
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await this.itemModelById(itemId);
