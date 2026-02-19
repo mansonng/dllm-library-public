@@ -500,7 +500,7 @@ export const resolvers: Resolvers = {
         args.images,
         args.deposit,
         args.classifications,
-        args.ISBN,
+        args.isbn,
       );
     },
     pinItem: async (
