@@ -16,7 +16,9 @@
     "resendVerification": "重新發送驗證郵件",
     "createProfile": "編輯個人檔案",
     "cancel": "取消",
-    "submit": "提交"
+    "submit": "提交",
+    "signInWithGoogle": "使用 Google 登入",
+    "googleSignInError": "Google 登入失敗"
   },
   "navigation": {
     "home": "首頁",
@@ -53,6 +55,32 @@
       "popular": "熱門項目"
     }
   },
+  "onboarding": {
+    "skip": "跳過",
+    "next": "下一步",
+    "prev": "上一步",
+    "finish": "知道了！",
+    "guest": {
+      "signIn": {
+        "title": "登入或註冊",
+        "description": "點擊這裡登入您的帳戶或創建新帳戶，開始借閱和分享物品！"
+      },
+      "news": {
+        "title": "查看我們的新聞",
+        "description": "了解社區公告、活動，並了解更多關於我們圖書館運作方式的資訊。"
+      }
+    },
+    "user": {
+      "browseItems": {
+        "title": "瀏覽可用物品",
+        "description": "點擊這裡查看所有可用物品。找到喜歡的物品後，可以申請借閱！"
+      },
+      "addItem": {
+        "title": "分享您的物品",
+        "description": "有東西想分享？點擊這裡將您的物品添加到社區圖書館，供他人借閱。"
+      }
+    }
+  },
   "common": {
     "name": "名稱",
     "tags": "標籤",
@@ -69,7 +97,7 @@
     "language": "語言",
     "images": "圖片...",
     "processingImages": "載入圖像中...",
-    "addImages": "加入圖像",
+    "addImages": "添加圖片",
     "by": "來自",
     "unknown": "未知",
     "updated": "改造",
@@ -100,7 +128,9 @@
     "selectOption": "請選擇...",
     "notAvailable": "不適用",
     "noCategory": "無分類",
-    "errorLoading": "載入資料時發生錯誤"
+    "errorLoading": "載入資料時發生錯誤",
+    "bind": "綁定",
+    "binding": "綁定中..."
   },
   "time": {
     "secondsAgo": "幾秒鐘前",
@@ -149,7 +179,12 @@
     "fileNotImage": "{{fileName}} 不是圖片檔案",
     "fileTooLarge": "{{fileName}} 太大（最大 50MB）",
     "imageProcessingError": "圖片處理錯誤：{{error}}",
-    "addImages": "新增圖片",
+    "searchBookCover": "搜尋書籍封面",
+    "bookCoverSearchPlaceholder": "輸入 ISBN 或書名",
+    "bookCoverSearchError": "搜尋書籍封面失敗",
+    "bookCoverFetchError": "無法取得所選封面圖片",
+    "noCoverFound": "搵唔到書籍封面",
+    "processingCover": "處理緊封面圖片...",
     "selectFromGallery": "從相簿選擇",
     "takePhoto": "拍照",
     "existing": "現有",
@@ -206,7 +241,6 @@
     "uploadingImages": "正在上傳圖片... {{progress}}%",
     "previewAlt": "預覽 {{index}}",
     "createSuccess": "項目創建成功！",
-    "addImages": "添加圖片",
     "selectFromGallery": "從相冊選擇",
     "takePhoto": "拍攝照片",
     "invalidFileType": "{{fileName}} 不是有效的圖片文件",
@@ -246,6 +280,9 @@
     "relatedItems": "相關物品",
     "loadItems": "載入物品中...",
     "request": "交易請求",
+    "locationRequired": "需要設定位置",
+    "locationRequiredDescription": "請先喺個人檔案設定你嘅位置，再進行物品請求。呢個可以幫我哋為你配對附近嘅物品。",
+    "goToProfile": "前往個人檔案",
     "confirmRequest": "確認提交請求",
     "confirmRequestMessage": "您確定要對這件物品提交交易請求嗎？我們將向物主提供交易通知。",
     "requestSuccess": "成功提交請求！物主將收到通知。",
@@ -455,6 +492,9 @@
     "selectCategoryToViewItems": "選擇下面的類別來查看物品。",
     "noCategories": "沒有可用的類別",
     "viewProfile": "查看個人檔案",
+    "addressRequiredTitle": "需要設定地址",
+    "addressRequiredMessage": "請先喺個人檔案設定你嘅交換地址再新增物品，咁可以幫其他用戶了解交換地點。",
+    "goToProfile": "前往個人檔案",
     "pinnedItems": "已釘選物品",
     "loadingPinnedItems": "載入已釘選物品中...",
     "errorLoadingPinnedItems": "載入已釘選物品時發生錯誤",
@@ -474,7 +514,9 @@
     "distance": "距離",
     "contactMethods": "聯絡方法",
     "nickname": "暱稱",
-    "notSet": "未設定"
+    "notSet": "未設定",
+    "rootBinder": "根資料夾",
+    "noRootBinder": "此用戶尚未創建根資料夾。"
   },
   "transactions": {
     "title": "我的紀錄",
@@ -534,6 +576,7 @@
     "ownerHasItem": "物主擁有該物品",
     "participants": "相關人員",
     "roleOwner": "擁有者",
+    "roleHolder": "持有者",
     "roleRequestor": "請求者",
     "roleReceiver": "接收者",
     "ownerInstructionPending": "您收到了此物品的請求。請審查請求者的資訊並決定是否批准或取消此交易。",
@@ -650,7 +693,6 @@
       "exchangePoint": "交換",
       "exchangePoint2": "點",
       "intermediary": "（可信）",
-      
       "phaseATitle": "階段 A：放下交易",
       "phaseA1Title": "A1. 請求放下",
       "phaseA1Line1": "借閱者請求",
@@ -665,11 +707,9 @@
       "phaseA3Line2": "📸 雙方拍照",
       "phaseA3Line3": "點擊「已轉移」及「已收到」",
       "phaseAComplete": "✓ 階段 A 完成",
-      
       "itemCached": "📦 物品已快取",
       "waitingPickup": "等待",
       "waitingPickup2": "階段 B 取貨",
-      
       "phaseBTitle": "階段 B：取貨交易",
       "phaseB1Title": "B1. 請求取貨",
       "phaseB1Line1": "申請者提交",
@@ -684,7 +724,6 @@
       "phaseB3Line2": "📸 雙方拍照",
       "phaseB3Line3": "點擊「已轉移」及「已收到」",
       "phaseBComplete": "✓ 申請者成為新持有者",
-      
       "preferenceNote": "📍 交換點偏好設定：",
       "preferenceDesc": "用戶可選擇偏好的交換點。其他人可按交換點位置搜尋物品。",
       "timeNote": "⏱ 每個階段：14 天內完成，否則交易過期"
@@ -755,5 +794,76 @@
     "translationHelper": "此語言的翻譯",
     "addingUnder": "新增到：{{path}}",
     "addingRoot": "新增為根分類"
+  },
+  "binder": {
+    "bindItem": "綁定到資料夾",
+    "bindingItem": "綁定項目",
+    "bindMode": "綁定模式",
+    "bindToExisting": "綁定到現有資料夾",
+    "createNewAndBind": "創建新資料夾並綁定",
+    "selectBinder": "選擇資料夾",
+    "selectParentBinder": "選擇父資料夾",
+    "newBinderName": "新資料夾名稱",
+    "newBinderNamePlaceholder": "輸入新資料夾名稱",
+    "newBinderHelp": "新資料夾將在所選父資料夾內創建",
+    "createAndBind": "創建並綁定",
+    "selectBinderError": "請選擇一個資料夾",
+    "newBinderNameError": "請輸入新資料夾的名稱",
+    "selectParentBinderError": "請選擇一個父資料夾來創建新資料夾",
+    "bindError": "綁定項目失敗",
+    "loadError": "載入資料夾失敗",
+    "noBindersYet": "您還沒有任何資料夾。當您綁定第一個項目時，將自動創建根資料夾。",
+    "verificationRequired": "請驗證您的電子郵件以使用資料夾",
+    "bindSuccess": "項目綁定成功！",
+    "rootBinder": "根資料夾",
+    "itemCount": "{{count}} 個項目",
+    "rootBinderHelper": "根資料夾包含此用戶組織的所有項目。點擊以探索內容。",
+    "noBinderId": "未提供資料夾 ID",
+    "loading": "載入資料夾中...",
+    "untitled": "未命名資料夾",
+    "errorLoading": "載入資料夾時發生錯誤",
+    "images": "資料夾圖片",
+    "owner": "擁有者",
+    "description": "描述",
+    "totalBinds": "{{count}} 個項目",
+    "bindedInOthers": "在 {{count}} 個資料夾中被綁定",
+    "lastUpdated": "最後更新",
+    "contents": "資料夾內容",
+    "empty": "此資料夾是空的",
+    "typeBinder": "資料夾",
+    "typeItem": "項目",
+    "updated": "已更新",
+    "bindToBinder": "綁定到其他資料夾",
+    "bindToBinderTitle": "將資料夾綁定到您的資料夾",
+    "bindToBinderInfo": "選擇應該包含此資料夾的資料夾",
+    "source": "來源",
+    "searchBinders": "搜索您的資料夾...",
+    "noBindersFound": "找不到資料夾",
+    "itemsCount": "{{count}} 個項目",
+    "selectedCount": "已選擇 {{count}} 個資料夾",
+    "containingBinders": "包含此項目的資料夾",
+    "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
+  },
+  "goodreads": {
+    "title": "從 GoodReads 匯入",
+    "importButton": "從 GoodReads 匯入",
+    "instructions": "上載你嘅 GoodReads CSV 匯出檔案嚟匯入書籍。你可以喺 GoodReads 嘅「我嘅書 → 匯入同匯出 → 匯出書庫」度匯出你嘅書庫。",
+    "selectFile": "揀 CSV 檔案",
+    "columnTitle": "書名",
+    "columnAuthor": "作者",
+    "columnPublisher": "出版社",
+    "columnStatus": "狀態",
+    "booksFound": "搵到 {{total}} 本書，已揀 {{selected}} 本",
+    "existingCount": "{{count}} 本已喺你書庫入面",
+    "existing": "已存在",
+    "checkingDuplicates": "檢查緊已有書籍...",
+    "importing": "匯入緊書籍...",
+    "importError": "匯入書籍失敗。",
+    "import": "匯入",
+    "imported": "已匯入",
+    "importSuccess": "成功匯入咗 {{count}} 本書！",
+    "pageImportSuccess": "第 {{page}} 頁匯入成功！",
+    "allImported": "所有頁面都匯入完啦！你可以返回喇。",
+    "pagesImported": "已匯入 {{done}} / {{total}} 頁"
   }
 }

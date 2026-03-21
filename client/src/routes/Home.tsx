@@ -10,6 +10,11 @@ import {
   Alert,
   Fab,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { Chat as ChatIcon } from "@mui/icons-material";
 import {
@@ -73,6 +78,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showAddressReminder, setShowAddressReminder] = useState(false);
 
   const handleItemCreated = () => {
     setShowItemForm(false);
@@ -124,7 +130,16 @@ const HomePage: React.FC = () => {
   });
 
   const handleAddItem = () => {
+    if (!user?.address) {
+      setShowAddressReminder(true);
+      return;
+    }
     setShowItemForm(true);
+  };
+
+  const handleGoToProfile = () => {
+    setShowAddressReminder(false);
+    setShowCreateUser(true);
   };
 
   const handleUserCreated = () => {
@@ -170,7 +185,7 @@ const HomePage: React.FC = () => {
                   <Alert severity="info" sx={{ mb: 2 }}>
                     {t(
                       "home.accountPending",
-                      "Your account is pending activation."
+                      "Your account is pending activation.",
                     )}
                   </Alert>
                 )}
@@ -193,7 +208,7 @@ const HomePage: React.FC = () => {
                       >
                         {t(
                           "auth.resendVerification",
-                          "Resend Verification Email"
+                          "Resend Verification Email",
                         )}
                       </Button>
                     )}
@@ -218,6 +233,7 @@ const HomePage: React.FC = () => {
             onClick={handleViewAllItems}
             size="large"
             fullWidth
+            data-tour="view-all-items"
           >
             {t("navigation.viewAllItems")}
           </Button>
@@ -228,6 +244,7 @@ const HomePage: React.FC = () => {
               size="large"
               fullWidth
               sx={{ ml: 2 }}
+              data-tour="add-item"
             >
               {t("item.create", "Add Item")}
             </Button>
@@ -246,7 +263,7 @@ const HomePage: React.FC = () => {
                   <Typography>
                     {t(
                       "home.loadingRecommendations",
-                      "Loading recommendations..."
+                      "Loading recommendations...",
                     )}
                   </Typography>
                 </Box>
@@ -258,7 +275,7 @@ const HomePage: React.FC = () => {
                 <Alert severity="warning" sx={{ width: "100%" }}>
                   {t(
                     "home.recommendationsError",
-                    "Unable to load recommendations"
+                    "Unable to load recommendations",
                   )}
                   <Typography variant="caption" display="block">
                     {userPickedError.message}
@@ -275,11 +292,11 @@ const HomePage: React.FC = () => {
                     recommendedItems={userPickedData.recommendedItems}
                     titleOverride={t(
                       "home.userPickedItems",
-                      "Recommended for You"
+                      "Recommended for You",
                     )}
                     descriptionOverride={t(
                       "home.userPickedDescription",
-                      "Based on your interests and activity"
+                      "Based on your interests and activity",
                     )}
                   />
                 </ListItem>
@@ -292,7 +309,7 @@ const HomePage: React.FC = () => {
                   <Alert severity="info" sx={{ width: "100%" }}>
                     {t(
                       "home.noRecommendations",
-                      "No recommendations available at the moment. Browse items to help us learn your preferences!"
+                      "No recommendations available at the moment. Browse items to help us learn your preferences!",
                     )}
                   </Alert>
                 </ListItem>
@@ -308,7 +325,7 @@ const HomePage: React.FC = () => {
                 <ListItem key={`recent-category-${index}`}>
                   <RecentItemBanner category={category} isRecent={true} />
                 </ListItem>
-              )
+              ),
             )}
           </>
         )}
@@ -341,10 +358,39 @@ const HomePage: React.FC = () => {
             email={email}
             onUserCreated={handleUserCreated}
             open={showCreateUser}
-            isCreateUser={true}
+            isCreateUser={false}
             onClose={() => setShowCreateUser(false)}
+            initialNickname={user?.nickname}
+            initialAddress={user?.address}
+            initialExchangePoints={user?.exchangePoints}
+            initialContactMethods={user?.contactMethods}
           />
         )}
+
+        <Dialog
+          open={showAddressReminder}
+          onClose={() => setShowAddressReminder(false)}
+        >
+          <DialogTitle>
+            {t("user.addressRequiredTitle", "Address Required")}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {t(
+                "user.addressRequiredMessage",
+                "Please set your exchange address in your profile before adding items. This helps other users know where to exchange.",
+              )}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowAddressReminder(false)}>
+              {t("common.cancel", "Cancel")}
+            </Button>
+            <Button variant="contained" onClick={handleGoToProfile}>
+              {t("user.goToProfile", "Go to Profile")}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {showItemForm && user && (
           <ItemForm

@@ -33,6 +33,7 @@ import {
   PushPin as PinIcon, // Add this import
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
+  Folder as BinderIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -43,6 +44,7 @@ import {
   TransactionLocation,
   CategoryMap,
   Role,
+  Binder,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +58,8 @@ import { AuthDialog } from "./Auth";
 import ImageGalleryModal from "./ImageGalleryModal";
 import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
+import BindItemDialog from "./BindItemDialog";
+import BinderPreview from "./BinderPreview";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -75,6 +79,7 @@ const ITEM_DETAIL_QUERY = gql`
       ownerId
       holderId
       deposit
+      isbn
     }
   }
 `;
@@ -177,6 +182,31 @@ const GET_ITEM_CONFIG = gql`
   }
 `;
 
+// Add new query for binders containing this item
+const BINDERS_FROM_ITEM_QUERY = gql`
+  query BindersFromItemId($itemId: ID!) {
+    bindersFromItemId(itemId: $itemId) {
+      id
+      name
+      description
+      images
+      thumbnails
+      binds {
+        type
+        id
+        name
+      }
+      bindedCount
+      updatedAt
+      owner {
+        id
+        nickname
+        email
+      }
+    }
+  }
+`;
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -210,12 +240,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
 
+  // Add state for bind dialog
+  const [bindDialogOpen, setBindDialogOpen] = useState(false);
+
+  // State for location prompt dialog
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+
   const { data, loading, error, refetch } = useQuery<{ item: Item }>(
     ITEM_DETAIL_QUERY,
     {
       variables: { itemId: itemId! },
       skip: !itemId,
-    }
+    },
   );
 
   // Query for item config (for classification translation)
@@ -308,8 +344,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         setErrorMessage(error.message);
         setErrorSnackbarOpen(true);
       },
-    }
+    },
   );
+
+  // Add query for binders containing this item
+  const { data: bindersData, loading: bindersLoading } = useQuery<{
+    bindersFromItemId: Binder[];
+  }>(BINDERS_FROM_ITEM_QUERY, {
+    variables: { itemId: itemId! },
+    skip: !itemId,
+    fetchPolicy: "cache-and-network",
+  });
 
   const isOwner = user && data?.item.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
@@ -345,7 +390,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       user.location.latitude,
       user.location.longitude,
       holder.user.location.latitude,
-      holder.user.location.longitude
+      holder.user.location.longitude,
     );
 
     return formatDistance(distance);
@@ -371,6 +416,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       return;
     }
 
+    if (!user.location?.latitude || !user.location?.longitude) {
+      setLocationPromptOpen(true);
+      return;
+    }
+
     setRequestDialogOpen(true);
   };
 
@@ -382,6 +432,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         setRequestDialogOpen(true);
       }
     }, 500);
+  };
+
+  const handleGoToProfile = () => {
+    setLocationPromptOpen(false);
+    navigate("/profile");
   };
 
   const handleCloseAuthDialog = () => {
@@ -401,9 +456,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     setNewsFormOpen(true);
   };
 
+  const handleBindClick = () => {
+    if (!user) {
+      setAuthDefaultSignUp(false);
+      setAuthDialogOpen(true);
+      return;
+    }
+
+    if (!user.isVerified) {
+      setErrorMessage(
+        t(
+          "binder.verificationRequired",
+          "Please verify your email to use binders",
+        ),
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setBindDialogOpen(true);
+  };
+
+  const handleBindSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    setBindDialogOpen(false);
+  };
+
+  const handleBindError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
+  };
+
   const handleConfirmRequest = async (
     location: TransactionLocation,
-    locationIndex?: number
+    locationIndex?: number,
   ) => {
     if (!itemId) return;
 
@@ -470,7 +556,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     const images = data?.item?.images || [];
     if (images.length > 0) {
       setSelectedImageIndex((prev) =>
-        prev === 0 ? images.length - 1 : prev - 1
+        prev === 0 ? images.length - 1 : prev - 1,
       );
     }
   };
@@ -479,7 +565,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     const images = data?.item?.images || [];
     if (images.length > 0) {
       setSelectedImageIndex((prev) =>
-        prev === images.length - 1 ? 0 : prev + 1
+        prev === images.length - 1 ? 0 : prev + 1,
       );
     }
   };
@@ -513,7 +599,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       return false;
     }
     return ownerData.user.pinItems.some(
-      (pinItem: Item) => pinItem.id === itemId
+      (pinItem: Item) => pinItem.id === itemId,
     );
   };
 
@@ -584,7 +670,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       label={translateCategory(
                         segment,
                         configData?.itemConfig?.categoryMaps,
-                        i18n.language
+                        i18n.language,
                       )}
                       size="small"
                       variant={
@@ -623,6 +709,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         </Box>
       </Box>
     );
+  };
+
+  const handleBinderClick = (binderId: string) => {
+    navigate(`/binder/${binderId}`);
   };
 
   return (
@@ -890,19 +980,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility1",
-                          "Responding to future requests from other users"
+                          "Responding to future requests from other users",
                         )}
                       </Typography>
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility2",
-                          "Handing over the item to the next requestor when needed"
+                          "Handing over the item to the next requestor when needed",
                         )}
                       </Typography>
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility3",
-                          "Returning the item to the original owner if requested"
+                          "Returning the item to the original owner if requested",
                         )}
                       </Typography>
                     </Box>
@@ -963,7 +1053,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 }}
               >
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, "") || ""
+                  data.item.description?.replace(/#Uncategorized\b/gi, "") ||
+                    "",
                 )}
               </Typography>
             </Box>
@@ -1027,16 +1118,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   <Chip
                     label={t(
                       `shortStatus.${data.item.status}`,
-                      data.item.status
+                      data.item.status,
                     )}
                     color={
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : data.item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : data.item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -1070,7 +1161,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     <Chip
                       label={`${getDistanceToOwner()} ${t(
                         "item.away",
-                        "away"
+                        "away",
                       )}`}
                       color="info"
                       size="small"
@@ -1148,6 +1239,20 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           <Box
             sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
           >
+            {/* Bind Button - Show for all verified users */}
+            {/* temp: only show for admins until we have binder capacity management */}
+            {user && user.isVerified && user.role === Role.Admin && (
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={handleBindClick}
+                startIcon={<BinderIcon />}
+              >
+                {t("binder.bindItem", "Bind to Binder")}
+              </Button>
+            )}
+
             {/* Face-to-Face Transfer Button - Show for owner or holder */}
             {(isOwner || isHolder) && (
               <Button
@@ -1206,6 +1311,56 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         </Paper>
       )}
 
+      {/* Binders Containing This Item Section - NEW */}
+      {data?.item &&
+        bindersData &&
+        bindersData.bindersFromItemId &&
+        bindersData.bindersFromItemId.length > 0 && (
+          <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 0.5,
+                }}
+              >
+                <BinderIcon color="primary" />
+                {t("binder.containingBinders", "Binders containing this item")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(
+                  "binder.foundInBinders",
+                  "This item appears in {{count}} binder(s)",
+                  {
+                    count: bindersData.bindersFromItemId.length,
+                  },
+                )}
+              </Typography>
+            </Box>
+
+            {bindersLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={2}>
+                {bindersData.bindersFromItemId.map((binder) => (
+                  <Grid key={binder.id} size={{ xs: 4, sm: 3, md: 2.4 }}>
+                    <BinderPreview
+                      binder={binder}
+                      onClick={handleBinderClick}
+                      compact={true}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Paper>
+        )}
+
       {/* Edit Item Dialog */}
       {user && (
         <ItemForm
@@ -1217,6 +1372,54 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           onError={handleEditError}
         />
       )}
+      {/* Location Prompt Dialog */}
+      <Modal
+        open={locationPromptOpen}
+        onClose={() => setLocationPromptOpen(false)}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{ backdrop: { timeout: 500 } }}
+      >
+        <Fade in={locationPromptOpen}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+              maxWidth: 400,
+              width: "90%",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {t("item.locationRequired", "Location Required")}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              {t(
+                "item.locationRequiredDescription",
+                "Please set your location in your profile before requesting an item. This helps us match you with nearby items.",
+              )}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+              <Button onClick={() => setLocationPromptOpen(false)}>
+                {t("common.cancel", "Cancel")}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleGoToProfile}
+                startIcon={<LocationOnIcon />}
+              >
+                {t("item.goToProfile", "Go to Profile")}
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+
       {/* Unified Authentication Dialog */}
       <AuthDialog
         open={authDialogOpen}
@@ -1226,8 +1429,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           alert(
             t(
               "auth.resetPasswordInfo",
-              "Please contact support to reset your password."
-            )
+              "Please contact support to reset your password.",
+            ),
           );
         }}
         defaultIsSignUp={authDefaultSignUp}
@@ -1312,6 +1515,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           relatedItem={data?.item || null}
           onSuccess={handleEditSuccess}
           onError={handleEditError}
+        />
+      )}
+
+      {/* Bind Item Dialog */}
+      {user && user.isVerified && data?.item && (
+        <BindItemDialog
+          open={bindDialogOpen}
+          onClose={() => setBindDialogOpen(false)}
+          source={data.item}
+          sourceType="item"
+          user={user}
+          onSuccess={handleBindSuccess}
+          onError={handleBindError}
         />
       )}
     </Container>

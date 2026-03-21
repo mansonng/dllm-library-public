@@ -29,7 +29,9 @@
     "resetPasswordInfo": "Please contact support to reset your password.",
     "createNewAccount": "Create a new account",
     "alreadyHaveAccount": "Already have an account? Uncheck the box above to sign in.",
-    "needAccount": "Need an account? Check the box above to sign up."
+    "needAccount": "Need an account? Check the box above to sign up.",
+    "signInWithGoogle": "Sign in with Google",
+    "googleSignInError": "Failed to sign in with Google"
   },
   "navigation": {
     "home": "Home",
@@ -64,6 +66,32 @@
       "userPicked": "Recommended for You",
       "newArrivals": "New Arrivals",
       "popular": "Popular Items"
+    }
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "prev": "Back",
+    "finish": "Got it!",
+    "guest": {
+      "signIn": {
+        "title": "Sign In or Sign Up",
+        "description": "Click here to sign in to your account or create a new one to start borrowing and sharing items!"
+      },
+      "news": {
+        "title": "Check Out Our News",
+        "description": "Stay updated with community announcements, events, and learn more about how our library works."
+      }
+    },
+    "user": {
+      "browseItems": {
+        "title": "Browse Available Items",
+        "description": "Click here to see all available items. Find something you like and request to borrow it!"
+      },
+      "addItem": {
+        "title": "Share Your Items",
+        "description": "Have something to share? Click here to add your items to the community library for others to borrow."
+      }
     }
   },
   "common": {
@@ -256,6 +284,12 @@
     "fileNotImage": "File {{fileName}} is not an image",
     "fileTooLarge": "{{fileName}} is too large. Maximum size is 50MB",
     "imageProcessingError": "Error processing images: {{error}}",
+    "searchBookCover": "Search Book Cover",
+    "bookCoverSearchPlaceholder": "Enter ISBN or book title",
+    "bookCoverSearchError": "Failed to search for book covers",
+    "bookCoverFetchError": "Failed to fetch the selected cover image",
+    "noCoverFound": "No book covers found",
+    "processingCover": "Processing cover image...",
     "uploadingImages": "Uploading images... {{progress}}%",
     "previewAlt": "Image preview {{index}}",
     "createSuccess": "Item created successfully!",
@@ -323,6 +357,9 @@
     "images": "Images",
     "distance": "Distance",
     "request": "Request",
+    "locationRequired": "Location Required",
+    "locationRequiredDescription": "Please set your location in your profile before requesting an item. This helps us match you with nearby items.",
+    "goToProfile": "Go to Profile",
     "requestSuccess": "Item request submitted successfully!",
     "available": "This item is available for borrowing!",
     "availableMessage": "This item is available for borrowing!",
@@ -456,6 +493,9 @@
     "noCategories": "No categories available",
     "viewProfile": "View user profile",
     "addressNotSet": "Exchange Address not set",
+    "addressRequiredTitle": "Address Required",
+    "addressRequiredMessage": "Please set your exchange address in your profile before adding items. This helps other users know where to exchange.",
+    "goToProfile": "Go to Profile",
     "pinnedItems": "Pinned Items",
     "loadingPinnedItems": "Loading pinned items...",
     "errorLoadingPinnedItems": "Error loading pinned items",
@@ -475,7 +515,9 @@
     "distance": "Distance from you",
     "contactMethods": "Contact Methods",
     "nickname": "Nickname",
-    "notSet": "Not Set"
+    "notSet": "Not Set",
+    "rootBinder": "Root Binder",
+    "noRootBinder": "This user hasn't created a root binder yet."
   },
   "transactions": {
     "title": "My Records",
@@ -540,6 +582,7 @@
     "authRequiredMessage": "To confirm receipt of this item, please sign in to your account or create a new one.",
     "signInToConfirm": "Please sign in or create an account to confirm receipt of this item.",
     "roleOwner": "Owner",
+    "roleHolder": "Holder",
     "roleRequestor": "Requestor",
     "roleReceiver": "Receiver",
     "ownerInstructionPending": "You have received a request for this item. Please review the requestor's information and decide whether to approve or cancel this transaction.",
@@ -629,5 +672,86 @@
     "addingRoot": "Adding as root category",
     "zh-TW": "正體中文",
     "zh-HK": "港文"
+  },
+  "binder": {
+    "bindItem": "Bind to Binder",
+    "bindingItem": "Binding Item",
+    "bindMode": "Bind Mode",
+    "bindToExisting": "Bind to existing binder",
+    "createNewAndBind": "Create new binder and bind",
+    "selectBinder": "Select Binder",
+    "selectParentBinder": "Select Parent Binder",
+    "newBinderName": "New Binder Name",
+    "newBinderNamePlaceholder": "Enter name for new binder",
+    "newBinderHelp": "A new binder will be created inside the selected parent binder",
+    "createAndBind": "Create & Bind",
+    "selectBinderError": "Please select a binder",
+    "newBinderNameError": "Please enter a name for the new binder",
+    "selectParentBinderError": "Please select a parent binder to create the new binder in",
+    "bindError": "Failed to bind item",
+    "loadError": "Failed to load binders",
+    "noBindersYet": "You don't have any binders yet. A root binder will be created automatically when you bind your first item.",
+    "verificationRequired": "Please verify your email to use binders",
+    "bindSuccess": "Item bound successfully!",
+    "rootBinder": "Root Binder",
+    "itemCount": "{{count}} items",
+    "rootBinderHelper": "The root binder contains all items organized by this user. Click to explore the contents.",
+    "noBinderId": "No binder ID provided",
+    "loading": "Loading Binder...",
+    "untitled": "Untitled Binder",
+    "errorLoading": "Error loading binder",
+    "images": "Binder Images",
+    "owner": "Owner",
+    "description": "Description",
+    "totalBinds": "{{count}} item(s)",
+    "bindedInOthers": "Binded in {{count}} binder(s)",
+    "lastUpdated": "Last updated",
+    "contents": "Binder Contents",
+    "empty": "This binder is empty",
+    "typeBinder": "Binder",
+    "typeItem": "Item",
+    "updated": "Updated",
+    "editBinder": "Edit Binder",
+    "name": "Binder Name",
+    "nameRequired": "Binder name is required",
+    "reorderBinds": "Reorder Contents",
+    "items": "items",
+    "noBinds": "No items in this binder",
+    "dragToReorder": "Drag and drop to reorder items. To add or remove items, use the Bind feature on item pages.",
+    "updateError": "Failed to update binder",
+    "updateSuccess": "Binder updated successfully!",
+    "imageProcessError": "Failed to process images",
+    "bindToBinder": "Bind to Another Binder",
+    "bindToBinderTitle": "Bind Binder to Your Binders",
+    "bindToBinderInfo": "Select which of your binders should contain this binder",
+    "source": "Source",
+    "searchBinders": "Search your binders...",
+    "noBindersFound": "No binders found",
+    "itemsCount": "{{count}} items",
+    "selectedCount": "{{count}} binders selected",
+    "containingBinders": "Binders containing this item",
+    "foundInBinders": "This item appears in {{count}} binder(s)"
+  },
+  "goodreads": {
+    "title": "Import from GoodReads",
+    "importButton": "Import from GoodReads",
+    "instructions": "Upload your GoodReads CSV export file to import books. You can export your library from GoodReads under My Books → Import and export → Export Library.",
+    "selectFile": "Select CSV File",
+    "columnTitle": "Title",
+    "columnAuthor": "Author",
+    "columnPublisher": "Publisher",
+    "columnStatus": "Status",
+    "booksFound": "{{total}} book(s) found, {{selected}} selected",
+    "existingCount": "{{count}} already in your library",
+    "existing": "Existing",
+    "checkingDuplicates": "Checking for existing books...",
+    "importing": "Importing books...",
+    "importError": "Failed to import books.",
+    "import": "Import",
+    "imported": "Imported",
+    "importSuccess": "{{count}} book(s) imported successfully!",
+    "pageImportSuccess": "Page {{page}} imported successfully!",
+    "allImported": "All pages have been imported! You can now go back.",
+    "pagesImported": "{{done}} of {{total}} page(s) imported"
   }
 }

@@ -19,6 +19,43 @@ export type Scalars = {
   Void: { input: any; output: any; }
 };
 
+export type Bind = {
+  __typename?: 'Bind';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  type: BindType;
+};
+
+export type BindInput = {
+  id: Scalars['ID']['input'];
+  name: Scalars['String']['input'];
+  type: BindType;
+};
+
+export enum BindType {
+  Binder = 'BINDER',
+  Item = 'ITEM'
+}
+
+export type Binder = {
+  __typename?: 'Binder';
+  bindedCount: Scalars['Int']['output'];
+  binds: Array<Bind>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  name: Scalars['String']['output'];
+  owner: User;
+  thumbnails?: Maybe<Array<Scalars['String']['output']>>;
+  updatedAt: Scalars['Date']['output'];
+};
+
+export type BinderPath = {
+  __typename?: 'BinderPath';
+  id: Scalars['ID']['output'];
+  path: Scalars['String']['output'];
+};
+
 export type Category = {
   __typename?: 'Category';
   category: Scalars['String']['output'];
@@ -60,11 +97,15 @@ export type HostConfig = {
   __typename?: 'HostConfig';
   aboutUsText: Scalars['String']['output'];
   chatLink: Scalars['String']['output'];
+  splashScreenImageUrl?: Maybe<Scalars['String']['output']>;
+  splashScreenText?: Maybe<Scalars['String']['output']>;
 };
 
 export type HostConfigInput = {
   aboutUsText: Scalars['String']['input'];
   chatLink: Scalars['String']['input'];
+  splashScreenImageUrl?: InputMaybe<Scalars['String']['input']>;
+  splashScreenText: Scalars['String']['input'];
 };
 
 export type Item = {
@@ -78,6 +119,7 @@ export type Item = {
   holderId?: Maybe<Scalars['ID']['output']>;
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
+  isbn?: Maybe<Scalars['String']['output']>;
   language: Language;
   location?: Maybe<Location>;
   name: Scalars['String']['output'];
@@ -173,11 +215,13 @@ export type LocationInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addBindToBinder: Binder;
   addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
   approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
   createItem: Item;
+  createItemsFromJSON: Array<Item>;
   createNewsPost: NewsPost;
   createQuickTransaction: Transaction;
   createTransaction: Transaction;
@@ -190,15 +234,25 @@ export type Mutation = {
   generateItemIndexIncremental: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
+  moveBind: Binder;
   pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
   transferTransaction: Transaction;
   unpinItem: Scalars['Boolean']['output'];
+  updateBinder: Binder;
   updateHostConfig: HostConfig;
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
   upsertCategoryMap?: Maybe<Array<CategoryMap>>;
+};
+
+
+export type MutationAddBindToBinderArgs = {
+  beforeBindId?: InputMaybe<Scalars['ID']['input']>;
+  bind: BindInput;
+  newBinderName?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 
@@ -230,10 +284,17 @@ export type MutationCreateItemArgs = {
   deposit?: Scalars['Int']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  isbn?: InputMaybe<Scalars['String']['input']>;
   language: Language;
   name: Scalars['String']['input'];
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
   status: ItemStatus;
+};
+
+
+export type MutationCreateItemsFromJsonArgs = {
+  bookJson?: InputMaybe<Array<Scalars['String']['input']>>;
+  deposit?: Scalars['Int']['input'];
 };
 
 
@@ -307,6 +368,14 @@ export type MutationHideNewsPostArgs = {
 };
 
 
+export type MutationMoveBindArgs = {
+  beforeBindId?: InputMaybe<Scalars['ID']['input']>;
+  bindId: Scalars['ID']['input'];
+  originalBinderId: Scalars['ID']['input'];
+  targetBinderId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type MutationPinItemArgs = {
   itemId: Scalars['ID']['input'];
 };
@@ -328,6 +397,15 @@ export type MutationUnpinItemArgs = {
 };
 
 
+export type MutationUpdateBinderArgs = {
+  bindIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationUpdateHostConfigArgs = {
   input: HostConfigInput;
 };
@@ -341,6 +419,7 @@ export type MutationUpdateItemArgs = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  isbn?: InputMaybe<Scalars['String']['input']>;
   language?: InputMaybe<Language>;
   name?: InputMaybe<Scalars['String']['input']>;
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
@@ -387,9 +466,12 @@ export type NewsPost = {
 
 export type Query = {
   __typename?: 'Query';
+  binder?: Maybe<Binder>;
+  binderPathsByUser: Array<BinderPath>;
   commentsByItemId: ItemCommentsConnection;
   commentsByUserId: ItemCommentsByUserConnection;
   defaultCategories: Array<Scalars['String']['output']>;
+  duplicateTitlesByUser: Array<Scalars['String']['output']>;
   exchangePoints: Array<User>;
   exchangePointsCount: Scalars['Int']['output'];
   geocodeAddress?: Maybe<Location>;
@@ -425,6 +507,16 @@ export type Query = {
 };
 
 
+export type QueryBinderArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBinderPathsByUserArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
 export type QueryCommentsByItemIdArgs = {
   first: Scalars['Int']['input'];
   itemId: Scalars['ID']['input'];
@@ -437,6 +529,12 @@ export type QueryCommentsByUserIdArgs = {
   first: Scalars['Int']['input'];
   startAfterDate?: InputMaybe<Scalars['Date']['input']>;
   startAfterId?: InputMaybe<Scalars['ID']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QueryDuplicateTitlesByUserArgs = {
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
   userId: Scalars['ID']['input'];
 };
 
@@ -717,7 +815,31 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string } };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
+
+export type BinderPathsByUserQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type BinderPathsByUserQuery = { __typename?: 'Query', binderPathsByUser: Array<{ __typename?: 'BinderPath', id: string, path: string }> };
+
+export type AddBindToBinderMutationVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  newBinderName?: InputMaybe<Scalars['String']['input']>;
+  bind: BindInput;
+  beforeBindId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type AddBindToBinderMutation = { __typename?: 'Mutation', addBindToBinder: { __typename?: 'Binder', id: string, name: string, updatedAt: any, binds: Array<{ __typename?: 'Bind', id: string, type: BindType, name: string }> } };
+
+export type BinderDetailQueryVariables = Exact<{
+  binderId: Scalars['ID']['input'];
+}>;
+
+
+export type BinderDetailQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -776,7 +898,7 @@ export type ItemQueryVariables = Exact<{
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null, isbn?: string | null } | null };
 
 export type CreateTransactionMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -973,6 +1095,13 @@ export type TotalItemsByUserQueryVariables = Exact<{
 
 export type TotalItemsByUserQuery = { __typename?: 'Query', totalItemsCountByUser: number };
 
+export type UserRootBinderQueryVariables = Exact<{
+  binderId: Scalars['ID']['input'];
+}>;
+
+
+export type UserRootBinderQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
+
 export type GeocodeAddressQueryVariables = Exact<{
   address: Scalars['String']['input'];
 }>;
@@ -1034,6 +1163,22 @@ export type GetExchangePointsCountQueryVariables = Exact<{ [key: string]: never;
 
 
 export type GetExchangePointsCountQuery = { __typename?: 'Query', exchangePointsCount: number };
+
+export type DuplicateTitlesByUserQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  names?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type DuplicateTitlesByUserQuery = { __typename?: 'Query', duplicateTitlesByUser: Array<string> };
+
+export type CreateItemsFromJsonMutationVariables = Exact<{
+  bookJson: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  deposit?: Scalars['Int']['input'];
+}>;
+
+
+export type CreateItemsFromJsonMutation = { __typename?: 'Mutation', createItemsFromJSON: Array<{ __typename?: 'Item', id: string, name: string }> };
 
 export type RecentCategoriesQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
@@ -1100,14 +1245,14 @@ export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Ar
 export type GetHostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
 
 export type UpdateHostConfigMutationVariables = Exact<{
   input: HostConfigInput;
 }>;
 
 
-export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
 
 export type GetOnLoanItemsByOwnerQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1198,6 +1343,8 @@ export const HostConfigDocument = gql`
   hostConfig {
     aboutUsText
     chatLink
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
@@ -1233,6 +1380,151 @@ export type HostConfigQueryHookResult = ReturnType<typeof useHostConfigQuery>;
 export type HostConfigLazyQueryHookResult = ReturnType<typeof useHostConfigLazyQuery>;
 export type HostConfigSuspenseQueryHookResult = ReturnType<typeof useHostConfigSuspenseQuery>;
 export type HostConfigQueryResult = Apollo.QueryResult<HostConfigQuery, HostConfigQueryVariables>;
+export const BinderPathsByUserDocument = gql`
+    query BinderPathsByUser($userId: ID!) {
+  binderPathsByUser(userId: $userId) {
+    id
+    path
+  }
+}
+    `;
+
+/**
+ * __useBinderPathsByUserQuery__
+ *
+ * To run a query within a React component, call `useBinderPathsByUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBinderPathsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBinderPathsByUserQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useBinderPathsByUserQuery(baseOptions: Apollo.QueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables> & ({ variables: BinderPathsByUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
+      }
+export function useBinderPathsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
+        }
+export function useBinderPathsByUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
+        }
+export type BinderPathsByUserQueryHookResult = ReturnType<typeof useBinderPathsByUserQuery>;
+export type BinderPathsByUserLazyQueryHookResult = ReturnType<typeof useBinderPathsByUserLazyQuery>;
+export type BinderPathsByUserSuspenseQueryHookResult = ReturnType<typeof useBinderPathsByUserSuspenseQuery>;
+export type BinderPathsByUserQueryResult = Apollo.QueryResult<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>;
+export const AddBindToBinderDocument = gql`
+    mutation AddBindToBinder($parentId: ID!, $newBinderName: String, $bind: BindInput!, $beforeBindId: ID) {
+  addBindToBinder(
+    parentId: $parentId
+    newBinderName: $newBinderName
+    bind: $bind
+    beforeBindId: $beforeBindId
+  ) {
+    id
+    name
+    binds {
+      id
+      type
+      name
+    }
+    updatedAt
+  }
+}
+    `;
+export type AddBindToBinderMutationFn = Apollo.MutationFunction<AddBindToBinderMutation, AddBindToBinderMutationVariables>;
+
+/**
+ * __useAddBindToBinderMutation__
+ *
+ * To run a mutation, you first call `useAddBindToBinderMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddBindToBinderMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addBindToBinderMutation, { data, loading, error }] = useAddBindToBinderMutation({
+ *   variables: {
+ *      parentId: // value for 'parentId'
+ *      newBinderName: // value for 'newBinderName'
+ *      bind: // value for 'bind'
+ *      beforeBindId: // value for 'beforeBindId'
+ *   },
+ * });
+ */
+export function useAddBindToBinderMutation(baseOptions?: Apollo.MutationHookOptions<AddBindToBinderMutation, AddBindToBinderMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddBindToBinderMutation, AddBindToBinderMutationVariables>(AddBindToBinderDocument, options);
+      }
+export type AddBindToBinderMutationHookResult = ReturnType<typeof useAddBindToBinderMutation>;
+export type AddBindToBinderMutationResult = Apollo.MutationResult<AddBindToBinderMutation>;
+export type AddBindToBinderMutationOptions = Apollo.BaseMutationOptions<AddBindToBinderMutation, AddBindToBinderMutationVariables>;
+export const BinderDetailDocument = gql`
+    query BinderDetail($binderId: ID!) {
+  binder(id: $binderId) {
+    id
+    name
+    description
+    images
+    thumbnails
+    binds {
+      type
+      id
+      name
+    }
+    bindedCount
+    updatedAt
+    owner {
+      id
+      nickname
+      email
+    }
+  }
+}
+    `;
+
+/**
+ * __useBinderDetailQuery__
+ *
+ * To run a query within a React component, call `useBinderDetailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBinderDetailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBinderDetailQuery({
+ *   variables: {
+ *      binderId: // value for 'binderId'
+ *   },
+ * });
+ */
+export function useBinderDetailQuery(baseOptions: Apollo.QueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables> & ({ variables: BinderDetailQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+      }
+export function useBinderDetailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+        }
+export function useBinderDetailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+        }
+export type BinderDetailQueryHookResult = ReturnType<typeof useBinderDetailQuery>;
+export type BinderDetailLazyQueryHookResult = ReturnType<typeof useBinderDetailLazyQuery>;
+export type BinderDetailSuspenseQueryHookResult = ReturnType<typeof useBinderDetailSuspenseQuery>;
+export type BinderDetailQueryResult = Apollo.QueryResult<BinderDetailQuery, BinderDetailQueryVariables>;
 export const RecentItemsWithoutClassificationsDocument = gql`
     query RecentItemsWithoutClassifications($limit: Int) {
   recentItemsWithoutClassifications(limit: $limit) {
@@ -1530,6 +1822,7 @@ export const ItemDocument = gql`
     ownerId
     holderId
     deposit
+    isbn
   }
 }
     `;
@@ -2644,6 +2937,62 @@ export type TotalItemsByUserQueryHookResult = ReturnType<typeof useTotalItemsByU
 export type TotalItemsByUserLazyQueryHookResult = ReturnType<typeof useTotalItemsByUserLazyQuery>;
 export type TotalItemsByUserSuspenseQueryHookResult = ReturnType<typeof useTotalItemsByUserSuspenseQuery>;
 export type TotalItemsByUserQueryResult = Apollo.QueryResult<TotalItemsByUserQuery, TotalItemsByUserQueryVariables>;
+export const UserRootBinderDocument = gql`
+    query UserRootBinder($binderId: ID!) {
+  binder(id: $binderId) {
+    id
+    name
+    description
+    images
+    thumbnails
+    binds {
+      type
+      id
+      name
+    }
+    bindedCount
+    updatedAt
+    owner {
+      id
+      nickname
+      email
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserRootBinderQuery__
+ *
+ * To run a query within a React component, call `useUserRootBinderQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserRootBinderQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserRootBinderQuery({
+ *   variables: {
+ *      binderId: // value for 'binderId'
+ *   },
+ * });
+ */
+export function useUserRootBinderQuery(baseOptions: Apollo.QueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables> & ({ variables: UserRootBinderQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+      }
+export function useUserRootBinderLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+        }
+export function useUserRootBinderSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+        }
+export type UserRootBinderQueryHookResult = ReturnType<typeof useUserRootBinderQuery>;
+export type UserRootBinderLazyQueryHookResult = ReturnType<typeof useUserRootBinderLazyQuery>;
+export type UserRootBinderSuspenseQueryHookResult = ReturnType<typeof useUserRootBinderSuspenseQuery>;
+export type UserRootBinderQueryResult = Apollo.QueryResult<UserRootBinderQuery, UserRootBinderQueryVariables>;
 export const GeocodeAddressDocument = gql`
     query GeocodeAddress($address: String!) {
   geocodeAddress(address: $address) {
@@ -3042,6 +3391,80 @@ export type GetExchangePointsCountQueryHookResult = ReturnType<typeof useGetExch
 export type GetExchangePointsCountLazyQueryHookResult = ReturnType<typeof useGetExchangePointsCountLazyQuery>;
 export type GetExchangePointsCountSuspenseQueryHookResult = ReturnType<typeof useGetExchangePointsCountSuspenseQuery>;
 export type GetExchangePointsCountQueryResult = Apollo.QueryResult<GetExchangePointsCountQuery, GetExchangePointsCountQueryVariables>;
+export const DuplicateTitlesByUserDocument = gql`
+    query DuplicateTitlesByUser($userId: ID!, $names: [String!]) {
+  duplicateTitlesByUser(userId: $userId, names: $names)
+}
+    `;
+
+/**
+ * __useDuplicateTitlesByUserQuery__
+ *
+ * To run a query within a React component, call `useDuplicateTitlesByUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDuplicateTitlesByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDuplicateTitlesByUserQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      names: // value for 'names'
+ *   },
+ * });
+ */
+export function useDuplicateTitlesByUserQuery(baseOptions: Apollo.QueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables> & ({ variables: DuplicateTitlesByUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+      }
+export function useDuplicateTitlesByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+        }
+export function useDuplicateTitlesByUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>(DuplicateTitlesByUserDocument, options);
+        }
+export type DuplicateTitlesByUserQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserQuery>;
+export type DuplicateTitlesByUserLazyQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserLazyQuery>;
+export type DuplicateTitlesByUserSuspenseQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserSuspenseQuery>;
+export type DuplicateTitlesByUserQueryResult = Apollo.QueryResult<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>;
+export const CreateItemsFromJsonDocument = gql`
+    mutation CreateItemsFromJSON($bookJson: [String!]!, $deposit: Int! = 0) {
+  createItemsFromJSON(bookJson: $bookJson, deposit: $deposit) {
+    id
+    name
+  }
+}
+    `;
+export type CreateItemsFromJsonMutationFn = Apollo.MutationFunction<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>;
+
+/**
+ * __useCreateItemsFromJsonMutation__
+ *
+ * To run a mutation, you first call `useCreateItemsFromJsonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateItemsFromJsonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createItemsFromJsonMutation, { data, loading, error }] = useCreateItemsFromJsonMutation({
+ *   variables: {
+ *      bookJson: // value for 'bookJson'
+ *      deposit: // value for 'deposit'
+ *   },
+ * });
+ */
+export function useCreateItemsFromJsonMutation(baseOptions?: Apollo.MutationHookOptions<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>(CreateItemsFromJsonDocument, options);
+      }
+export type CreateItemsFromJsonMutationHookResult = ReturnType<typeof useCreateItemsFromJsonMutation>;
+export type CreateItemsFromJsonMutationResult = Apollo.MutationResult<CreateItemsFromJsonMutation>;
+export type CreateItemsFromJsonMutationOptions = Apollo.BaseMutationOptions<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>;
 export const RecentCategoriesDocument = gql`
     query RecentCategories($limit: Int!) {
   recentUpdateCategories(limit: $limit)
@@ -3384,6 +3807,8 @@ export const GetHostConfigDocument = gql`
   hostConfig {
     chatLink
     aboutUsText
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
@@ -3424,6 +3849,8 @@ export const UpdateHostConfigDocument = gql`
   updateHostConfig(input: $input) {
     chatLink
     aboutUsText
+    splashScreenImageUrl
+    splashScreenText
   }
 }
     `;
