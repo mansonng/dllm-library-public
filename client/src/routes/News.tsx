@@ -51,6 +51,7 @@ const GET_HOST_CONFIG = gql`
       aboutUsText
       splashScreenImageUrl
       splashScreenText
+      itemShareMessageTemplates
     }
   }
 `;
@@ -62,6 +63,7 @@ const UPDATE_HOST_CONFIG = gql`
       aboutUsText
       splashScreenImageUrl
       splashScreenText
+      itemShareMessageTemplates
     }
   }
 `;
@@ -92,6 +94,7 @@ const NewsPage: React.FC = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [shareTemplatesRaw, setShareTemplatesRaw] = useState("");
 
   const maxImageSize = 1920;
   const imageQuality = 0.5;
@@ -119,7 +122,12 @@ const NewsPage: React.FC = () => {
             isExisting: true,
             gsUrl: imageUrl,
           });
+        } else {
+          setSplashScreenImage(null);
         }
+        setShareTemplatesRaw(
+          (data.hostConfig.itemShareMessageTemplates ?? []).join("\n"),
+        );
       }
     },
   });
@@ -149,6 +157,13 @@ const NewsPage: React.FC = () => {
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     setSplashScreenText(e.target.value);
+    setHasChanges(true);
+  };
+
+  const handleShareTemplatesChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setShareTemplatesRaw(e.target.value);
     setHasChanges(true);
   };
 
@@ -250,6 +265,10 @@ const NewsPage: React.FC = () => {
         chatLink: chatLink.trim(),
         aboutUsText: aboutUsText.trim(),
         splashScreenText: splashScreenText.trim(),
+        itemShareMessageTemplates: shareTemplatesRaw
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0),
       };
 
       // Only upload and update image if there's a new image (not existing)
@@ -344,6 +363,9 @@ const NewsPage: React.FC = () => {
       } else {
         setSplashScreenImage(null);
       }
+      setShareTemplatesRaw(
+        (data.hostConfig.itemShareMessageTemplates ?? []).join("\n"),
+      );
     }
     // Clean up object URLs for non-existing images
     if (splashScreenImage && !splashScreenImage.isExisting) {
@@ -536,6 +558,66 @@ const NewsPage: React.FC = () => {
                     )}
                   </Typography>
                 ) : null}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin && (
+        <Card
+          elevation={2}
+          sx={{
+            mb: 4,
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+              {t("news.shareItemTemplates", "Item share default messages")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {t(
+                "news.shareItemTemplatesDescription",
+                "Quick-pick lines when users share an item. Use {{itemName}} as a placeholder. One message per line. Leave empty to use built-in app defaults.",
+              )}
+            </Typography>
+            {isEditing ? (
+              <TextField
+                fullWidth
+                multiline
+                minRows={6}
+                value={shareTemplatesRaw}
+                onChange={handleShareTemplatesChange}
+                disabled={updateLoading}
+                placeholder={t(
+                  "news.shareItemTemplatesPlaceholder",
+                  "Recommended read: {{itemName}}!",
+                )}
+              />
+            ) : (
+              <Box>
+                {shareTemplatesRaw
+                  .split("\n")
+                  .map((line) => line.trim())
+                  .filter((line) => line.length > 0).length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t(
+                      "news.shareItemTemplatesEmpty",
+                      "No custom messages — the app will use built-in presets.",
+                    )}
+                  </Typography>
+                ) : (
+                  shareTemplatesRaw
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter((line) => line.length > 0)
+                    .map((line, i) => (
+                      <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                        • {line}
+                      </Typography>
+                    ))
+                )}
               </Box>
             )}
           </CardContent>

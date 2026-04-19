@@ -1,5 +1,5 @@
 // ItemDetail.tsx - Updated version
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -34,6 +34,7 @@ import {
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
   Folder as BinderIcon,
+  Share as ShareIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -45,6 +46,7 @@ import {
   CategoryMap,
   Role,
   Binder,
+  HostConfig,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +62,7 @@ import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
 import BindItemDialog from "./BindItemDialog";
 import BinderPreview from "./BinderPreview";
+import ItemShareDialog from "./ItemShareDialog";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -211,9 +214,15 @@ interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
   onBack?: () => void;
+  hostConfig?: HostConfig | null;
 }
 
-const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
+const ItemDetail: React.FC<ItemDetailProps> = ({
+  itemId,
+  user,
+  onBack,
+  hostConfig,
+}) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -245,6 +254,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   // State for location prompt dialog
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+
+  const itemShareUrl = useMemo(() => {
+    if (!itemId || typeof window === "undefined") return "";
+    return `${window.location.origin}/item/${itemId}`;
+  }, [itemId]);
 
   const { data, loading, error, refetch } = useQuery<{ item: Item }>(
     ITEM_DETAIL_QUERY,
@@ -829,6 +845,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             <Typography>{t("item.loadItems")}</Typography>
           </Box>
         )}
+        {data?.item && (
+          <IconButton
+            color="primary"
+            onClick={() => setShareDialogOpen(true)}
+            aria-label={t("item.shareItem", "Share item")}
+            sx={{ ml: 1 }}
+          >
+            <ShareIcon />
+          </IconButton>
+        )}
       </Box>
 
       {/* Loading State */}
@@ -1237,7 +1263,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
           {/* Action Buttons */}
           <Box
-            sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
+            sx={{
+              mt: 4,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
           >
             {/* Bind Button - Show for all verified users */}
             {/* temp: only show for admins until we have binder capacity management */}
@@ -1293,6 +1326,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               </>
             )}
 
+            <Button
+              variant="outlined"
+              color="primary"
+              size="large"
+              startIcon={<ShareIcon />}
+              onClick={() => setShareDialogOpen(true)}
+            >
+              {t("item.shareItem", "Share item")}
+            </Button>
             {(canCreateTransaction || !user) && (
               <Button
                 variant="contained"
@@ -1505,6 +1547,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         <Box sx={{ mt: 4 }}>
           <ItemComments itemId={itemId!} currentUser={user} />
         </Box>
+      )}
+
+      {data?.item && (
+        <ItemShareDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          itemName={data.item.name}
+          itemUrl={itemShareUrl}
+          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
+        />
       )}
 
       {/* News Form Dialog - For admins to create news related to the item */}

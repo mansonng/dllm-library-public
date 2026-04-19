@@ -379,7 +379,21 @@
     "itemName": "物品",
     "browseItems": "瀏覽可用物品",
     "name": "物品名稱",
-    "updated": "已更新"
+    "updated": "已更新",
+    "shareItem": "分享物品",
+    "shareTitle": "分享物品",
+    "shareMessageLabel": "附加訊息（選填）",
+    "sharePickTemplate": "快速訊息",
+    "sharePageLink": "頁面連結",
+    "shareFacebookNote": "Facebook 只會分享頁面連結；留言請在 Facebook 內編輯。",
+    "shareViaSystem": "透過其他 App 分享…",
+    "shareViaApps": "分享到",
+    "shareCopyLink": "複製連結",
+    "shareLinkCopied": "連結已複製到剪貼簿！",
+    "shareCopiedMessageAndLink": "訊息與連結已複製到剪貼簿！",
+    "sharePreset1": "推薦閱讀：{{itemName}}！",
+    "sharePreset2": "在圖書館找到這本：{{itemName}}",
+    "sharePreset3": "{{itemName}} — 值得一看。"
   },
   "userProfile": {
     "nickname": "暱稱",
@@ -802,7 +816,11 @@
     "link": "連結",
     "list": "列表",
     "code": "程式碼",
-    "previewEmpty": "預覽將在您輸入時顯示..."
+    "previewEmpty": "預覽將在您輸入時顯示...",
+    "shareItemTemplates": "分享物品預設訊息",
+    "shareItemTemplatesDescription": "使用者分享物品時可快速選擇的句子。可用 {{itemName}} 代表書名／物品名。每行一則。留空則使用 App 內建預設。",
+    "shareItemTemplatesPlaceholder": "推薦閱讀：{{itemName}}！",
+    "shareItemTemplatesEmpty": "未設定自訂訊息 — App 會使用內建預設。"
   },
   "binder": {
     "bindItem": "綁定到資料夾",

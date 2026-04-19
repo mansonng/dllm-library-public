@@ -44,16 +44,18 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
     { itemName }
   );
 
+  const clipboardPayload = `${shareMessage}\n${transactionUrl}`;
+
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(transactionUrl);
+      await navigator.clipboard.writeText(clipboardPayload);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
     } catch (err) {
       console.error("Failed to copy:", err);
       // Fallback for older browsers
       const textArea = document.createElement("textarea");
-      textArea.value = transactionUrl;
+      textArea.value = clipboardPayload;
       document.body.appendChild(textArea);
       textArea.select();
       try {
@@ -86,28 +88,46 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
     const url = `https://wa.me/?text=${encodeURIComponent(
       `${shareMessage}\n${transactionUrl}`
     )}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const shareViaTelegram = () => {
-    const url = `https://t.me/share/url?url=${encodeURIComponent(
-      transactionUrl
-    )}&text=${encodeURIComponent(shareMessage)}`;
-    window.open(url, "_blank");
+    let absolute = transactionUrl;
+    try {
+      absolute = new URL(transactionUrl, window.location.href).href;
+    } catch {
+      /* keep transactionUrl */
+    }
+    const params = new URLSearchParams();
+    params.set("url", absolute);
+    if (shareMessage) params.set("text", shareMessage);
+    window.open(
+      `https://t.me/share/url?${params.toString()}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   const shareViaFacebook = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-      transactionUrl
-    )}`;
-    window.open(url, "_blank");
+    let absolute = transactionUrl;
+    try {
+      absolute = new URL(transactionUrl, window.location.href).href;
+    } catch {
+      /* keep transactionUrl */
+    }
+    const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const base = mobile
+      ? "https://m.facebook.com/sharer.php"
+      : "https://www.facebook.com/sharer/sharer.php";
+    const url = `${base}?u=${encodeURIComponent(absolute)}`;
+    window.open(url, "_blank", "noopener,noreferrer,width=580,height=400");
   };
 
   const shareViaTwitter = () => {
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
       transactionUrl
     )}&text=${encodeURIComponent(shareMessage)}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -290,10 +310,24 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
       <Snackbar
         open={copySuccess}
         autoHideDuration={3000}
-        onClose={() => setCopySuccess(false)}
-        message={t("transactions.linkCopied", "Link copied to clipboard!")}
+        onClose={(_, reason) => {
+          if (reason === "clickaway") return;
+          setCopySuccess(false);
+        }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      />
+      >
+        <Alert
+          onClose={() => setCopySuccess(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {t(
+            "transactions.messageAndLinkCopied",
+            "Link and summary copied to clipboard!",
+          )}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
