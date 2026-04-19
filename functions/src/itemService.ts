@@ -549,6 +549,8 @@ export class ItemService {
    * - Allow admin to view all books so that they can change/verify content rating.
    * - Hide items above or at censor threshold if content rating is not checked by admin.
    * - Always hide items with content rating above user threshold.
+   * 
+   * Note: Owners and holders should have visiblity. This is for useful for actions such as transfer items.
    */
   shouldCensorItem(
     item: Item | ItemModel,

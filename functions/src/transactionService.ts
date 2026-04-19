@@ -69,7 +69,7 @@ export class TransactionService {
       }
     }
 
-    const rv = await this._transactionModeltoTransaction(user, id, data);
+    const rv = await this._transactionModeltoTransaction(id, data);
     return rv;
   }
 
@@ -87,7 +87,6 @@ export class TransactionService {
     userId: string | null,
     statuses: TransactionStatus[]
   ): Promise<Transaction[]> {
-    const user = userId ? await this.userService.userById(userId) : null;
 
     const transactionsMap = await this._transactionsNotStatus(
       itemId,
@@ -96,7 +95,7 @@ export class TransactionService {
     );
     const transactions: Transaction[] = [];
     for (const [id, data] of transactionsMap) {
-      const transaction = await this._transactionModeltoTransaction(user, id, data);
+      const transaction = await this._transactionModeltoTransaction(id, data);
       transactions.push(transaction);
     }
     return transactions;
@@ -131,11 +130,10 @@ export class TransactionService {
   }
 
   async _transactionModeltoTransaction(
-    user: User | null,
     id: string,
     data: TransactionModel
   ): Promise<Transaction> {
-    const item = await this.itemService.itemById(user, data.itemId);
+    const item = await this.itemService.itemById(null, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -581,7 +579,8 @@ export class TransactionService {
       );
     }
     // check if the item is holder by owner, confirm that the user is the owner or holder
-    const item = await this.itemService.itemById(user, data.itemId); // TODO: no gurantee the item is visible to user, need to handle edge case
+    // Item always visible to owner and holder. So no need to bypass content rating check here.
+    const item = await this.itemService.itemById(user, data.itemId);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -643,7 +642,8 @@ export class TransactionService {
     }
 
     // update the item holder to the requestor
-    const item = await this.itemService.itemById(receiver, data.itemId); // TODO: no gurantee the item is visible to user, need to handle edge case
+    // Bypass content rating check, as previously there is already a transaction in place.
+    const item = await this.itemService.itemById(null, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
