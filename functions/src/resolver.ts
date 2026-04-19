@@ -308,9 +308,10 @@ export const resolvers: Resolvers = {
     newsPost: async (
       _: any,
       { id }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<NewsPost | null> => {
-      return newsService.NewsById(id);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return newsService.NewsById(user, id);
     },
     newsRecentPosts: async (
       _: any,
@@ -318,7 +319,7 @@ export const resolvers: Resolvers = {
       { loginUser }: Context,
     ): Promise<NewsPost[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
-      return newsService.RecentNews(keyword, tags, limit, offset);
+      return newsService.RecentNews(user, keyword, tags, limit, offset);
     },
     geocodeAddress: async (
       _parent: any,

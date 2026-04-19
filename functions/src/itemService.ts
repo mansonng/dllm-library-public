@@ -529,12 +529,12 @@ export class ItemService {
       firebase.firestore.DocumentData,
       firebase.firestore.DocumentData
     >,
-    user: User | UserModel | null,
+    loggedInUser: User | UserModel | null,
   ): Promise<Item | null> {
     const itemId = query.id;
     const data = query.data();
     data.id = itemId;
-    const item: Item | null = await this._itemModelToItem(data, user);
+    const item: Item | null = await this._itemModelToItem(data, loggedInUser);
     return item;
   }
 
@@ -550,11 +550,11 @@ export class ItemService {
    */
   shouldCensorItem(
     item: Item | ItemModel,
-    user: User | UserModel | null,
+    loggedInUser: User | UserModel | null,
   ): boolean {
     if (
-      user != null &&
-      ( item.holderId === user.id || item.ownerId === user.id || user.role === Role.Admin)
+      loggedInUser != null &&
+      ( item.holderId === loggedInUser.id || item.ownerId === loggedInUser.id || loggedInUser.role === Role.Admin)
     ) {
       return false;
     }
@@ -565,8 +565,8 @@ export class ItemService {
       return true;
     }
 
-    let userContentRatingThreshold = user
-      ? user.visibleContentRating
+    let userContentRatingThreshold = loggedInUser
+      ? loggedInUser.visibleContentRating
       : DEFAULT_CONTENT_RATING;
 
     if (item.contentRating > userContentRatingThreshold) {
@@ -578,7 +578,7 @@ export class ItemService {
 
   async _itemModelToItem(
     docData: firebase.firestore.DocumentData,
-    user: User | UserModel | null,
+    loggedInUser: User | UserModel | null,
   ): Promise<Item | null> {
     const itemId = docData.id;
     const data = docData as ItemModel;
@@ -592,7 +592,7 @@ export class ItemService {
       data.contentRatingChecked = false;
     }
 
-    if (this.shouldCensorItem(data, user)) {
+    if (this.shouldCensorItem(data, loggedInUser)) {
       return null;
     }
 
