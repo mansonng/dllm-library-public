@@ -437,7 +437,8 @@ export class TransactionService {
     }
     // either owner and requestor can cancel the transaction
     // if the item is not owned by the owner, throw an error
-    const item = await this.itemService.itemById(user, data.itemId); // TODO: Edge case, no gurantee the item is visible to user.
+    // Bypass content rating check to avoid case where user cannot cancel a transaction if item not visible.
+    const item = await this.itemService.itemById(user, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }

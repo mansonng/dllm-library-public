@@ -297,10 +297,11 @@ export class ItemService {
   async itemById(
     loggedInUser: User | UserModel | null,
     itemId: string,
+    bypassContentRatingCheck: boolean = false // use with care
   ): Promise<Item | null> {
     const data = await this.itemModelById(itemId);
     if (!data) return null;
-    let item = await this._itemModelToItem(data, loggedInUser);
+    let item = await this._itemModelToItem(data, loggedInUser, bypassContentRatingCheck);
     return item;
   }
 
@@ -542,6 +543,7 @@ export class ItemService {
    * This function assumes censor info is already present in the item data.
    *
    * Visibility of items in order of precedence.
+   * - Allow visibility if bypassContentRatingCheck = true. Useful for API such as cancel transaction.
    * - Allow users to always view their own books.
    * - Allow users to always view books that they hold.
    * - Allow admin to view all books so that they can change/verify content rating.
@@ -551,7 +553,12 @@ export class ItemService {
   shouldCensorItem(
     item: Item | ItemModel,
     loggedInUser: User | UserModel | null,
+    bypassContentRatingCheck: boolean = false, // Use with care!
   ): boolean {
+    if ( bypassContentRatingCheck ) {
+      return false;
+    }
+
     if (
       loggedInUser != null &&
       ( item.holderId === loggedInUser.id || item.ownerId === loggedInUser.id || loggedInUser.role === Role.Admin)
@@ -579,6 +586,7 @@ export class ItemService {
   async _itemModelToItem(
     docData: firebase.firestore.DocumentData,
     loggedInUser: User | UserModel | null,
+    bypassContentRatingCheck: boolean = false, // use with care
   ): Promise<Item | null> {
     const itemId = docData.id;
     const data = docData as ItemModel;
@@ -592,7 +600,7 @@ export class ItemService {
       data.contentRatingChecked = false;
     }
 
-    if (this.shouldCensorItem(data, loggedInUser)) {
+    if (this.shouldCensorItem(data, loggedInUser, bypassContentRatingCheck)) {
       return null;
     }
 

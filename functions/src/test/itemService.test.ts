@@ -93,15 +93,22 @@ describe("ItemService.shouldCensorItem", () => {
   let service : ItemService;
   const mockCategoryService = {} as any;
 
-  // Test Defaults
+  // Test Defaults - visible by default.
+  // Owner, holder, user all different.
     let item = {
       ownerId : "1",
+      holderId : "2",
       contentRating: 2,
     } as any;
     let user = {
-      id : "2",
+      id : "3",
       visibleContentRating : 3,
     } as any;
+
+  function censorItems(){
+    item.contentRating = 3;
+    user.visibleContentRating = 2;
+  }
 
   beforeEach(() => {
     service = new ItemService(mockCategoryService);
@@ -115,8 +122,7 @@ describe("ItemService.shouldCensorItem", () => {
   });
 
   it("Hide from users items above visible content rating", () => {
-    item.contentRating = 3;
-    user.visibleContentRating = 2;
+    censorItems();
 
     expect((service as any).shouldCensorItem(item, user)).toEqual(true);
   });
@@ -130,30 +136,35 @@ describe("ItemService.shouldCensorItem", () => {
   });
 
   it("Show users their own items regardless of content rating", () => {
+    censorItems();
     item.ownerId = "1";
     user.id = "1";
-    item.contentRating = 4;
-    user.visibleContentRating = 1;
 
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
   });
 
   it("Show holders items regardless of content rating", () => {
+    censorItems();
     item.ownerId = "2";
     item.holderId = "1";
     user.id = "1";
-    item.contentRating = 4;
-    user.visibleContentRating = 1;
 
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
   });
 
   it("Show admin all items regardless of content rating", () => {
+    censorItems();
     item.ownerId = "1";
     user.id = "2";
     user.role = Role.Admin;
-    item.contentRating = 4;
-    user.visibleContentRating = 1;
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+    it("Show all items when bypass is true", () => {
+    censorItems();
+    item.ownerId = "1";
+    user.id = "2";
 
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
   });
