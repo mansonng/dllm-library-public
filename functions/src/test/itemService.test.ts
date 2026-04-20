@@ -1,6 +1,19 @@
 /// <reference types="jest" />
 import { ItemService } from "../itemService";
 
+import {
+  Item,
+  Location,
+  LocationInput,
+  ItemCondition,
+  ItemStatus,
+  Language,
+  User,
+  Role,
+} from "../generated/graphql";
+
+import { CONTENT_RATING_CENSOR_THRESHOLD } from "../contentRatingDefaults";
+
 describe("ItemService.tokenizeName", () => {
   let service : ItemService;
   const mockCategoryService = {} as any;
@@ -73,4 +86,87 @@ describe("ItemService.tokenizeName", () => {
       "test",
     ]);
   });
+});
+
+
+describe("ItemService.shouldCensorItem", () => {
+  let service : ItemService;
+  const mockCategoryService = {} as any;
+
+  // Test Defaults - visible by default.
+  // Owner, holder, user all different.
+    let item = {
+      ownerId : "1",
+      holderId : "2",
+      contentRating: 2,
+    } as any;
+    let user = {
+      id : "3",
+      visibleContentRating : 3,
+    } as any;
+
+  function censorItems(){
+    item.contentRating = 3;
+    user.visibleContentRating = 2;
+  }
+
+  beforeEach(() => {
+    service = new ItemService(mockCategoryService);
+  });
+
+  it("Show users items below or at visible content rating", () => {
+    item.contentRating = 2;
+    user.visibleContentRating = 2;
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+  it("Hide from users items above visible content rating", () => {
+    censorItems();
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(true);
+  });
+
+  it ("Apply default content rating threshold for unauthenticated users", () => {
+      item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD - 1;
+      expect((service as any).shouldCensorItem(item, null)).toEqual(false);
+
+      item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD;
+      expect((service as any).shouldCensorItem(item, null)).toEqual(true);
+  });
+
+  it("Show users their own items regardless of content rating", () => {
+    censorItems();
+    item.ownerId = "1";
+    user.id = "1";
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+  it("Show holders items regardless of content rating", () => {
+    censorItems();
+    item.ownerId = "2";
+    item.holderId = "1";
+    user.id = "1";
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+  it("Show admin all items regardless of content rating", () => {
+    censorItems();
+    item.ownerId = "1";
+    user.id = "2";
+    user.role = Role.Admin;
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+    it("Show all items when bypass is true", () => {
+    censorItems();
+    item.ownerId = "1";
+    user.id = "2";
+
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
 });

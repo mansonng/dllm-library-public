@@ -21,16 +21,17 @@ export class NewsService {
     private userService: UserService // geofire.geohashForLocation is a function that takes a location and returns a geohash
   ) {}
 
-  async NewsById(newsId: string): Promise<NewsPost | null> {
+  async NewsById(loginUser: User | null, newsId: string): Promise<NewsPost | null> {
     const newsDoc = await db.collection("news").doc(newsId).get();
     if (!newsDoc.exists) return null;
     const data = newsDoc.data() as NewsModel;
     if (!data) return null;
-    const rv = await this.converyNewsModelToNewsPost(data, newsId);
+    const rv = await this.converyNewsModelToNewsPost(loginUser, data, newsId);
     return rv;
   }
 
   async RecentNews(
+    loginUser: User | null,
     keyword: string,
     tags: string[],
     limit: number = 20,
@@ -52,13 +53,14 @@ export class NewsService {
     for (const doc of newsDocs.docs) {
       const data = doc.data() as NewsModel;
       if (!data) continue;
-      const newsPost = await this.converyNewsModelToNewsPost(data, doc.id);
+      const newsPost = await this.converyNewsModelToNewsPost(loginUser,data, doc.id);
       newsPosts.push(newsPost);
     }
     return newsPosts;
   }
 
   private async converyNewsModelToNewsPost(
+    loginUser: User | null,
     newsModel: NewsModel,
     newsId: string
   ): Promise<NewsPost> {
@@ -76,6 +78,7 @@ export class NewsService {
     if (newsModel.relatedItemIds && newsModel.relatedItemIds.length > 0) {
       // get related items by id
       const relatedItems = await this.itemService.itemsByIds(
+        loginUser,
         newsModel.relatedItemIds
       );
       rv.relatedItems = relatedItems;
@@ -135,7 +138,9 @@ export class NewsService {
       updated: now,
     };
     const docRef = await db.collection("news").add(newsData);
-    const rv = this.converyNewsModelToNewsPost(newsData, docRef.id);
+    
+    // Owner is admin, so it will bypass censor.
+    const rv = this.converyNewsModelToNewsPost(owner, newsData, docRef.id);
     return rv;
   }
 }

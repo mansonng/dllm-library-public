@@ -22,6 +22,7 @@ import {
   DEFAULT_CONTENT_RATING,
   CONTENT_RATING_CENSOR_THRESHOLD,
 } from "./contentRatingDefaults";
+import { UserModel } from "./userService";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
@@ -77,6 +78,7 @@ export class ItemService {
 
   // Helper method to handle pagination with keyword filtering
   private async _queryWithKeywordPagination(
+    loggedInUser: User | UserModel | null,
     queryBuilder: (offset: number) => firebase.firestore.Query,
     keyword: string | null | undefined,
     requestedLimit: number,
@@ -94,8 +96,10 @@ export class ItemService {
       const batchResults: Item[] = [];
       await Promise.all(
         snapshot.docs.map(async (doc) => {
-          const item = await this._itemQueryToItem(doc);
-          batchResults.push(item);
+          const item = await this._itemQueryToItem(doc, loggedInUser);
+          if (item != null) {
+            batchResults.push(item);
+          }
         }),
       );
 
@@ -114,6 +118,7 @@ export class ItemService {
   }
 
   async items(
+    loggedInUser: User | UserModel | null,
     classifications: string[],
     category: string[],
     status: string,
@@ -122,6 +127,7 @@ export class ItemService {
     offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
+      loggedInUser,
       (currentOffset) =>
         this._itemsQuery(
           classifications,
@@ -152,6 +158,7 @@ export class ItemService {
     return snapshot.size;
   }
   async itemsByLocation(
+    loggedInUser: User | UserModel | null,
     latitude: number,
     longitude: number,
     radiusKm: number,
@@ -173,8 +180,10 @@ export class ItemService {
     const filteredItems: Item[] = [];
     await Promise.all(
       (await items).map(async (item) => {
-        const rv = await this._itemModelToItem(item);
-        filteredItems.push(rv);
+        const rv = await this._itemModelToItem(item, loggedInUser);
+        if (rv != null) {
+          filteredItems.push(rv);
+        }
       }),
     );
 
@@ -201,6 +210,7 @@ export class ItemService {
   }
 
   async itemsOnLoanByUser(
+    loggedInUser: User | UserModel | null,
     userId: string,
     category: string[],
     status?: string,
@@ -209,6 +219,7 @@ export class ItemService {
     offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
+      loggedInUser,
       (currentOffset) => {
         let query = this._itemsQuery([], category, status, keyword, false);
         return query
@@ -225,7 +236,7 @@ export class ItemService {
   }
 
   async itemsOnLoanByOwner(
-    userId: string,
+    loggedInUser: User | UserModel, // Using loggedInUser to ensure censor function works
     category: string[],
     status?: string,
     keyword?: string,
@@ -233,10 +244,11 @@ export class ItemService {
     offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
+      loggedInUser,
       (currentOffset) => {
         let query = this._itemsQuery([], category, status, keyword, false);
         return query
-          .where("ownerId", "==", userId)
+          .where("ownerId", "==", loggedInUser.id)
           .where("holderId", "!=", null)
           .orderBy("holderId")
           .orderBy("updated", "desc")
@@ -249,7 +261,7 @@ export class ItemService {
   }
 
   async itemsOnLoanByHolder(
-    userId: string,
+    loggedInUser: User | UserModel, // Using loggedInUser to ensure censor function works
     category: string[],
     status?: string,
     keyword?: string,
@@ -257,10 +269,11 @@ export class ItemService {
     offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
+      loggedInUser,
       (currentOffset) => {
         let query = this._itemsQuery([], category, status, keyword, false);
         return query
-          .where("holderId", "==", userId)
+          .where("holderId", "==", loggedInUser.id)
           .orderBy("updated", "desc")
           .offset(currentOffset);
       },
@@ -281,15 +294,22 @@ export class ItemService {
     return data;
   }
 
-  async itemById(itemId: string): Promise<Item | null> {
+  async itemById(
+    loggedInUser: User | UserModel | null,
+    itemId: string,
+    bypassContentRatingCheck: boolean = false // use with care
+  ): Promise<Item | null> {
     const data = await this.itemModelById(itemId);
     if (!data) return null;
-    let item: Item = await this._itemModelToItem(data);
+    let item = await this._itemModelToItem(data, loggedInUser, bypassContentRatingCheck);
     return item;
   }
 
   // this function should be limited to internal use only
-  async itemsByIds(itemIds: string[]): Promise<Item[]> {
+  async itemsByIds(
+    loggedInUser: User | UserModel | null,
+    itemIds: string[],
+  ): Promise<Item[]> {
     if (!itemIds || itemIds.length === 0) {
       return [];
     }
@@ -309,8 +329,10 @@ export class ItemService {
 
         await Promise.all(
           snapshot.docs.map(async (doc) => {
-            const item = await this._itemQueryToItem(doc);
-            results.push(item);
+            const item = await this._itemQueryToItem(doc, loggedInUser);
+            if (item != null) {
+              results.push(item);
+            }
           }),
         );
       }
@@ -319,6 +341,7 @@ export class ItemService {
   }
 
   async itemsByUser(
+    loggedInUser: User | UserModel | null,
     userId: string,
     category: string[],
     status?: string,
@@ -343,10 +366,11 @@ export class ItemService {
         return [];
       }
 
-      const items = await this.itemsByIds(cachedItemIds);
+      const items = await this.itemsByIds(loggedInUser, cachedItemIds);
       return this.filterItemsByKeyword(items, keyword);
     } else {
       return this._queryWithKeywordPagination(
+        loggedInUser,
         (currentOffset) => {
           let query = this._itemsQuery([], category, status, keyword, false);
           return query
@@ -362,6 +386,7 @@ export class ItemService {
   }
 
   async totalItemsCountByUser(
+    loggedInUser: User | UserModel | null,
     userId: string,
     category: string[],
     status?: string,
@@ -384,7 +409,7 @@ export class ItemService {
         return 0;
       }
 
-      let items = await this.itemsByIds(cachedItemIds);
+      let items = await this.itemsByIds(loggedInUser, cachedItemIds);
 
       // Apply status and keyword filtering
       if (status) {
@@ -413,6 +438,7 @@ export class ItemService {
   }
 
   async latestItems(
+    loggedInUser: User | UserModel | null,
     offset: number = 0,
     limit: number = 12,
     update: boolean = true,
@@ -427,8 +453,10 @@ export class ItemService {
     const filteredItems: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
-        filteredItems.push(item);
+        const item = await this._itemQueryToItem(doc, loggedInUser);
+        if ( item != null ){
+          filteredItems.push(item);
+        }
       }),
     );
 
@@ -459,7 +487,10 @@ export class ItemService {
     return duplicateTitles;
   }
 
-  async itemCategoriesByUser(userId: string) {
+  async itemCategoriesByUser(
+    loggedInUser: User | UserModel | null,
+    userId: string,
+  ) {
     // Assuming that we do not have anyone with large number of entries
     let items: Item[] = [];
     // Fetch all items by user by batch
@@ -467,6 +498,7 @@ export class ItemService {
     let offset = 0;
     while (true) {
       const batchItems = await this.itemsByUser(
+        loggedInUser,
         userId,
         [],
         "",
@@ -498,19 +530,81 @@ export class ItemService {
       firebase.firestore.DocumentData,
       firebase.firestore.DocumentData
     >,
-  ): Promise<Item> {
+    loggedInUser: User | UserModel | null,
+  ): Promise<Item | null> {
     const itemId = query.id;
     const data = query.data();
     data.id = itemId;
-    const item: Item = await this._itemModelToItem(data);
+    const item: Item | null = await this._itemModelToItem(data, loggedInUser);
     return item;
+  }
+
+  /*
+   * This function assumes censor info is already present in the item data.
+   *
+   * Visibility of items in order of precedence.
+   * - Allow visibility if bypassContentRatingCheck = true. Useful for API such as cancel transaction.
+   * - Allow users to always view their own books.
+   * - Allow users to always view books that they hold.
+   * - Allow admin to view all books so that they can change/verify content rating.
+   * - Hide items above or at censor threshold if content rating is not checked by admin.
+   * - Always hide items with content rating above user threshold.
+   * 
+   * Note: Owners and holders should have visiblity. This is for useful for actions such as transfer items.
+   */
+  shouldCensorItem(
+    item: Item | ItemModel,
+    loggedInUser: User | UserModel | null,
+    bypassContentRatingCheck: boolean = false, // Use with care!
+  ): boolean {
+    if ( bypassContentRatingCheck ) {
+      return false;
+    }
+
+    if (
+      loggedInUser != null &&
+      ( item.holderId === loggedInUser.id || item.ownerId === loggedInUser.id || loggedInUser.role === Role.Admin)
+    ) {
+      return false;
+    }
+    if (
+      item.contentRating >= CONTENT_RATING_CENSOR_THRESHOLD &&
+      !item.contentRatingChecked
+    ) {
+      return true;
+    }
+
+    let userContentRatingThreshold = loggedInUser
+      ? loggedInUser.visibleContentRating
+      : DEFAULT_CONTENT_RATING;
+
+    if (item.contentRating > userContentRatingThreshold) {
+      return true;
+    }
+
+    return false;
   }
 
   async _itemModelToItem(
     docData: firebase.firestore.DocumentData,
-  ): Promise<Item> {
+    loggedInUser: User | UserModel | null,
+    bypassContentRatingCheck: boolean = false, // use with care
+  ): Promise<Item | null> {
     const itemId = docData.id;
     const data = docData as ItemModel;
+
+    /*
+     * Implement censor function here as failsafe since all DB data need to go through here
+     * before returning to GUI. Make sure we don't omit filtering for any API call.
+     */
+    if (data.contentRating === undefined || data.contentRating === null) {
+      data.contentRating = DEFAULT_CONTENT_RATING; // default content rating if not set
+      data.contentRatingChecked = false;
+    }
+
+    if (this.shouldCensorItem(data, loggedInUser, bypassContentRatingCheck)) {
+      return null;
+    }
 
     // validate thumbnail exist or not.
     // If there is images without thumbnails, we need to generate thumbnails.
@@ -849,7 +943,7 @@ export class ItemService {
         owner.id,
       );
       if (!itemCategory || itemCategory.length === 0) {
-        const categoryCount = await this.itemCategoriesByUser(owner.id);
+        const categoryCount = await this.itemCategoriesByUser(owner, owner.id);
         await this.categoryService.initializeUserCategories(
           owner.id,
           categoryCount,
@@ -1090,7 +1184,7 @@ export class ItemService {
     }
 
     // Fetch and return the updated item
-    const updatedItem = await this.itemById(itemId);
+    const updatedItem = await this.itemById(user, itemId);
     if (!updatedItem) {
       throw new Error(`Failed to fetch updated item with ID ${itemId}`);
     }
@@ -1180,6 +1274,7 @@ export class ItemService {
   }
 
   async recentAddedItems(
+    loggedInUser: User | UserModel | null,
     limit: number = 20,
     offset: number = 0,
     category?: string[],
@@ -1192,8 +1287,10 @@ export class ItemService {
     const items: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
-        const rv = await this._itemQueryToItem(doc);
-        items.push(rv);
+        const rv = await this._itemQueryToItem(doc, loggedInUser);
+        if (rv != null) {
+          items.push(rv);
+        }
       }),
     );
     return items;
@@ -1202,6 +1299,7 @@ export class ItemService {
   async recentItemsWithoutClassifications(
     limit: number = 20,
     offset: number = 0,
+    user: User | UserModel | null = null,
   ): Promise<Item[]> {
     // for the eariest items with classifications
     let query = db
@@ -1235,8 +1333,10 @@ export class ItemService {
       itemsSnapshot.docs.map(async (doc) => {
         const data = doc.data() as ItemModel;
         if (data.clssfctns === undefined || data.clssfctns === null) {
-          const rv = await this._itemQueryToItem(doc);
-          items.push(rv);
+          const rv = await this._itemQueryToItem(doc, user);
+          if (rv != null) {
+            items.push(rv);
+          }
         }
       }),
     );
@@ -1566,7 +1666,10 @@ export class ItemService {
    * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
    * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
    */
-  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
+  async itemsByKeywordExperimental(
+    keyword: string = "",
+    user: User | UserModel | null,
+  ): Promise<Item[]> {
     if (!keyword || keyword.trim() === "") return [];
 
     // Tokenize and normalize to lowercase for matching
@@ -1602,8 +1705,10 @@ export class ItemService {
         : [];
       const hasAll = tokens.every((t) => idx.includes(t));
       if (hasAll) {
-        const item = await this._itemQueryToItem(doc);
-        results.push(item);
+        const item = await this._itemQueryToItem(doc, user);
+        if (item != null) {
+          results.push(item);
+        }
       }
     }
 

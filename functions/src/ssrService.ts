@@ -400,7 +400,7 @@ export const handleItemDetailSSR = async (req: Request, res: Response) => {
 
       try {
         // Get item data from Firestore
-        const item = await itemService.itemById(itemId);
+        const item = await itemService.itemById(null, itemId, true);
         if (item === null) {
           // If item doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateRedirectScript(itemId, req);

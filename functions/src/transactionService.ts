@@ -52,6 +52,7 @@ export class TransactionService {
 
   async transactionById(id: string): Promise<Transaction | null> {
     let data = await this._transactionById(id);
+    const user = await this.userService.userById(data.requestorId);
     // check if the transaction is open
     if (
       data.status !== TransactionStatus.Completed &&
@@ -59,7 +60,7 @@ export class TransactionService {
       data.status !== TransactionStatus.Expired
     ) {
       if (data.expired && data.expired.toDate() < new Date()) {
-        const user = await this.userService.userById(data.requestorId);
+        
         if (!user) {
           throw new Error(`User with id ${data.requestorId} not found`);
         }
@@ -86,6 +87,7 @@ export class TransactionService {
     userId: string | null,
     statuses: TransactionStatus[]
   ): Promise<Transaction[]> {
+
     const transactionsMap = await this._transactionsNotStatus(
       itemId,
       userId,
@@ -131,7 +133,7 @@ export class TransactionService {
     id: string,
     data: TransactionModel
   ): Promise<Transaction> {
-    const item = await this.itemService.itemById(data.itemId);
+    const item = await this.itemService.itemById(null, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -169,7 +171,7 @@ export class TransactionService {
     details: string
   ): Promise<Transaction> {
     // Logic to create a transaction
-    const item = await this.itemService.itemById(itemId);
+    const item = await this.itemService.itemById(requestor, itemId);
     if (!item) {
       throw new Error(`Item with id ${itemId} not found`);
     }
@@ -333,7 +335,7 @@ export class TransactionService {
     details: string
   ): Promise<Transaction> {
     // Logic to create a quick transaction
-    const item = await this.itemService.itemById(itemId);
+    const item = await this.itemService.itemById(holder, itemId);
     if (!item) {
       throw new Error(`Item with id ${itemId} not found`);
     }
@@ -386,7 +388,7 @@ export class TransactionService {
       );
     }
     // if the item is not owned by the owner, throw an error
-    const item = await this.itemService.itemById(data.itemId);
+    const item = await this.itemService.itemById(owner, data.itemId);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -433,7 +435,8 @@ export class TransactionService {
     }
     // either owner and requestor can cancel the transaction
     // if the item is not owned by the owner, throw an error
-    const item = await this.itemService.itemById(data.itemId);
+    // Bypass content rating check to avoid case where user cannot cancel a transaction if item not visible.
+    const item = await this.itemService.itemById(user, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -576,7 +579,8 @@ export class TransactionService {
       );
     }
     // check if the item is holder by owner, confirm that the user is the owner or holder
-    const item = await this.itemService.itemById(data.itemId);
+    // Item always visible to owner and holder. So no need to bypass content rating check here.
+    const item = await this.itemService.itemById(user, data.itemId);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
@@ -638,7 +642,8 @@ export class TransactionService {
     }
 
     // update the item holder to the requestor
-    const item = await this.itemService.itemById(data.itemId);
+    // Bypass content rating check, as previously there is already a transaction in place.
+    const item = await this.itemService.itemById(null, data.itemId, true);
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }

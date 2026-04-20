@@ -19,7 +19,7 @@ const userCollection = db.collection("users");
 
 const MAX_PINNED_ITEMS = 5;
 
-type UserModel = Omit<User, "createdAt" | "pinItems"> & {
+export type UserModel = Omit<User, "createdAt" | "pinItems"> & {
   geohash?: string;
   created: Timestamp;
   pinItemIds?: string[];
@@ -96,7 +96,7 @@ export class UserService {
     itemId: string,
     recommendService: RecommendService
   ): Promise<boolean> {
-    const item = await this.itemService.itemById(itemId);
+    const item = await this.itemService.itemById(userModel, itemId);
     if (!item) {
       throw new Error("Item not found.");
     }
@@ -109,7 +109,7 @@ export class UserService {
     } else if (userModel.pinItemIds.includes(itemId)) {
       throw new Error("Item already pinned.");
     } else if (userModel.pinItemIds.length >= MAX_PINNED_ITEMS) {
-      userModel.pinItemIds.shift(); // remove the oldest pinned item
+      userModel.pinItemIds.shift(); // remove the oldest pinned itemuserModel
     }
 
     userModel.pinItemIds.push(itemId);
@@ -148,13 +148,13 @@ export class UserService {
    * @param userId
    * @returns
    */
-  async getOrComputeUserItemCategory(userId: string) {
-    var itemCategory = await this.categoryService.getUserItemCategory(userId);
+  async getOrComputeUserItemCategory(userModel: UserModel) {
+    var itemCategory = await this.categoryService.getUserItemCategory(userModel.id);
 
     if (!itemCategory || itemCategory.length === 0) {
-      const categoryCount = await this.itemService.itemCategoriesByUser(userId);
+      const categoryCount = await this.itemService.itemCategoriesByUser(userModel, userModel.id);
       itemCategory = await this.categoryService.initializeUserCategories(
-        userId,
+        userModel.id,
         categoryCount
       );
     }
@@ -265,6 +265,7 @@ export class UserService {
     if (!userDoc.exists) {
       throw new Error("User not found");
     }
+    const userModel = userDoc.data() as UserModel;
 
     const updates: { [key: string]: any } = {};
 
@@ -333,6 +334,7 @@ export class UserService {
         let offset = 0;
         while (true) {
           const itemsPerUser = await this.itemService.itemsByUser(
+            userModel,
             loginUser.uid,
             [], // category
             undefined, // status
@@ -364,7 +366,7 @@ export class UserService {
         }
         // update CategoryCache for exchange points
         const userItemCategories = await this.getOrComputeUserItemCategory(
-          loginUser.uid
+          userModel
         );
         for (const point of newExchangePoints) {
           await this.categoryService.upsertExchangePointCategoryCache(
@@ -466,9 +468,9 @@ export class UserService {
     // get all pinned items
     let pinItems: Item[] = [];
     if (userModel.pinItemIds && userModel.pinItemIds.length > 0) {
-      pinItems = await this.itemService.itemsByIds(userModel.pinItemIds);
+      pinItems = await this.itemService.itemsByIds(userModel, userModel.pinItemIds);
     }
-    const itemCategory = await this.getOrComputeUserItemCategory(userModel.id);
+    const itemCategory = await this.getOrComputeUserItemCategory(userModel);
     const updatedUser = {
       createdAt: userModel.created.seconds * 1000,
       pinItems,

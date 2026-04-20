@@ -109,9 +109,11 @@ export const resolvers: Resolvers = {
         limit = 20,
         offset = 0,
       }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
       return itemService.items(
+        user,
         classifications,
         category,
         status,
@@ -145,9 +147,11 @@ export const resolvers: Resolvers = {
         limit = 20,
         offset = 0,
       }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
       return itemService.itemsByLocation(
+        user,
         latitude,
         longitude,
         radiusKm,
@@ -221,10 +225,15 @@ export const resolvers: Resolvers = {
     itemsOnLoanByOwner: async (
       _: any,
       { userId, category, status, keyword, limit = 20, offset = 0 }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      if ( !user ) {
+        throw new Error("Not authenticated");
+      }
+
       return itemService.itemsOnLoanByOwner(
-        userId,
+        user,
         category,
         status,
         keyword,
@@ -235,10 +244,15 @@ export const resolvers: Resolvers = {
     itemsOnLoanByHolder: async (
       _: any,
       { userId, category, status, keyword, limit = 20, offset = 0 }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      if ( !user ) {
+        throw new Error("Not authenticated");
+      }
+
       return itemService.itemsOnLoanByHolder(
-        userId,
+        user,
         category,
         status,
         keyword,
@@ -246,8 +260,13 @@ export const resolvers: Resolvers = {
         offset,
       );
     },
-    item: async (_: any, { id }: any, __: any): Promise<Item | null> => {
-      return itemService.itemById(id);
+    item: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<Item | null> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return itemService.itemById(user, id);
     },
     duplicateTitlesByUser: async (
       _: any,
@@ -259,9 +278,15 @@ export const resolvers: Resolvers = {
     recentAddedItems: async (
       _: any,
       { limit = 20, offset = 0, category }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
-      return itemService.recentAddedItems(limit, offset, category);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      console.log(
+        "recentAddedItems " +
+          (user ? user?.visibleContentRating : "no user") +
+          "/n",
+      );
+      return itemService.recentAddedItems(user, limit, offset, category);
     },
     user: async (
       _: any,
@@ -283,16 +308,18 @@ export const resolvers: Resolvers = {
     newsPost: async (
       _: any,
       { id }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<NewsPost | null> => {
-      return newsService.NewsById(id);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return newsService.NewsById(user, id);
     },
     newsRecentPosts: async (
       _: any,
       { keyword, tags = [], limit = 10, offset = 0 }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<NewsPost[]> => {
-      return newsService.RecentNews(keyword, tags, limit, offset);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return newsService.RecentNews(user, keyword, tags, limit, offset);
     },
     geocodeAddress: async (
       _parent: any,
@@ -375,9 +402,12 @@ export const resolvers: Resolvers = {
     recommendedItems: async (
       _: any,
       { type, category, limit = 10 }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
-      return recommendService.recommendationItems(type, category, limit);
+      const user = loginUser
+        ? await userService.userModelById(loginUser.uid)
+        : null;
+      return recommendService.recommendationItems(user, type, category, limit);
     },
     commentsByItemId: async (
       _: any,
@@ -417,16 +447,18 @@ export const resolvers: Resolvers = {
     recentItemsWithoutClassifications: async (
       _: any,
       { limit = 20 }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
-      return itemService.recentItemsWithoutClassifications(limit, 0);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return itemService.recentItemsWithoutClassifications(limit, 0, user);
     },
     itemsByKeywordExperimental: async (
       _: any,
       { keyword = "" }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
-      return itemService.itemsByKeywordExperimental(keyword);
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return itemService.itemsByKeywordExperimental(keyword, user);
     },
     binder: async (_: any, { id }: any, __: any): Promise<Binder | null> => {
       return binderService.binder(id);
@@ -434,14 +466,14 @@ export const resolvers: Resolvers = {
     binderPathsByUser: async (
       _: any,
       { userId }: any,
-      __: any
+      __: any,
     ): Promise<BinderPath[]> => {
       return binderService.binderPathsByUser(userId);
     },
     bindersFromItemId: async (
       _: any,
       { itemId }: any,
-      __: any
+      __: any,
     ): Promise<Binder[] | null> => {
       return binderService.binderFromItemId(itemId);
     },
@@ -452,11 +484,22 @@ export const resolvers: Resolvers = {
       { nickname, address, visibleContentRating }: any,
       { loginUser }: Context,
     ): Promise<User> => {
-      return userService.createUser(loginUser, nickname, address, visibleContentRating);
+      return userService.createUser(
+        loginUser,
+        nickname,
+        address,
+        visibleContentRating,
+      );
     },
     updateUser: async (
       _: any,
-      { nickname, contactMethods, address, exchangePoints, visibleContentRating }: any,
+      {
+        nickname,
+        contactMethods,
+        address,
+        exchangePoints,
+        visibleContentRating,
+      }: any,
       { loginUser }: Context,
     ): Promise<User> => {
       return userService.updateUser(
@@ -724,7 +767,7 @@ export const resolvers: Resolvers = {
     addBindToBinder: async (
       _: any,
       { parentId, newBinderName, bind, beforeBindId }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Binder> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -736,7 +779,7 @@ export const resolvers: Resolvers = {
           owner,
           parentId,
           newBinderName,
-          bind
+          bind,
         );
       } else {
         // Just add bind to parent binder
@@ -744,7 +787,7 @@ export const resolvers: Resolvers = {
           owner,
           parentId,
           beforeBindId,
-          bind
+          bind,
         );
       }
       return newBinder;
@@ -752,7 +795,7 @@ export const resolvers: Resolvers = {
     updateBinder: async (
       _: any,
       { id, name, description, images, bindIds }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Binder> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -763,7 +806,7 @@ export const resolvers: Resolvers = {
         name,
         description,
         images,
-        bindIds
+        bindIds,
       );
     },
   },
