@@ -28,6 +28,7 @@ export class SystemService {
         chatLink: "https://chat.example.com", // provide default values here
         splashScreenText: "",
         splashScreenImageUrl: null,
+        itemShareMessageTemplates: [],
       };
       hostConfig = await this.updateHostConfig(defaultHostConfig);
     } else {
@@ -35,6 +36,11 @@ export class SystemService {
       hostConfig = data as HostConfig;
       hostConfig.splashScreenImageUrl = data?.splashScreenImageUrl || null;
       hostConfig.splashScreenText = data?.splashScreenText || "";
+      hostConfig.itemShareMessageTemplates = Array.isArray(
+        data?.itemShareMessageTemplates,
+      )
+        ? data.itemShareMessageTemplates
+        : [];
     }
     return hostConfig;
   }

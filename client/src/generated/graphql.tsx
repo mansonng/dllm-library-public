@@ -97,6 +97,7 @@ export type HostConfig = {
   __typename?: 'HostConfig';
   aboutUsText: Scalars['String']['output'];
   chatLink: Scalars['String']['output'];
+  itemShareMessageTemplates: Array<Scalars['String']['output']>;
   splashScreenImageUrl?: Maybe<Scalars['String']['output']>;
   splashScreenText?: Maybe<Scalars['String']['output']>;
 };
@@ -104,6 +105,7 @@ export type HostConfig = {
 export type HostConfigInput = {
   aboutUsText: Scalars['String']['input'];
   chatLink: Scalars['String']['input'];
+  itemShareMessageTemplates: Array<Scalars['String']['input']>;
   splashScreenImageUrl?: InputMaybe<Scalars['String']['input']>;
   splashScreenText: Scalars['String']['input'];
 };
@@ -827,7 +829,7 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
 
 export type BinderPathsByUserQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1275,14 +1277,14 @@ export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Ar
 export type GetHostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
+export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
 
 export type UpdateHostConfigMutationVariables = Exact<{
   input: HostConfigInput;
 }>;
 
 
-export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null } };
+export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
 
 export type GetOnLoanItemsByOwnerQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1378,6 +1380,7 @@ export const HostConfigDocument = gql`
     chatLink
     splashScreenImageUrl
     splashScreenText
+    itemShareMessageTemplates
   }
 }
     `;
@@ -4056,6 +4059,7 @@ export const GetHostConfigDocument = gql`
     aboutUsText
     splashScreenImageUrl
     splashScreenText
+    itemShareMessageTemplates
   }
 }
     `;
@@ -4101,6 +4105,7 @@ export const UpdateHostConfigDocument = gql`
     aboutUsText
     splashScreenImageUrl
     splashScreenText
+    itemShareMessageTemplates
   }
 }
     `;

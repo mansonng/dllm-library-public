@@ -35,6 +35,7 @@ const HostConfigQuery = gql`
       chatLink
       splashScreenImageUrl
       splashScreenText
+      itemShareMessageTemplates
     }
   }
 `;

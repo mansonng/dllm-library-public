@@ -215,7 +215,11 @@
     "link": "link",
     "list": "list",
     "code": "code",
-    "previewEmpty": "Preview will appear here as you type..."
+    "previewEmpty": "Preview will appear here as you type...",
+    "shareItemTemplates": "Item share default messages",
+    "shareItemTemplatesDescription": "Quick-pick lines when users share an item. Use {{itemName}} as a placeholder. One message per line. Leave empty to use built-in app defaults.",
+    "shareItemTemplatesPlaceholder": "Recommended read: {{itemName}}!",
+    "shareItemTemplatesEmpty": "No custom messages — the app will use built-in presets."
   },
   "shortStatus": {
     "available": "Available",
@@ -395,7 +399,21 @@
     "deposit": "Deposit",
     "depositHelper": "Required: Set a deposit amount to ensure the item's safety.",
     "descriptionHelper": "Optional: Supports tags (e.g., #tag1 #tag2) for categorization.",
-    "updated": "Updated"
+    "updated": "Updated",
+    "shareItem": "Share item",
+    "shareTitle": "Share item",
+    "shareMessageLabel": "Additional message (optional)",
+    "sharePickTemplate": "Quick message",
+    "sharePageLink": "Page link",
+    "shareFacebookNote": "Facebook only shares the page link. Add your comment inside Facebook after sharing.",
+    "shareViaSystem": "Share via…",
+    "shareViaApps": "Share on",
+    "shareCopyLink": "Copy link",
+    "shareLinkCopied": "Link copied to clipboard!",
+    "shareCopiedMessageAndLink": "Message and link copied to clipboard!",
+    "sharePreset1": "Check out {{itemName}}!",
+    "sharePreset2": "I found this in the library: {{itemName}}",
+    "sharePreset3": "{{itemName}} — worth a look."
   },
   "languages": {
     "en": "English",

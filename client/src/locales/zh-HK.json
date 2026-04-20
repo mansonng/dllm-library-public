@@ -207,7 +207,11 @@
     "link": "連結",
     "list": "列表",
     "code": "程式碼",
-    "previewEmpty": "預覽將在您輸入時顯示..."
+    "previewEmpty": "預覽將在您輸入時顯示...",
+    "shareItemTemplates": "分享物品預設訊息",
+    "shareItemTemplatesDescription": "用戶分享物品時可快速揀嘅句子。可用 {{itemName}} 代表書名／物品名。每行一條。留空就用 App 內建預設。",
+    "shareItemTemplatesPlaceholder": "推薦你睇：{{itemName}}！",
+    "shareItemTemplatesEmpty": "未設定自訂訊息 — App 會用內建預設。"
   },
   "shortStatus": {
     "available": "可借用",
@@ -390,7 +394,21 @@
     "itemName": "物品",
     "browseItems": "瀏覽可用物品",
     "name": "物品名稱",
-    "updated": "已更新"
+    "updated": "已更新",
+    "shareItem": "分享物品",
+    "shareTitle": "分享物品",
+    "shareMessageLabel": "附加訊息（選填）",
+    "sharePickTemplate": "快速訊息",
+    "sharePageLink": "頁面連結",
+    "shareFacebookNote": "Facebook 只會分享頁面連結；留言請喺 Facebook 入面再加。",
+    "shareViaSystem": "用其他 App 分享…",
+    "shareViaApps": "分享到",
+    "shareCopyLink": "複製連結",
+    "shareLinkCopied": "連結已複製到剪貼簿！",
+    "shareCopiedMessageAndLink": "訊息同連結已複製到剪貼簿！",
+    "sharePreset1": "推薦你睇：{{itemName}}！",
+    "sharePreset2": "喺圖書館揾到呢本：{{itemName}}",
+    "sharePreset3": "{{itemName}} — 值得留意。"
   },
   "userProfile": {
     "nickname": "暱稱",

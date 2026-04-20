@@ -69,6 +69,7 @@ type HostConfig {
   aboutUsText: String!
   splashScreenImageUrl: String
   splashScreenText: String
+  itemShareMessageTemplates: [String!]!
 }
 
 enum RecommendationType {
@@ -561,4 +562,5 @@ input HostConfigInput {
   aboutUsText: String!
   splashScreenImageUrl: String
   splashScreenText: String!
+  itemShareMessageTemplates: [String!]!
 }
