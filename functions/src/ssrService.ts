@@ -24,7 +24,7 @@ type BrandingConfig = {
 };
 
 const defaultBranding: BrandingConfig = {
-  appTitle: "Book Guide - Sydney1",
+  appTitle: "Book Guide - Staging",
   appDescription: "Decentralized Local Library Module",
   logoPath: "/logo512.png",
   ogImagePath: "/logo512.png",
@@ -62,8 +62,6 @@ const getConfig = () => {
         const configData = fs.readFileSync(configPath, "utf8");
         const parsedConfig = JSON.parse(configData);
 
-        //const parsedConfig = JSON.parse(configData) as Record<string, any> | null;
-
         cachedConfig = parsedConfig || {};
         if (!cachedConfig.baseUrl) {
           cachedConfig.baseUrl = "${getBaseUrl()}";
@@ -73,10 +71,11 @@ const getConfig = () => {
         }
 
         return cachedConfig;
-      } else {
-        console.warn(`Config file not found at path: ${configPath}`);
       }
     }
+    console.warn(
+      `Config file not found in any candidate path: ${candidatePaths.join(", ")}`,
+    );
   } catch (error) {
     console.error("Error reading client config:", error);
   }
@@ -85,27 +84,6 @@ const getConfig = () => {
   return cachedConfig;
 };
 
-/*
-// Get Config
-const getConfig = () => {
-  const clientConfigPath = path.join(
-    process.cwd(),
-    "..",
-    "client",
-    "public",
-    "dllm-client-config.json",
-  );
-  try {
-    if (fs.existsSync(clientConfigPath)) {
-      const configData = fs.readFileSync(clientConfigPath, "utf8");
-      return JSON.parse(configData);
-    }
-  } catch (error) {
-    console.error("Error reading client config:", error);
-  }
-  return { baseUrl: "${getBaseUrl()}", branding: defaultBranding };
-};
-*/
 // Get base URL
 const getBaseUrl = () => {
   const config = getConfig();
