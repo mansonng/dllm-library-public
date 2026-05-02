@@ -1307,7 +1307,29 @@ export class ItemService {
       return [];
     }
 
-    return [];
+    // for the eariest items that are not checked.
+    let query = db
+      .collection("items")
+      .where("contentRating", ">=", CONTENT_RATING_CENSOR_THRESHOLD )
+      .where("contentRatingChecked", "==", false)
+      .orderBy("updated", "asc");
+
+    const itemsSnapshot = await query.limit(limit).offset(offset).get();
+
+    console.log("Found " + itemsSnapshot.size + " items with content rating above or at censor threshold and not checked by admin");
+
+    const items: Item[] = [];
+
+    await Promise.all(
+      itemsSnapshot.docs.map(async (doc) => {
+        const data = doc.data() as ItemModel;
+        const rv = await this._itemQueryToItem(doc, loggedInUser);
+        if (rv != null) {
+          items.push(rv);
+        }
+      }),
+    );
+    return items;
   }
 
   async recentItemsWithoutClassifications(
