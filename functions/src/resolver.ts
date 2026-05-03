@@ -580,6 +580,7 @@ export const resolvers: Resolvers = {
         args.isbn,
         args.contentRating,
         args.contentRatingChecked,
+        args.shadowBanned,
       );
     },
     pinItem: async (
