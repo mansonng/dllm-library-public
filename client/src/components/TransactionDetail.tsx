@@ -18,7 +18,6 @@ import {
   CardContent,
   CardMedia,
   Divider,
-  List,
   ListItem,
   ListItemText,
   ListItemIcon,
@@ -57,6 +56,7 @@ import {
   Role,
 } from "../generated/graphql";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import ReceiptImageUploadDialog from "./ReceiptImageUploadDialog";
 import { AuthDialog } from "./Auth";

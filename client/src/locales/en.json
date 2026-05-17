@@ -276,8 +276,8 @@
       "TRANSFERRED": "Transferred"
     },
     "recent": {
-      "recentInCategory": "Recent in {{category}}",
-      "hotInCategory": "Hot in {{category}}",
+      "recentInCategory": "{{category}}",
+      "hotInCategory": "{{category}}",
       "recommendedForYou": "Recommended for You",
       "recentItems": "Recent Items",
       "latestAdditions": "Latest additions in this category",
@@ -649,7 +649,7 @@
     "locationError": "Failed to get your location. Please enable location services and try again.",
     "locationReady": "Location ready. You can now search for items within {{radius}}km.",
     "filterTypeKeyword": "Keyword",
-    "searchKeyword": "Search by keyword(book info)",
+    "searchKeyword": "Search by keyword (book info)",
     "keywordHelper": "Enter book title, author, or description...",
     "keywordOptional": "Optional - you can search by category alone",
     "selectCategory": "Category",

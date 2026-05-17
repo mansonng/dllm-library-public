@@ -78,7 +78,6 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const [classifications, setClassifications] = useState<string[]>([]);
-  const [savedClassifications, setSavedClassifications] = useState<string[]>([]);
   const [unsavedWarning, setUnsavedWarning] = useState(false);
   const [hasPendingSelection, setHasPendingSelection] = useState(false);
 
@@ -88,7 +87,6 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
     UPDATE_ITEM_CLASSIFICATION,
     {
       onCompleted: () => {
-        setSavedClassifications(classifications);
         setHasPendingSelection(false);
         onClassificationUpdated();
         onClose();
@@ -105,9 +103,7 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
   // Initialize classifications when dialog opens
   React.useEffect(() => {
     if (open && item) {
-      const initial = item.clssfctns || [];
-      setClassifications(initial);
-      setSavedClassifications(initial);
+      setClassifications(item.clssfctns || []);
     }
   }, [open, item]);
 
