@@ -728,7 +728,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
               )}
 
               <TextField
-                label={t("common.name")}
+                label={t("item.name", "Item Name")}
                 fullWidth
                 margin="normal"
                 required

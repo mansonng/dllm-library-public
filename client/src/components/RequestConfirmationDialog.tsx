@@ -152,6 +152,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   );
 
   return (
+
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -189,9 +190,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
                   <Chip
-                    label={`${t("item.condition", "Condition")}: ${
-                      item.condition
-                    }`}
+                    label={`${t("item.condition", "Condition")}: ${item.condition
+                      }`}
                     size="small"
                     variant="outlined"
                   />
@@ -203,10 +203,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                       item.status === "AVAILABLE"
                         ? "success"
                         : item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                   />
                 </Box>
@@ -327,57 +327,57 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 {(selectedLocation ===
                   TransactionLocation.HolderPublicExchangePoint ||
                   selectedLocation ===
-                    TransactionLocation.RequestorPublicExchangePoint) && (
-                  <Box sx={{ mt: 2, pl: 4 }}>
-                    <FormControl fullWidth disabled={exchangePointsLoading}>
-                      <InputLabel id="exchange-point-select-label">
-                        {t("item.selectExchangePoint", "Select Exchange Point")}
-                      </InputLabel>
-                      <Select
-                        labelId="exchange-point-select-label"
-                        value={selectedExchangePointIndex}
-                        label={t(
-                          "item.selectExchangePoint",
-                          "Select Exchange Point"
-                        )}
-                        onChange={(e) =>
-                          setSelectedExchangePointIndex(
-                            e.target.value as number
-                          )
-                        }
-                      >
-                        {exchangePointsLoading ? (
-                          <MenuItem value="">
-                            <CircularProgress size={20} />
-                          </MenuItem>
-                        ) : (
-                          exchangePointOptions.map(
-                            (ep: User, index: number) => (
-                              <MenuItem key={ep.id} value={index}>
-                                <Box>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ fontWeight: "medium" }}
-                                  >
-                                    {ep.nickname}
-                                  </Typography>
-                                  {ep.address && (
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      {ep.address}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              </MenuItem>
+                  TransactionLocation.RequestorPublicExchangePoint) && (
+                    <Box sx={{ mt: 2, pl: 4 }}>
+                      <FormControl fullWidth disabled={exchangePointsLoading}>
+                        <InputLabel id="exchange-point-select-label">
+                          {t("item.selectExchangePoint", "Select Exchange Point")}
+                        </InputLabel>
+                        <Select
+                          labelId="exchange-point-select-label"
+                          value={selectedExchangePointIndex}
+                          label={t(
+                            "item.selectExchangePoint",
+                            "Select Exchange Point"
+                          )}
+                          onChange={(e) =>
+                            setSelectedExchangePointIndex(
+                              e.target.value as number
                             )
-                          )
-                        )}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                )}
+                          }
+                        >
+                          {exchangePointsLoading ? (
+                            <MenuItem value="">
+                              <CircularProgress size={20} />
+                            </MenuItem>
+                          ) : (
+                            exchangePointOptions.map(
+                              (ep: User, index: number) => (
+                                <MenuItem key={ep.id} value={index}>
+                                  <Box>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ fontWeight: "medium" }}
+                                    >
+                                      {ep.nickname}
+                                    </Typography>
+                                    {ep.address && (
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        {ep.address}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </MenuItem>
+                              )
+                            )
+                          )}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
               </FormControl>
             </Box>
 
@@ -405,10 +405,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                   <Alert severity="info" sx={{ mb: 2 }}>
                     {t(
                       "item.existingRequestsWarning",
-                      `There ${
-                        existingTransactions.length === 1 ? "is" : "are"
-                      } ${existingTransactions.length} existing open request${
-                        existingTransactions.length === 1 ? "" : "s"
+                      `There ${existingTransactions.length === 1 ? "is" : "are"
+                      } ${existingTransactions.length} existing open request${existingTransactions.length === 1 ? "" : "s"
                       } for this item. Your request will be added to the queue.`
                     )}
                   </Alert>
