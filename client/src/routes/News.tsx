@@ -282,10 +282,10 @@ const NewsPage: React.FC = () => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      isUploading: true,
-                      uploadProgress: progress.percentage,
-                    }
+                    ...prev,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                   : null
               );
             },
@@ -293,11 +293,11 @@ const NewsPage: React.FC = () => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      isUploading: false,
-                      uploadProgress: 100,
-                      gsUrl: gsUrl,
-                    }
+                    ...prev,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                   : null
               );
             },
@@ -308,10 +308,10 @@ const NewsPage: React.FC = () => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      isUploading: false,
-                      uploadError: error,
-                    }
+                    ...prev,
+                    isUploading: false,
+                    uploadError: error,
+                  }
                   : null
               );
             },
@@ -411,13 +411,13 @@ const NewsPage: React.FC = () => {
         <Typography variant="body2" color="text.secondary">
           {isAdmin
             ? t(
-                "news.adminDescription",
-                "Manage community information and chat links"
-              )
+              "news.adminDescription",
+              "Manage community information and chat links"
+            )
             : t(
-                "news.userDescription",
-                "Learn more about our community library"
-              )}
+              "news.userDescription",
+              "Learn more about our community library"
+            )}
         </Typography>
       </Box>
 
@@ -651,8 +651,8 @@ const NewsPage: React.FC = () => {
                     sx={{ mb: 2 }}
                   >
                     {splashScreenImage
-                      ? t("news.changeImage", "Change Image")
-                      : t("news.addImage", "Add Image")}
+                      ? t("common.changeImage", "Change Image")
+                      : t("common.addImage", "Add Image")}
                   </Button>
 
                   <Menu

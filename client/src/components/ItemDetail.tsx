@@ -591,6 +591,90 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
   };
 
+  const StatusBox = ({ status }: { status: string }) => {
+    const STATUS_BOX_VARIANTS = {
+      AVAILABLE: {
+        icon: "🎉",
+        badgeColor: "success.main",
+        backgroundColor: "success.light",
+        borderColor: "success.main",
+        titleKey: "item.availableMessage",
+        descriptionKey: "item.availableDescription",
+      },
+      EXCHANGEABLE: {
+        icon: "🔄",
+        badgeColor: "info.main",
+        backgroundColor: "info.light",
+        borderColor: "info.main",
+        titleKey: "item.exchangeableMessage",
+        descriptionKey: "item.exchangeableDescription",
+      },
+      GIFT: {
+        icon: "🎁",
+        badgeColor: "warning.main",
+        backgroundColor: "warning.light",
+        borderColor: "warning.main",
+        titleKey: "item.gift",
+        descriptionKey: "item.giftDescription",
+      },
+    } as const;
+
+    const variant =
+      STATUS_BOX_VARIANTS[status as keyof typeof STATUS_BOX_VARIANTS];
+
+    if (!variant) return null;
+
+    return (
+      <Box
+        // sx={{
+        //   mb: 2,
+        //   display: "flex",
+        //   alignItems: "center",
+        //   gap: 2,
+        //   p: 2.5,
+        //   backgroundColor: "white",
+        //   borderRadius: 2,
+        //   border: "1px solid",
+        //   borderColor: "grey.200",
+        // }}
+        sx={{
+          my: 4,
+          p: 3,
+          backgroundColor: variant.backgroundColor,
+          borderRadius: 2,
+          border: "2px solid",
+          borderColor: variant.borderColor,
+        }}
+      >
+        <Box
+        // sx={{
+        //   width: 40,
+        //   height: 40,
+        //   borderRadius: "50%",
+        //   backgroundColor: variant.badgeColor,
+        //   display: "flex",
+        //   alignItems: "center",
+        //   justifyContent: "center",
+        //   flexShrink: 0,
+        // }}
+        >
+          <Typography sx={{ fontSize: "1.2rem", lineHeight: 1 }}>
+            {variant.icon}
+          </Typography>
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+            {t(variant.titleKey)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t(variant.descriptionKey)}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  };
+
+
   // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, {
@@ -889,177 +973,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Item Content */}
       {data?.item && (
-        <Paper elevation={1} sx={{ p: 4 }}>
-          {/* Pending Transaction Alert for Owner */}
-          {isOwner &&
-            oldestTransaction?.status === TransactionStatus.Pending && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "warning.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <ScheduleIcon color="warning" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="warning.dark">
-                      {t("item.pendingRequest")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t("item.hasRequested")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.requestedOn", "Requested on")}:{" "}
-                    {formatDate(oldestTransaction?.createdAt)}
-                  </Typography>
-
-                  {oldestTransaction?.requestor?.email && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t("item.contact", "Contact")}:{" "}
-                      {oldestTransaction?.requestor?.email}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Approved Transaction Alert for Holder */}
-          {isHolder &&
-            oldestTransaction?.status === TransactionStatus.Approved && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "success.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <TransferIcon color="success" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="success.dark">
-                      {t("item.approvedTransfer")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t("item.approvedForTransfer")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.approvedOn")}:{" "}
-                    {formatDate(oldestTransaction?.updatedAt)}
-                  </Typography>
-
-                  {oldestTransaction?.requestor?.email && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t("item.contact")}: {oldestTransaction?.requestor?.email}
-                    </Typography>
-                  )}
-
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    {t("item.transferInstructions")}
-                  </Alert>
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Transferred Transaction Alert for Requestor */}
-          {isRequestor &&
-            oldestTransaction?.status === TransactionStatus.Transfered && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "info.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <ReceiveIcon color="info" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="info.dark">
-                      {t("item.readyToReceive")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    {t("item.itemTransferred")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.transferredOn")}:{" "}
-                    {formatDate(oldestTransaction?.updatedAt)}
-                  </Typography>
-
-                  <Alert
-                    severity="warning"
-                    icon={<NewHolderIcon />}
-                    sx={{ mb: 2 }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: "bold", mb: 1 }}
-                    >
-                      {t("item.importantReminder")}
-                    </Typography>
-                    <Typography variant="body2">
-                      {t("item.receiveInstructions")}
-                    </Typography>
-                    <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility1",
-                          "Responding to future requests from other users",
-                        )}
-                      </Typography>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility2",
-                          "Handing over the item to the next requestor when needed",
-                        )}
-                      </Typography>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility3",
-                          "Returning the item to the original owner if requested",
-                        )}
-                      </Typography>
-                    </Box>
-                  </Alert>
-
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    {t("item.confirmReceiptInstructions")}
-                  </Alert>
-                </CardContent>
-              </Card>
-            )}
-
+        <Paper elevation={0} sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}>
+          {/* 1. CATEGORIES */}
           <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mb: 0.5, display: "block" }}
-            >
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
               {t("item.categories", "Categories")}:
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {/* Classification Path - NEW: Add before Categories */}
               {renderClassificationPath(data.item.clssfctns)}
-
-              {/* Categories */}
               {data.item.category && data.item.category.length > 0 && (
                 <>
                   {data.item.category.map((category, index) => (
@@ -1068,12 +989,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                       label={category}
                       variant="outlined"
                       sx={{
-                        backgroundColor:
-                          category === "Comic" ? "primary.light" : "default",
-                        color:
-                          category === "Comic"
-                            ? "primary.contrastText"
-                            : "default",
+                        backgroundColor: category === "Comic" ? "primary.light" : "default",
+                        color: category === "Comic" ? "primary.contrastText" : "default",
                       }}
                     />
                   ))}
@@ -1082,15 +999,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             </Box>
           </Box>
 
-
-          {/* Description */}
+          {/* 2. DESCRIPTION */}
           {data.item.description && (
             <Box sx={{ mb: 4 }}>
               <Typography
                 variant="body1"
                 sx={{
                   whiteSpace: "pre-wrap",
-                  backgroundColor: "grey.50",
+                  backgroundColor: "white",
                   p: 3,
                   borderRadius: 2,
                   border: "1px solid",
@@ -1098,14 +1014,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 }}
               >
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                  "",
+                  data.item.description?.replace(/#Uncategorized\b/gi, "") || "",
                 )}
               </Typography>
             </Box>
           )}
 
-          {/* Images */}
+          {/* 3. IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
               <Box sx={{ mb: 4 }}>
@@ -1121,20 +1036,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                           overflow: "hidden",
                           cursor: "pointer",
                           transition: "transform 0.2s",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
+                          "&:hover": { transform: "scale(1.05)" },
                         }}
                         onClick={() => handleThumbnailClick(index)}
                       >
                         <img
                           src={image}
                           alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
+                          style={{ width: "100%", height: "120px", objectFit: "cover" }}
                         />
                       </Paper>
                     </Grid>
@@ -1143,195 +1052,215 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Box>
             )}
 
-          {/* Item Info Grid */}
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={3}>
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                  <Chip
-                    label={data.item.condition}
-                    color="default"
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Grid>
-              {(data.item as any).contentRating != null &&
-                (isOwner || !(data.item as any).contentRatingChecked) && (
-                  <Grid size={12}>
-                    <Typography variant="body1" color="text.secondary" component="div">
-                      <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
-                      {(() => {
-                        const opt = getContentRatingOption((data.item as any).contentRating);
-                        return opt ? (
-                          <Chip
-                            label={t(opt.labelKey, opt.labelKey)}
-                            color={opt.color as any}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        ) : null;
-                      })()}
-                    </Typography>
-                  </Grid>
-                )}
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.status", "Status")}:</strong>{" "}
-                  <Chip
-                    label={t(
-                      `shortStatus.${data.item.status}`,
-                      data.item.status,
-                    )}
-                    color={
-                      data.item.status === "AVAILABLE"
-                        ? "success"
-                        : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
-                    }
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Grid>
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("common.language")}:</strong> {data.item.language}
-                </Typography>
-              </Grid>
-              {data.item.publishedYear && (
+          {/* 4. ITEM INFO GRID */}
+          <Card elevation={0} sx={{ mb: 4, backgroundColor: "white", border: "1px solid", borderColor: "grey.200", borderRadius: 2 }}>
+            <CardContent>
+              <Grid container spacing={3}>
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.publishedYear")}:</strong>{" "}
-                    {data.item.publishedYear}
-                  </Typography>
-                </Grid>
-              )}
-              <Grid size={user && getDistanceToOwner() ? 6 : 12}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.addedOn")}:</strong>{" "}
-                  {new Date(data.item.createdAt).toLocaleDateString()}
-                </Typography>
-              </Grid>
-              {/* Distance Display */}
-              {user && getDistanceToOwner() && (
-                <Grid size={6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.distance")}:</strong>{" "}
+                    <strong>{t("item.status", "Status")}:</strong>{" "}
                     <Chip
-                      label={`${getDistanceToOwner()} ${t(
-                        "item.away",
-                        "away",
-                      )}`}
-                      color="info"
+                      label={t(`shortStatus.${data.item.status}`, data.item.status)}
+                      color={
+                        data.item.status === "AVAILABLE" ? "success"
+                          : data.item.status === "EXCHANGEABLE" ? "info"
+                            : data.item.status === "GIFT" ? "warning"
+                              : "default"
+                      }
                       size="small"
                       sx={{ ml: 1 }}
-                      icon={<LocationOnIcon fontSize="small" />}
                     />
                   </Typography>
                 </Grid>
-              )}
-            </Grid>
-          </Box>
+                {user && getDistanceToOwner() && (
+                  <Grid size={6}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>{t("item.distance")}:</strong>{" "}
+                      <Chip
+                        label={`${getDistanceToOwner()} ${t("item.away", "away")}`}
+                        color="info"
+                        size="small"
+                        sx={{ ml: 1 }}
+                        icon={<LocationOnIcon fontSize="small" />}
+                      />
+                    </Typography>
+                  </Grid>
+                )}
+                <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("common.language")}:</strong> {data.item.language}
+                  </Typography>
+                </Grid>
+                {data.item.publishedYear && (
+                  <Grid size={6}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>{t("item.publishedYear")}:</strong> {data.item.publishedYear}
+                    </Typography>
+                  </Grid>
+                )}
+                {/* <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.deposit", "Deposit")}:</strong> {data.item.deposit}
+                  </Typography>
+                </Grid> */}
+                <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.condition", "Condition")}:</strong>{" "}
+                    <Chip label={data.item.condition} color="default" size="small" sx={{ ml: 1 }} />
+                  </Typography>
+                </Grid>
+                <Grid size={user && getDistanceToOwner() ? 6 : 6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.addedOn")}:</strong>{" "}
+                    {new Date(data.item.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                {(data.item as any).contentRating != null &&
+                  (isOwner || !(data.item as any).contentRatingChecked) && (
+                    <Grid size={12}>
+                      <Typography variant="body1" color="text.secondary" component="div">
+                        <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
+                        {(() => {
+                          const opt = getContentRatingOption((data.item as any).contentRating);
+                          return opt ? (
+                            <Chip
+                              label={t(opt.labelKey, opt.labelKey)}
+                              color={opt.color as any}
+                              size="small"
+                              sx={{ ml: 1 }}
+                            />
+                          ) : null;
+                        })()}
+                      </Typography>
+                    </Grid>
+                  )}
+              </Grid>
+            </CardContent>
+          </Card>
 
-          {/* Status Action Boxes */}
-          {data.item.status === "AVAILABLE" && (
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "success.light",
-                borderRadius: 2,
-                border: "2px solid",
-                borderColor: "success.main",
-              }}
-            >
-              <Typography variant="h6" color="success.dark">
-                🎉 {t("item.availableMessage")}
-              </Typography>
-              <Typography variant="body2" color="success.dark" sx={{ mt: 1 }}>
-                {t("item.availableDescription")}
-              </Typography>
-            </Box>
-          )}
-
-          {data.item.status === "EXCHANGEABLE" && (
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "info.light",
-                borderRadius: 2,
-                border: "2px solid",
-                borderColor: "info.main",
-              }}
-            >
-              <Typography variant="h6" color="info.dark">
-                🔄 {t("item.exchangeableMessage")}
-              </Typography>
-              <Typography variant="body2" color="info.dark" sx={{ mt: 1 }}>
-                {t("item.exchangeableDescription")}
-              </Typography>
-            </Box>
-          )}
-
-          {data.item.status === "GIFT" && (
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "warning.light",
-                borderRadius: 2,
-                border: "2px solid",
-                borderColor: "warning.main",
-              }}
-            >
-              <Typography variant="h6" color="warning.dark">
-                🎁 {t("item.gift")}
-              </Typography>
-              <Typography variant="body2" color="warning.dark" sx={{ mt: 1 }}>
-                {t("item.giftDescription")}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Action Buttons */}
-          <Box
-            sx={{
-              mt: 4,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            {/* Bind Button - Show for all verified users */}
-            {/* temp: only show for admins until we have binder capacity management */}
-            {/* Remove bind
-            {user && user.isVerified && user.role === Role.Admin && (
-              <Button
-                variant="outlined"
-                color="primary"
-                size="large"
-                onClick={handleBindClick}
-                startIcon={<BinderIcon />}
-              >
-                {t("binder.bindItem", "Bind to Binder")}
-              </Button>
+          {/* 5. TRANSACTION ALERTS — role-specific */}
+          {isOwner &&
+            oldestTransaction?.status === TransactionStatus.Pending && (
+              <Card sx={{ mb: 4, border: "2px solid", borderColor: "warning.main" }}>
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <ScheduleIcon color="warning" sx={{ mr: 1 }} />
+                    <Typography variant="h6" color="warning.dark">
+                      {t("item.pendingRequest")}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
+                    {t("item.hasRequested")}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t("item.requestedOn", "Requested on")}: {formatDate(oldestTransaction?.createdAt)}
+                  </Typography>
+                  {oldestTransaction?.requestor?.email && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {t("item.contact", "Contact")}: {oldestTransaction?.requestor?.email}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
             )}
-              */}
 
-            {/* Face-to-Face Transfer Button - Show for owner or holder */}
+          {isHolder &&
+            oldestTransaction?.status === TransactionStatus.Approved && (
+              <Card sx={{ mb: 4, border: "2px solid", borderColor: "success.main" }}>
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <TransferIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="h6" color="success.dark">
+                      {t("item.approvedTransfer")}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
+                    {t("item.approvedForTransfer")}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t("item.approvedOn")}: {formatDate(oldestTransaction?.updatedAt)}
+                  </Typography>
+                  {oldestTransaction?.requestor?.email && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {t("item.contact")}: {oldestTransaction?.requestor?.email}
+                    </Typography>
+                  )}
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    {t("item.transferInstructions")}
+                  </Alert>
+                </CardContent>
+              </Card>
+            )}
+
+          {isRequestor &&
+            oldestTransaction?.status === TransactionStatus.Transfered && (
+              <Card sx={{ mb: 4, border: "2px solid", borderColor: "info.main" }}>
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <ReceiveIcon color="info" sx={{ mr: 1 }} />
+                    <Typography variant="h6" color="info.dark">
+                      {t("item.readyToReceive")}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    {t("item.itemTransferred")}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t("item.transferredOn")}: {formatDate(oldestTransaction?.updatedAt)}
+                  </Typography>
+                  <Alert severity="warning" icon={<NewHolderIcon />} sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
+                      {t("item.importantReminder")}
+                    </Typography>
+                    <Typography variant="body2">{t("item.receiveInstructions")}</Typography>
+                    <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                      <Typography component="li" variant="body2">
+                        {t("item.responsibility1", "Responding to future requests from other users")}
+                      </Typography>
+                      <Typography component="li" variant="body2">
+                        {t("item.responsibility2", "Handing over the item to the next requestor when needed")}
+                      </Typography>
+                      <Typography component="li" variant="body2">
+                        {t("item.responsibility3", "Returning the item to the original owner if requested")}
+                      </Typography>
+                    </Box>
+                  </Alert>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    {t("item.confirmReceiptInstructions")}
+                  </Alert>
+                </CardContent>
+              </Card>
+            )}
+
+          {/* 6. STATUS + PRIMARY ACTION — "can I get this?" */}
+          <StatusBox status={data.item.status} />
+
+          {(canCreateTransaction || !user) && (
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+              onClick={handleRequestClick}
+              disabled={createTransactionLoading}
+              sx={{ mb: 4, py: 1.5, fontSize: "1rem", fontWeight: 700, borderRadius: 2 }}
+            >
+              {createTransactionLoading ? (
+                <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
+              ) : null}
+              {t("item.request")}
+            </Button>
+          )}
+
+          {/* 7. SECONDARY ACTIONS */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, flexWrap: "wrap" }}>
             {(isOwner || isHolder) && (
               <Button
                 variant="outlined"
                 color="secondary"
-                size="large"
+                size="small"
                 onClick={handleFaceToFaceClick}
                 disabled={quickTransactionLoading}
                 startIcon={<TransferIcon />}
@@ -1339,57 +1268,29 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {t("item.faceToFaceTransfer", "Face-to-Face Transfer")}
               </Button>
             )}
-
-            {/* Create News Button - Show for admins only */}
             {isAdmin && (
               <Button
-                variant="contained"
+                variant="outlined"
                 color="secondary"
-                size="large"
+                size="small"
                 onClick={handleCreateNewsClick}
                 startIcon={<ArticleIcon />}
               >
                 {t("item.createNews", "Create News")}
               </Button>
             )}
-
             {(isOwner || isAdmin) && (
-              <>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  {t("item.editItem")}
-                </Button>
-              </>
-            )}
-
-            {/* <Button
-              variant="outlined"
-              color="primary"
-              size="large"
-              startIcon={<ShareIcon />}
-              onClick={() => setShareDialogOpen(true)}
-            >
-              {t("item.shareItem", "Share item")}
-            </Button> */}
-            {(canCreateTransaction || !user) && (
               <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleRequestClick}
-                disabled={createTransactionLoading}
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={() => setEditDialogOpen(true)}
               >
-                {createTransactionLoading ? (
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                ) : null}
-                {t("item.request")}
+                {t("item.editItem")}
               </Button>
             )}
           </Box>
+
         </Paper>
       )}
 

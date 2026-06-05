@@ -680,7 +680,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 sx={{ mb: 2, display: "flex", alignItems: "center" }}
               >
                 <FolderIcon sx={{ mr: 1 }} />
-                {t("user.rootBinder", "Root Binder")}
+                {t("binder.rootBinder", "Root Binder")}
               </Typography>
               {/*
               {binderLoading ? (
@@ -690,7 +690,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               ) : binderError ? (
                 <Alert severity="info">
                   {t(
-                    "user.noRootBinder",
+                    "binder.noRootBinder",
                     "This user hasn't created a root binder yet."
                   )}
                 </Alert>
@@ -711,7 +711,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 sx={{ display: "block", mt: 2 }}
               >
                 {t(
-                  "user.rootBinderHelper",
+                  "binder.rootBinderHelper",
                   "The root binder contains all items organized by this user. Click to explore the contents.",
                 )}
               </Typography>
@@ -924,13 +924,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 </Typography>
 
                 {/* Results count */}
-                <Typography variant="body2" color="text.secondary">
+                {/* <Typography variant="body2" color="text.secondary">
                   {itemsLoading
                     ? t("common.loading", "Loading...")
                     : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
                       count: totalFilteredCount,
                     })}
-                </Typography>
+                </Typography> */}
               </Box>
 
               {/* Loading State */}
@@ -1012,13 +1012,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     ? t("item.myLentItems", "All My Items")
                     : `${userData.user.nickname || userData.user.email}'s ${t("item.allItems", "All Items")}`}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                {/* <Typography variant="body2" color="text.secondary">
                   {itemsLoading
                     ? t("common.loading", "Loading...")
                     : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
                       count: totalFilteredCount,
                     })}
-                </Typography>
+                </Typography> */}
               </Box>
 
               {itemsLoading && (

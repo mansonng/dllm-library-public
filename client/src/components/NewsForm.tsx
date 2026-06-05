@@ -664,7 +664,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                   <Tab
                     icon={<EditIcon />}
                     iconPosition="start"
-                    label={t("news.edit", "Edit")}
+                    label={t("common.edit", "Edit")}
                   />
                   <Tab
                     icon={<Visibility />}

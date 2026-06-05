@@ -1282,7 +1282,6 @@ const TransactionDetailPage: React.FC = () => {
                 style={{ width: "100%", height: "auto" }}
               />
             )}
-            npm
           </Box>
 
           {/* Current Status Indicator */}
