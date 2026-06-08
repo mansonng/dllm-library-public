@@ -991,7 +991,7 @@ export type NewsPostQueryVariables = Exact<{
 }>;
 
 
-export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, createdAt: any, category: Array<string>, contentRating: number }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
+export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, newsStatus: NewsStatus, newsType?: NewsType | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, createdAt: any, category: Array<string>, contentRating: number }> | null, user: { __typename?: 'User', id: string, nickname?: string | null }, coEditors?: Array<{ __typename?: 'User', id: string, nickname?: string | null }> | null } | null };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -999,6 +999,8 @@ export type CreateNewsPostMutationVariables = Exact<{
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  newsType?: InputMaybe<NewsType>;
+  newsStatus?: InputMaybe<NewsStatus>;
 }>;
 
 
@@ -1011,10 +1013,11 @@ export type UpdateNewsPostMutationVariables = Exact<{
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  newsType?: InputMaybe<NewsType>;
 }>;
 
 
-export type UpdateNewsPostMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, isVisible: boolean, updatedAt: any, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, thumbnails?: Array<string> | null, images?: Array<string> | null }> | null } };
+export type UpdateNewsPostMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, isVisible: boolean, updatedAt: any, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, thumbnails?: Array<string> | null, images?: Array<string> | null }> | null, coEditors?: Array<{ __typename?: 'User', id: string, nickname?: string | null }> | null } };
 
 export type RecentItemsQueryVariables = Exact<{
   category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
@@ -2265,6 +2268,12 @@ export const NewsPostDocument = gql`
       id
       nickname
     }
+    coEditors {
+      id
+      nickname
+    }
+    newsStatus
+    newsType
   }
 }
     `;
@@ -2302,13 +2311,15 @@ export type NewsPostLazyQueryHookResult = ReturnType<typeof useNewsPostLazyQuery
 export type NewsPostSuspenseQueryHookResult = ReturnType<typeof useNewsPostSuspenseQuery>;
 export type NewsPostQueryResult = Apollo.QueryResult<NewsPostQuery, NewsPostQueryVariables>;
 export const CreateNewsPostDocument = gql`
-    mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
+    mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!], $newsType: NewsType, $newsStatus: NewsStatus) {
   createNewsPost(
     title: $title
     content: $content
     images: $images
     relatedItemIds: $relatedItemIds
     tags: $tags
+    newsType: $newsType
+    newsStatus: $newsStatus
   ) {
     id
     title
@@ -2345,6 +2356,8 @@ export type CreateNewsPostMutationFn = Apollo.MutationFunction<CreateNewsPostMut
  *      images: // value for 'images'
  *      relatedItemIds: // value for 'relatedItemIds'
  *      tags: // value for 'tags'
+ *      newsType: // value for 'newsType'
+ *      newsStatus: // value for 'newsStatus'
  *   },
  * });
  */
@@ -2356,7 +2369,7 @@ export type CreateNewsPostMutationHookResult = ReturnType<typeof useCreateNewsPo
 export type CreateNewsPostMutationResult = Apollo.MutationResult<CreateNewsPostMutation>;
 export type CreateNewsPostMutationOptions = Apollo.BaseMutationOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>;
 export const UpdateNewsPostDocument = gql`
-    mutation UpdateNewsPost($id: ID!, $title: String, $content: String, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
+    mutation UpdateNewsPost($id: ID!, $title: String, $content: String, $images: [String!], $relatedItemIds: [ID!], $tags: [String!], $newsType: NewsType) {
   updateNewsPost(
     id: $id
     title: $title
@@ -2364,6 +2377,7 @@ export const UpdateNewsPostDocument = gql`
     images: $images
     relatedItemIds: $relatedItemIds
     tags: $tags
+    newsType: $newsType
   ) {
     id
     title
@@ -2376,6 +2390,10 @@ export const UpdateNewsPostDocument = gql`
       name
       thumbnails
       images
+    }
+    coEditors {
+      id
+      nickname
     }
   }
 }
@@ -2401,6 +2419,7 @@ export type UpdateNewsPostMutationFn = Apollo.MutationFunction<UpdateNewsPostMut
  *      images: // value for 'images'
  *      relatedItemIds: // value for 'relatedItemIds'
  *      tags: // value for 'tags'
+ *      newsType: // value for 'newsType'
  *   },
  * });
  */

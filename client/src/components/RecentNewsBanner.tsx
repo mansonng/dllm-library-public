@@ -16,16 +16,13 @@ import {
   User,
   Role,
 } from "../generated/graphql";
-import NewsForm from "./NewsForm";
 import NewsDetail from "./NewsDetail";
 import NewsSummary from "./NewsSummary";
 
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
-interface RecentNewsBannerProps {
-  user: User | undefined;
-}
+interface RecentNewsBannerProps {}
 
 const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
   const { t } = useTranslation();
@@ -121,10 +118,6 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
     navigate(`/news/${newsId}`);
   };
 
-  const handleCloseDialog = () => {
-    setSelectedNewsId(null);
-  };
-
   const scrollLeft = () => {
     const newIndex = Math.max(0, currentIndex - cardsPerView);
     setCurrentIndex(newIndex);
@@ -204,12 +197,6 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
           </Typography>
         </Box>
       </Box>
-
-      <NewsDetail
-        newsId={selectedNewsId}
-        open={!!selectedNewsId}
-        onBack={handleCloseDialog}
-      />
     </>
   );
 };

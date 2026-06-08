@@ -632,8 +632,8 @@ export const resolvers: Resolvers = {
         images,
         relatedItemIds,
         tags,
-        newsType,
         null,
+        newsType,
       );
     },
     lockNewsPost: async (

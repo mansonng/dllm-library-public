@@ -7,7 +7,9 @@ import {
   Container,
   IconButton,
   Grid,
+  Button,
   Paper,
+  Snackbar,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import {
@@ -16,7 +18,12 @@ import {
   NavigateNext as NextIcon,
 } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
-import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
+import {
+  useNewsPostQuery,
+  NewsPostQueryVariables,
+  User,
+  Role,
+} from "../generated/graphql";
 import ReactMarkdown from "react-markdown";
 import remarkDirective from "remark-directive";
 import remarkDirectiveRehype from "remark-directive-rehype";
@@ -25,8 +32,13 @@ import rehypeRaw from "rehype-raw";
 import SafeImage from "./SafeImage";
 import { useTranslation } from "react-i18next";
 import { convertLinksToClickable, hasMarkdownSyntax } from "../utils/helpers";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import ItemPreview from "./ItemPreview";
+import NewsForm from "./NewsForm";
+
+interface OutletContext {
+  user?: User;
+}
 
 const DETAIL_NEWS_QUERY = gql`
   query NewsPost($newsPostId: ID!) {
@@ -54,6 +66,12 @@ const DETAIL_NEWS_QUERY = gql`
         id
         nickname
       }
+      coEditors {
+        id
+        nickname
+      }
+      newsStatus
+      newsType
     }
   }
 `;
@@ -68,12 +86,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
   const { t } = useTranslation();
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const { user } = useOutletContext<{ user?: User }>();
 
-  const { data, loading, error } = useNewsPostQuery({
+  const { data, loading, error, refetch } = useNewsPostQuery({
     variables: { newsPostId: newsId! } as NewsPostQueryVariables,
     skip: !newsId,
   });
+
+  const isOwner = user && data?.newsPost?.user?.id === user.id;
+  const isAdmin = user && user.role === Role.Admin;
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
@@ -116,6 +142,27 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
 
   const handleItemPreviewClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
+  };
+
+  const handleEditSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    // Refetch the item data to show updated information
+    refetch();
+    // window.location.reload(); // Simple refresh, or you could refetch the query
+  };
+
+  const handleEditError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
+  };
+
+  const handleCloseSuccessSnackbar = () => {
+    setSuccessSnackbarOpen(false);
+  };
+
+  const handleCloseErrorSnackbar = () => {
+    setErrorSnackbarOpen(false);
+    setErrorMessage("");
   };
 
   return (
@@ -408,6 +455,62 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
             </Box>
           )}
         </Box>
+      )}
+      {(isOwner || isAdmin) && data?.newsPost && (
+        <>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={() => setEditDialogOpen(true)}
+          >
+            {t("news.editItem")}
+          </Button>
+        </>
+      )}
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccessSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSuccessSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {t("item.requestSuccess")}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseErrorSnackbar}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {t("item.requestError")}: {errorMessage}
+        </Alert>
+      </Snackbar>
+      {/* Edit Item Dialog */}
+      {user && (
+        <NewsForm
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          user={user}
+          newsPost={data?.newsPost || null}
+          relatedItem={null}
+          onSuccess={handleEditSuccess}
+          onError={handleEditError}
+        />
       )}
     </Container>
   );

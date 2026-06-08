@@ -88,6 +88,12 @@ export class NewsService {
         if (coEditor) coEditors.push(coEditor);
       }
     }
+    if (!newsModel.newsStatus) {
+      newsModel.newsStatus = NewsStatus.Published;
+    }
+    if (!newsModel.newsType) {
+      newsModel.newsType = NewsType.Announcement;
+    }
     let rv = {
       id: newsId,
       user,
@@ -159,8 +165,8 @@ export class NewsService {
     images: string[],
     relatedItemIds: string[],
     tags: string[],
-    newsStatus: NewsStatus,
     newsType: NewsType,
+    newsStatus: NewsStatus,
   ): Promise<NewsPost> {
     if (!owner || !owner.role || owner.role !== Role.Admin) {
       throw new Error("Only admin can create news");
@@ -231,13 +237,13 @@ export class NewsService {
   async updateNews(
     id: string,
     user: User,
-    title: string,
-    content: string,
-    images: string[],
-    relatedItemIds: string[],
-    tags: string[],
-    newsStatus: NewsStatus,
-    newsType: NewsType | null,
+    title: string | null | undefined,
+    content: string | null | undefined,
+    images: string[] | null | undefined,
+    relatedItemIds: string[] | null | undefined,
+    tags: string[] | null | undefined,
+    newsStatus: NewsStatus | null | undefined,
+    newsType: NewsType | null | undefined,
   ): Promise<NewsPost> {
     const docRef = await db.collection("news").doc(id).get();
     if (!docRef.exists) {
@@ -331,13 +337,13 @@ export class NewsService {
     id: string,
     newsModel: NewsModel,
     user: User,
-    title: string | null,
-    content: string | null,
-    images: string[] | null,
-    relatedItemIds: string[] | null,
-    tags: string[] | null,
-    newsStatus: NewsStatus | null,
-    newsType: NewsType | null,
+    title: string | null | undefined,
+    content: string | null | undefined,
+    images: string[] | null | undefined,
+    relatedItemIds: string[] | null | undefined,
+    tags: string[] | null | undefined,
+    newsStatus: NewsStatus | null | undefined,
+    newsType: NewsType | null | undefined,
   ): Promise<NewsPost> {
     const now = new Timestamp(Math.ceil(Date.now() / 1000), 0);
 
@@ -352,13 +358,13 @@ export class NewsService {
         newsData.coEditorIds = [...newsModel.coEditorIds, user.id];
       }
     }
-    if (title !== null) newsData.title = title;
-    if (content !== null) newsData.content = content;
-    if (images !== null) newsData.images = images;
-    if (relatedItemIds !== null) newsData.relatedItemIds = relatedItemIds;
-    if (tags !== null) newsData.tags = tags;
-    if (newsStatus !== null) newsData.newsStatus = newsStatus;
-    if (newsType !== null) newsData.newsType = newsType;
+    if (title) newsData.title = title;
+    if (content) newsData.content = content;
+    if (images) newsData.images = images;
+    if (relatedItemIds) newsData.relatedItemIds = relatedItemIds;
+    if (tags) newsData.tags = tags;
+    if (newsStatus) newsData.newsStatus = newsStatus;
+    if (newsType) newsData.newsType = newsType;
     const parsedContent = await this._parseNewsContentToSyncWithRelatedItems(
       newsData.content,
       newsData.relatedItemIds,
@@ -366,9 +372,10 @@ export class NewsService {
     newsData.content = parsedContent.content;
     newsData.relatedItemIds = parsedContent.relatedItemIds;
 
-    const docRef = await db.collection("news").doc(id).set(newsData);
+    const docRef = await db.collection("news").doc(id).update(newsData);
+    const updatedNewsModel = { ...newsModel, ...newsData } as NewsModel;
 
-    const rv = this.converyNewsModelToNewsPost(user, newsModel, id);
+    const rv = this.converyNewsModelToNewsPost(user, updatedNewsModel, id);
     return rv;
   }
 }
