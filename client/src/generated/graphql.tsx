@@ -888,6 +888,16 @@ export type GetItemCommentsQueryVariables = Exact<{
 
 export type GetItemCommentsQuery = { __typename?: 'Query', commentsByItemId: { __typename?: 'ItemCommentsConnection', comments?: Array<{ __typename?: 'ItemComment', id: string, content: string, createdAt: any, userId: string, userNickname: string } | null> | null, pageInfo?: { __typename?: 'ItemCommentPageInfo', hasNextPage: boolean, endCursor?: string | null } | null } };
 
+export type ItemNewsRelatedPostsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+  itemId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type ItemNewsRelatedPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, createdAt: any, images?: Array<string> | null, tags?: Array<string> | null }> };
+
 export type ItemQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
 }>;
@@ -921,13 +931,6 @@ export type GetUserForItemQueryVariables = Exact<{
 
 
 export type GetUserForItemQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null, pinItems?: Array<{ __typename?: 'Item', id: string }> | null } | null };
-
-export type OpenTransactionsByItemQueryVariables = Exact<{
-  itemId: Scalars['ID']['input'];
-}>;
-
-
-export type OpenTransactionsByItemQuery = { __typename?: 'Query', openTransactionsByItem: Array<{ __typename?: 'Transaction', id: string, details?: string | null, status: TransactionStatus, createdAt: any, updatedAt: any, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string } }> };
 
 export type PinItemMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -1066,7 +1069,7 @@ export type NewsRecentPostsQueryVariables = Exact<{
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> | null }> };
 
 export type GetTransactionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1772,6 +1775,58 @@ export type GetItemCommentsQueryHookResult = ReturnType<typeof useGetItemComment
 export type GetItemCommentsLazyQueryHookResult = ReturnType<typeof useGetItemCommentsLazyQuery>;
 export type GetItemCommentsSuspenseQueryHookResult = ReturnType<typeof useGetItemCommentsSuspenseQuery>;
 export type GetItemCommentsQueryResult = Apollo.QueryResult<GetItemCommentsQuery, GetItemCommentsQueryVariables>;
+export const ItemNewsRelatedPostsDocument = gql`
+    query ItemNewsRelatedPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus, $itemId: ID) {
+  newsRecentPosts(
+    limit: $limit
+    offset: $offset
+    newsStatus: $newsStatus
+    itemId: $itemId
+  ) {
+    id
+    title
+    createdAt
+    images
+    tags
+  }
+}
+    `;
+
+/**
+ * __useItemNewsRelatedPostsQuery__
+ *
+ * To run a query within a React component, call `useItemNewsRelatedPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useItemNewsRelatedPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useItemNewsRelatedPostsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      newsStatus: // value for 'newsStatus'
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useItemNewsRelatedPostsQuery(baseOptions?: Apollo.QueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+      }
+export function useItemNewsRelatedPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+        }
+export function useItemNewsRelatedPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+        }
+export type ItemNewsRelatedPostsQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsQuery>;
+export type ItemNewsRelatedPostsLazyQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsLazyQuery>;
+export type ItemNewsRelatedPostsSuspenseQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsSuspenseQuery>;
+export type ItemNewsRelatedPostsQueryResult = Apollo.QueryResult<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>;
 export const ItemDocument = gql`
     query Item($itemId: ID!) {
   item(id: $itemId) {
@@ -1967,55 +2022,6 @@ export type GetUserForItemQueryHookResult = ReturnType<typeof useGetUserForItemQ
 export type GetUserForItemLazyQueryHookResult = ReturnType<typeof useGetUserForItemLazyQuery>;
 export type GetUserForItemSuspenseQueryHookResult = ReturnType<typeof useGetUserForItemSuspenseQuery>;
 export type GetUserForItemQueryResult = Apollo.QueryResult<GetUserForItemQuery, GetUserForItemQueryVariables>;
-export const OpenTransactionsByItemDocument = gql`
-    query OpenTransactionsByItem($itemId: ID!) {
-  openTransactionsByItem(itemId: $itemId) {
-    id
-    requestor {
-      id
-      nickname
-      email
-    }
-    details
-    status
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useOpenTransactionsByItemQuery__
- *
- * To run a query within a React component, call `useOpenTransactionsByItemQuery` and pass it any options that fit your needs.
- * When your component renders, `useOpenTransactionsByItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useOpenTransactionsByItemQuery({
- *   variables: {
- *      itemId: // value for 'itemId'
- *   },
- * });
- */
-export function useOpenTransactionsByItemQuery(baseOptions: Apollo.QueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables> & ({ variables: OpenTransactionsByItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-      }
-export function useOpenTransactionsByItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-        }
-export function useOpenTransactionsByItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-        }
-export type OpenTransactionsByItemQueryHookResult = ReturnType<typeof useOpenTransactionsByItemQuery>;
-export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpenTransactionsByItemLazyQuery>;
-export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
-export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
 export const PinItemDocument = gql`
     mutation PinItem($itemId: ID!) {
   pinItem(itemId: $itemId)
@@ -2677,6 +2683,18 @@ export const NewsRecentPostsDocument = gql`
     images
     createdAt
     tags
+    relatedItems {
+      id
+      name
+      description
+      condition
+      category
+      status
+      images
+      publishedYear
+      language
+      createdAt
+    }
   }
 }
     `;

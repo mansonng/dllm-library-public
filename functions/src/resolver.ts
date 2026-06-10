@@ -321,7 +321,15 @@ export const resolvers: Resolvers = {
     },
     newsRecentPosts: async (
       _: any,
-      { keyword, tags = [], limit = 10, offset = 0, newsType, newsStatus }: any,
+      {
+        keyword,
+        tags = [],
+        limit = 10,
+        offset = 0,
+        newsType,
+        newsStatus,
+        itemId,
+      }: any,
       { loginUser }: Context,
     ): Promise<NewsPost[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
@@ -333,6 +341,7 @@ export const resolvers: Resolvers = {
         offset,
         newsType,
         newsStatus,
+        itemId,
       );
     },
     geocodeAddress: async (

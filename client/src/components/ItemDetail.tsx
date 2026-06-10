@@ -11,8 +11,6 @@ import {
   Container,
   Paper,
   Snackbar,
-  Card,
-  CardContent,
   Modal,
   Backdrop,
   Fade,
@@ -24,6 +22,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  List,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -67,6 +66,30 @@ import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
 import ItemShareDialog from "./ItemShareDialog";
 import { getContentRatingOption } from "../utils/contentRating";
+import NewsSummary from "./NewsSummary";
+import { SimpleNews } from "./NewsSummary";
+
+const ITEM_RELATED_NEWS_QUERY = gql`
+  query ItemNewsRelatedPosts(
+    $limit: Int
+    $offset: Int
+    $newsStatus: NewsStatus
+    $itemId: ID
+  ) {
+    newsRecentPosts(
+      limit: $limit
+      offset: $offset
+      newsStatus: $newsStatus
+      itemId: $itemId
+    ) {
+      id
+      title
+      createdAt
+      images
+      tags
+    }
+  }
+`;
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -146,23 +169,6 @@ const USER_QUERY = gql`
       pinItems {
         id
       }
-    }
-  }
-`;
-
-const OPEN_TRANSACTIONS_QUERY = gql`
-  query OpenTransactionsByItem($itemId: ID!) {
-    openTransactionsByItem(itemId: $itemId) {
-      id
-      requestor {
-        id
-        nickname
-        email
-      }
-      details
-      status
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -268,8 +274,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
 
-  // Add state for bind dialog
-  const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [booklistDialogOpen, setBooklistDialogOpen] = useState(false);
   const [selectedNewsPostId, setSelectedNewsPostId] = useState("");
 
@@ -314,6 +318,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const { data: ownerData, refetch: refetchOwner } = useQuery(USER_QUERY, {
     variables: { userId: data?.item?.ownerId },
     skip: !data?.item?.ownerId,
+  });
+
+  // Query for related news details
+  const itemNewsPosts = useQuery(ITEM_RELATED_NEWS_QUERY, {
+    variables: { itemId: data?.item?.id },
+    skip: !data?.item?.id,
   });
 
   // Query for holder details (if different from owner)
@@ -569,37 +579,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     setNewsFormOpen(true);
   };
 
-  const handleBindClick = () => {
-    if (!user) {
-      setAuthDefaultSignUp(false);
-      setAuthDialogOpen(true);
-      return;
-    }
-
-    if (!user.isVerified) {
-      setErrorMessage(
-        t(
-          "binder.verificationRequired",
-          "Please verify your email to use binders",
-        ),
-      );
-      setErrorSnackbarOpen(true);
-      return;
-    }
-
-    setBindDialogOpen(true);
-  };
-
-  const handleBindSuccess = () => {
-    setSuccessSnackbarOpen(true);
-    setBindDialogOpen(false);
-  };
-
-  const handleBindError = (message: string) => {
-    setErrorMessage(message);
-    setErrorSnackbarOpen(true);
-  };
-
   const handleConfirmRequest = async (
     location: TransactionLocation,
     locationIndex?: number,
@@ -707,6 +686,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const handleEditError = (message: string) => {
     setErrorMessage(message);
     setErrorSnackbarOpen(true);
+  };
+
+  const handleNewsItemClick = (newsId: string) => {
+    navigate(`/news/${newsId}`);
   };
 
   // Check if item is pinned by the current user (owner)
@@ -1349,60 +1332,30 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Button>
             )}
           </Box>
-        </Paper>
-      )}
-
-      {/* Binders Containing This Item Section - NEW */}
-      {/*}
-      {data?.item &&
-        bindersData &&
-        bindersData.bindersFromItemId &&
-        bindersData.bindersFromItemId.length > 0 && (
-          <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="h6"
+          {/* related news */}
+          {itemNewsPosts?.data?.newsRecentPosts &&
+            itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
+              <List
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  mb: 0.5,
+                  whiteSpace: "pre-wrap",
+                  backgroundColor: "grey.50",
+                  p: 3,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "grey.200",
                 }}
               >
-                <BinderIcon color="primary" />
-                {t("binder.containingBinders", "Binders containing this item")}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t(
-                  "binder.foundInBinders",
-                  "This item appears in {{count}} binder(s)",
-                  {
-                    count: bindersData.bindersFromItemId.length,
-                  },
-                )}
-              </Typography>
-            </Box>
-
-            {bindersLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Grid container spacing={2}>
-                {bindersData.bindersFromItemId.map((binder) => (
-                  <Grid key={binder.id} size={{ xs: 4, sm: 3, md: 2.4 }}>
-                    <BinderPreview
-                      binder={binder}
-                      onClick={handleBinderClick}
-                      compact={true}
-                    />
-                  </Grid>
+                {itemNewsPosts.data.newsRecentPosts.map((news: SimpleNews) => (
+                  <NewsSummary
+                    key={news.id}
+                    news={news}
+                    onClick={handleNewsItemClick}
+                  />
                 ))}
-              </Grid>
+              </List>
             )}
-          </Paper>
-        )}
-      */}
+        </Paper>
+      )}
       {/* Edit Item Dialog */}
       {user && (
         <ItemForm

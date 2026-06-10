@@ -48,6 +48,7 @@ export class NewsService {
     offset: number = 0,
     newsType: NewsType | undefined | null,
     newsStatus: NewsStatus | undefined | null,
+    itemId: string | null | undefined,
   ): Promise<NewsPost[]> {
     let newsQuery = db
       .collection("news")
@@ -62,6 +63,8 @@ export class NewsService {
         .where("name", "<=", keyword + "\uf8ff");
     if (newsType) newsQuery = newsQuery.where("newsType", "==", newsType);
     if (newsStatus) newsQuery = newsQuery.where("newsStatus", "==", newsStatus);
+    if (itemId)
+      newsQuery = newsQuery.where("relatedItemIds", "array-contains", itemId);
     const newsDocs = await newsQuery.get();
     const newsPosts: NewsPost[] = [];
     for (const doc of newsDocs.docs) {

@@ -29,6 +29,18 @@ const NEWS_RECENT_QUERY = gql`
       images
       createdAt
       tags
+      relatedItems {
+        id
+        name
+        description
+        condition
+        category
+        status
+        images
+        publishedYear
+        language
+        createdAt
+      }
     }
   }
 `;
