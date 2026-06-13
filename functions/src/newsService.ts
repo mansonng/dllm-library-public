@@ -146,7 +146,7 @@ export class NewsService {
     if (!relatedItemIds) relatedItemIds = [];
     // check if content has item id in format :item{id="abc"} or :itemWithComment{id="abc", comment="..."} and extract item id, if item id exist, add it to relatedItemIds, otherwise, ignore it
     const regex =
-      /:item(?:WithComment)?\{id="([^"]+)"(?:, comment="[^"]*")?\}/g;
+      /:item(?:WithComment)?\{id="([^"]+)"(?: comment="[^"]*")?\}/g;
     let match;
     const foundItemIds = new Set<string>();
     while ((match = regex.exec(content)) !== null) {
@@ -332,7 +332,7 @@ export class NewsService {
     } else {
       isItemIdsExist = true;
     }
-    // remove existing item id in content in format :item{id="abc"} if it's already exist in content, otherwise, add it to content, this is to avoid duplicate item id in content when user add same item multiple times, the format of item id in content with comment is :itemWithComment{id="abc", comment="..."}
+    // remove existing item id in content in format :item{id="abc"} if it's already exist in content, otherwise, add it to content, this is to avoid duplicate item id in content when user add same item multiple times, the format of item id in content with comment is :itemWithComment{id="abc" comment="..."}
     const regex =
       /:item(?:WithComment)?\{id="([^"]+)"(?:, comment="[^"]*")?\}/g;
     let match;
@@ -349,10 +349,10 @@ export class NewsService {
       }
     }
     // if comment exist, add comment to next to Item id in content in format :comment{itemId="abc"}comment content
-    // if the item id is already exist in content, add comment next to item id in content in format :itemWithComment{id="abc", comment="..."}
-    // if the item id is already exist in content but without comment, replace it with format :itemWithComment{id="abc", comment="..."}
+    // if the item id is already exist in content, add comment next to item id in content in format :itemWithComment{id="abc" comment="..."}
+    // if the item id is already exist in content but without comment, replace it with format :itemWithComment{id="abc" comment="..."}
     const itemWithCommentRegex = new RegExp(
-      `:itemWithComment\\{id="${itemId}", comment="[^"]*"\\}`,
+      `:itemWithComment\\{id="${itemId}" comment="[^"]*"\\}`,
       "g",
     );
     const itemRegex = new RegExp(`:item\\{id="${itemId}"\\}`, "g");
@@ -365,17 +365,17 @@ export class NewsService {
             ? existingCommentMatch[1]
             : "";
           const newComment = `${existingComment}\n${user.nickname}: ${comment}`;
-          return `:itemWithComment{id="${itemId}", comment="${newComment}"}`;
+          return `:itemWithComment{id="${itemId}" comment="${newComment}"}`;
         });
       } else if (content.match(itemRegex)) {
         // replace item with item with comment
         content = content.replace(
           itemRegex,
-          `:itemWithComment{id="${itemId}", comment="${user.nickname}: ${comment}"}`,
+          `:itemWithComment{id="${itemId}" comment="${user.nickname}: ${comment}"}`,
         );
       } else {
         // add item with comment to content
-        content += `\n:itemWithComment{id="${itemId}", comment="${user.nickname}: ${comment}"}`;
+        content += `\n:itemWithComment{id="${itemId}" comment="${user.nickname}: ${comment}"}`;
       }
     }
     const rv = await this._updateNews(

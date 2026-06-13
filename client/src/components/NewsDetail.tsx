@@ -385,10 +385,74 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                         </Box>
                       );
                     },
+                    itemwithcomment: ({
+                      id,
+                      comment,
+                    }: {
+                      id?: string;
+                      comment?: string;
+                    }) => {
+                      if (!id) return null;
+                      const matchedItem = relatedItemsMap.get(id);
+                      if (!matchedItem) return null;
+
+                      return (
+                        <Grid
+                          container
+                          spacing={{ xs: 1, sm: 2 }}
+                          sx={{
+                            width: "100%",
+                          }}
+                        >
+                          <Grid
+                            key={matchedItem.id}
+                            size={{
+                              xs: 4, // 3 items per row on mobile (vertical)
+                              sm: 4, // 3 items per row on small screens
+                              md: 2, // 6 items per row on desktop (horizontal)
+                            }}
+                          >
+                            <ItemPreview
+                              item={{
+                                id: matchedItem.id,
+                                name: matchedItem.name,
+                                description: matchedItem.description,
+                                condition: matchedItem.condition,
+                                status: matchedItem.status,
+                                images: matchedItem.images,
+                                publishedYear: matchedItem.publishedYear,
+                                createdAt: matchedItem.createdAt,
+                                category: matchedItem.category,
+                                contentRating: matchedItem.contentRating,
+                              }}
+                              onClick={handleItemPreviewClick}
+                            />
+                          </Grid>
+                          {comment && (
+                            <Grid
+                              key={matchedItem.id}
+                              size={{
+                                xs: 4, // 3 items per row on mobile (vertical)
+                                sm: 4, // 3 items per row on small screens
+                                md: 2, // 6 items per row on desktop (horizontal)
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ flex: 1, minWidth: 240, mt: 0.5 }}
+                              >
+                                {comment}
+                              </Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+                      );
+                    },
                   } as any
                 }
               >
-                {data.newsPost.content}
+                {data?.newsPost?.content}
               </ReactMarkdown>
             </Paper>
           ) : (

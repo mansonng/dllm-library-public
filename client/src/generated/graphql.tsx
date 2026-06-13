@@ -222,6 +222,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
+  addItemToNewsPost: NewsPost;
   cancelTransaction: Scalars['Boolean']['output'];
   contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
@@ -258,6 +259,13 @@ export type MutationAddCategoryTreeArgs = {
 
 export type MutationAddItemCommentArgs = {
   content: Scalars['String']['input'];
+  itemId: Scalars['ID']['input'];
+};
+
+
+export type MutationAddItemToNewsPostArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   itemId: Scalars['ID']['input'];
 };
 

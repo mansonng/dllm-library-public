@@ -25,6 +25,7 @@ import {
   List,
   Card,
   CardContent,
+  TextField,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -201,6 +202,17 @@ const UPDATE_BOOKLIST_MUTATION = gql`
   }
 `;
 
+const ADD_ITEM_TO_NEWS_POST_MUTATION = gql`
+  mutation AddItemToNewsPost($id: ID!, $itemId: ID!, $comment: String) {
+    addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
+      id
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
 const BOOKLIST_RECENT_POSTS_QUERY = gql`
   query BooklistRecentPosts(
     $limit: Int
@@ -269,6 +281,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const [booklistDialogOpen, setBooklistDialogOpen] = useState(false);
   const [selectedNewsPostId, setSelectedNewsPostId] = useState("");
+  const [comment, setComment] = useState("");
 
   // State for location prompt dialog
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
@@ -406,6 +419,22 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
+  const [addItemToNewsPost, { loading: addItemToNewsPostLoading }] =
+    useMutation(ADD_ITEM_TO_NEWS_POST_MUTATION, {
+      onCompleted: () => {
+        setBooklistDialogOpen(false);
+        setSelectedNewsPostId("");
+        setComment("");
+        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
+        setSuccessSnackbarOpen(true);
+        newsRecent.refetch();
+      },
+      onError: (mutationError) => {
+        setErrorMessage(mutationError.message);
+        setErrorSnackbarOpen(true);
+      },
+    });
+
   const availableBooklists = useMemo(() => {
     if (!itemId || !newsRecent.data?.newsRecentPosts) {
       return [];
@@ -523,7 +552,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       setErrorSnackbarOpen(true);
       return;
     }
-
+    try {
+      await addItemToNewsPost({
+        variables: {
+          id: selectedNewsPostId,
+          itemId,
+          comment,
+        },
+      });
+    } catch (mutationError) {
+      console.error("Error adding item to news post:", mutationError);
+    }
+    /*
     const relatedItemIds = Array.from(
       new Set([
         ...(selectedNewsPost.relatedItems?.map(
@@ -543,6 +583,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     } catch (mutationError) {
       console.error("Error updating booklist:", mutationError);
     }
+*/
   };
 
   const handleAuthSuccess = () => {
@@ -1482,22 +1523,35 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   </MenuItem>
                 ))}
               </Select>
+              <TextField
+                label={t("item.comment", "Comment")}
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                fullWidth
+                multiline
+                rows={3}
+                sx={{ mt: 2 }}
+              />
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={handleCloseBooklistDialog}
-            disabled={updateBooklistLoading}
+            disabled={addItemToNewsPostLoading || updateBooklistLoading}
           >
             {t("common.cancel", "Cancel")}
           </Button>
           <Button
             onClick={handleConfirmAddToBooklist}
             variant="contained"
-            disabled={!selectedNewsPostId || updateBooklistLoading}
+            disabled={
+              !selectedNewsPostId ||
+              addItemToNewsPostLoading ||
+              updateBooklistLoading
+            }
           >
-            {updateBooklistLoading ? (
+            {addItemToNewsPostLoading ? (
               <CircularProgress size={20} sx={{ mr: 1 }} />
             ) : null}
             {t("common.add", "Add")}
