@@ -450,7 +450,8 @@
     "shareCopiedMessageAndLink": "訊息同連結已複製到剪貼簿！",
     "sharePreset1": "推薦你睇：{{itemName}}！",
     "sharePreset2": "喺圖書館揾到呢本：{{itemName}}",
-    "sharePreset3": "{{itemName}} — 值得留意。"
+    "sharePreset3": "{{itemName}} — 值得留意。",
+    "addbooklist": "加入書單"
   },
   "userProfile": {
     "nickname": "暱稱",

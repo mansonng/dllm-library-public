@@ -455,7 +455,8 @@
     "shareCopiedMessageAndLink": "訊息與連結已複製到剪貼簿！",
     "sharePreset1": "推薦閱讀：{{itemName}}！",
     "sharePreset2": "在圖書館找到這本：{{itemName}}",
-    "sharePreset3": "{{itemName}} — 值得一看。"
+    "sharePreset3": "{{itemName}} — 值得一看。",
+    "addbooklist": "加入書單"
   },
   "userProfile": {
     "nickname": "暱稱",

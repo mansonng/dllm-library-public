@@ -560,21 +560,18 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
           )}
         </Box>
       )}
-      {(isOwner ||
-        isAdmin ||
-        data?.newsPost?.newsStatus === NewsStatus.CoEditing) &&
-        data?.newsPost && (
-          <>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={() => setEditDialogOpen(true)}
-            >
-              {t("news.editItem")}
-            </Button>
-          </>
-        )}
+      {(isOwner || isAdmin) && data?.newsPost && (
+        <>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={() => setEditDialogOpen(true)}
+          >
+            {t("news.editItem")}
+          </Button>
+        </>
+      )}
       {(isOwner || isAdmin) &&
         data?.newsPost?.newsStatus !== NewsStatus.Published && (
           <>
