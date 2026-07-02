@@ -30,6 +30,7 @@ export class SystemService {
         splashScreenImageUrl: null,
         itemShareMessageTemplates: [],
         itemIndexJsonUrl: "",
+        itemIndexLastBuildTime: new Date(),
       };
       hostConfig = await this.updateHostConfig(defaultHostConfig);
     } else {
@@ -42,6 +43,8 @@ export class SystemService {
       )
         ? data.itemShareMessageTemplates
         : [];
+      hostConfig.itemIndexJsonUrl = data?.itemIndexJsonUrl || null;
+      hostConfig.itemIndexLastBuildTime = data?.itemIndexLastBuildTime || null;
     }
     return hostConfig;
   }
@@ -76,6 +79,15 @@ export class SystemService {
         updatedFields.itemIndexJsonUrl = publicUrl;
       } catch (error) {
         console.error("Error getting public URL for GS file:", error);
+      }
+    }
+    if (updatedFields.itemIndexLastBuildTime) {
+      if (typeof updatedFields.itemIndexLastBuildTime === "string") {
+        updatedFields.itemIndexLastBuildTime = new Date(
+          updatedFields.itemIndexLastBuildTime,
+        );
+      } else if (!(updatedFields.itemIndexLastBuildTime instanceof Date)) {
+        updatedFields.itemIndexLastBuildTime = new Date();
       }
     }
     await hostConfigRef.set(updatedFields, { merge: true });

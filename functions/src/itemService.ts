@@ -1858,13 +1858,14 @@ export class ItemService {
           Object.keys(itemIndexMap).length
         } unique titles`,
       );
-      const gsUrl = await UploadJsonToGCS("item_index.json", {
+      const gsUrl = await UploadJsonToGCS("item_index.zip", {
         lastBuildTime: lastBuildTime,
         index: itemIndexMap,
       });
       let updateHostConfig: HostConfig =
         await this.systemService.getHostConfig();
       updateHostConfig.itemIndexJsonUrl = gsUrl;
+      updateHostConfig.itemIndexLastBuildTime = lastBuildTime;
       this.systemService.updateHostConfig(updateHostConfig as HostConfigInput);
       console.log("Item index file uploaded to GCS successfully");
     } else {

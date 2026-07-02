@@ -7,6 +7,7 @@ import { RouterProvider } from "react-router";
 import SplashScreen from "./components/SplashScreen";
 import { CircularProgress, Box } from "@mui/material";
 import { getCookie, setCookie } from "./utils/cookies";
+import JSZip from "jszip";
 
 const ME_QUERY = gql`
   query Me {
@@ -204,12 +205,31 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
           setIsTitleCacheLoaded(true);
           return;
         }
-        const remoteData = await response.json();
-        console.log("Fetched remote item index JSON:", remoteData);
-        // 3. Compare versions
+
+        // For browser environments, use JSZip
+        const zipBlob = await response.blob();
+        const zip = new JSZip();
+        const zipContent = await zip.loadAsync(zipBlob);
+
+        // Assuming the JSON file is named 'data.json' inside the zip
+        const jsonFile = zipContent.file("data.json");
+        if (!jsonFile) {
+          console.error("Expected 'data.json' not found in zip archive.");
+          setIsTitleCacheLoaded(true);
+          return;
+        }
+
+        const remoteDataJson = await jsonFile.async("text");
+        const remoteData = JSON.parse(remoteDataJson);
+
+        console.log(
+          "Fetched and extracted remote item index JSON:",
+          remoteData,
+        );
+
+        // Compare versions and update cache as before
         if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
           console.log("Updating cache...");
-          // Save to browser storage
           localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
         }
         setIsTitleCacheLoaded(true);

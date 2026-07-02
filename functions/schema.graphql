@@ -84,6 +84,7 @@ type HostConfig {
   splashScreenText: String
   itemShareMessageTemplates: [String!]!
   itemIndexJsonUrl: String
+  itemIndexLastBuildTime: Date
 }
 
 enum RecommendationType {
@@ -611,4 +612,5 @@ input HostConfigInput {
   splashScreenText: String!
   itemShareMessageTemplates: [String!]!
   itemIndexJsonUrl: String!
+  itemIndexLastBuildTime: Date!
 }

@@ -98,6 +98,7 @@ export type HostConfig = {
   aboutUsText: Scalars['String']['output'];
   chatLink: Scalars['String']['output'];
   itemIndexJsonUrl?: Maybe<Scalars['String']['output']>;
+  itemIndexLastBuildTime?: Maybe<Scalars['Date']['output']>;
   itemShareMessageTemplates: Array<Scalars['String']['output']>;
   splashScreenImageUrl?: Maybe<Scalars['String']['output']>;
   splashScreenText?: Maybe<Scalars['String']['output']>;
@@ -107,6 +108,7 @@ export type HostConfigInput = {
   aboutUsText: Scalars['String']['input'];
   chatLink: Scalars['String']['input'];
   itemIndexJsonUrl: Scalars['String']['input'];
+  itemIndexLastBuildTime: Scalars['Date']['input'];
   itemShareMessageTemplates: Array<Scalars['String']['input']>;
   splashScreenImageUrl?: InputMaybe<Scalars['String']['input']>;
   splashScreenText: Scalars['String']['input'];
@@ -833,7 +835,7 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string>, itemIndexJsonUrl?: string | null } };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1399,6 +1401,7 @@ export const HostConfigDocument = gql`
     splashScreenImageUrl
     splashScreenText
     itemShareMessageTemplates
+    itemIndexJsonUrl
   }
 }
     `;

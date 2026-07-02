@@ -9,6 +9,7 @@ import {
 } from "./generated/graphql";
 import { GetSignedUrlConfig } from "@google-cloud/storage";
 import { createTransporter, emailConfig } from "./email-config";
+import AdmZip from "adm-zip";
 
 var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
 export const googleMapsApiKey = serviceAccount.google_maps_api_key ?? "";
@@ -120,15 +121,20 @@ async function UploadBufferToGCS(
   return `gs://${serviceAccount.bucket_name}/${uploadPath}`;
 }
 
+// compress that jsonData and upload to GCS, return the public URL
 async function UploadJsonToGCS(
   uploadPath: string,
   jsonData: any,
 ): Promise<string> {
   const bucket = admin.storage().bucket(serviceAccount.bucket_name);
   const uploadFile = bucket.file(uploadPath);
-  await uploadFile.save(JSON.stringify(jsonData), {
+  // zip the jsonData before uploading
+  const zip = new AdmZip();
+  zip.addFile("data.json", Buffer.from(JSON.stringify(jsonData), "utf-8"));
+  const zipBuffer = zip.toBuffer();
+  await uploadFile.save(zipBuffer, {
     metadata: {
-      contentType: "application/json",
+      contentType: "application/zip",
     },
   });
   await uploadFile.makePublic();
