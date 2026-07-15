@@ -295,11 +295,14 @@ const shareIconButtonSx = {
   width: 40,
   height: 40,
 };
-const paperSectionSx = {
+const oldPaperSectionSx = {
   p: { xs: 2, sm: 4 },
   borderRadius: 3,
   backgroundColor: "var(--color-bg-surface)",
   border: "1px solid var(--color-border-subtle)",
+};
+const paperSectionSx = {
+  p: 4,
 };
 const headerTitleGrowSx = { flexGrow: 1 };
 const sectionMb4Sx = { mb: 4 };
@@ -1329,7 +1332,121 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <IconButton onClick={handleBack} sx={backIconButtonSx}>
           <ArrowBack />
         </IconButton>
-        <Box sx={headerTitleGrowSx} />
+        {data?.item ? (
+          <Typography variant="h4" sx={{ flexGrow: 1 }}>
+            {data.item.name}
+            <>
+              {isOwner ? (
+                <>
+                  <Chip
+                    label={t("item.owner", "Owner")}
+                    color="primary"
+                    size="small"
+                    sx={{ ml: 2 }}
+                  />
+                  {/* Pin/Unpin Toggle Button */}
+                  <IconButton
+                    onClick={handlePinToggle}
+                    disabled={pinLoading || unpinLoading}
+                    sx={{
+                      ml: 1,
+                      color: isItemPinned()
+                        ? "primary.main"
+                        : "action.disabled",
+                      "&:hover": {
+                        backgroundColor: isItemPinned()
+                          ? "primary.light"
+                          : "action.hover",
+                      },
+                    }}
+                    title={
+                      isItemPinned()
+                        ? t("item.unpinItem", "Unpin item")
+                        : t("item.pinItem", "Pin item")
+                    }
+                  >
+                    {pinLoading || unpinLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PinIcon
+                        sx={{
+                          transform: isItemPinned()
+                            ? "rotate(45deg)"
+                            : "rotate(0deg)",
+                          transition: "transform 0.2s ease-in-out",
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                  {/* Pin Status Indicator */}
+                  {ownerData?.user?.pinItems && (
+                    <Chip
+                      label={t(
+                        "item.pinnedItemsStatus",
+                        "Pinned: {{count}}/5",
+                        {
+                          count: ownerData.user.pinItems.length,
+                        },
+                      )}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Show owner name if user is not the owner */}
+                  {ownerData?.user && (
+                    <Chip
+                      label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                        } `}
+                      color="primary"
+                      size="small"
+                      sx={{ ml: 2, cursor: "pointer" }}
+                      onClick={() => handleUserClick(ownerData.user.id)}
+                    />
+                  )}
+                </>
+              )}
+
+              <>
+                {/* Show holder name if user is not the holder and holder is different from owner */}
+                {isHolder && (
+                  <Chip
+                    label={t("item.holder", "Holder")}
+                    color="secondary"
+                    size="small"
+                    sx={{ ml: 2 }}
+                  />
+                )}
+                {!isHolder &&
+                  holderData?.user &&
+                  data.item.holderId !== data.item.ownerId && (
+                    <Chip
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        } `}
+                      color="secondary"
+                      size="small"
+                      sx={{ ml: 2, cursor: "pointer" }}
+                      onClick={() => handleUserClick(holderData.user.id)}
+                    />
+                  )}
+                <Chip
+                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
+                    } `}
+                  color="secondary"
+                  size="small"
+                  sx={{ ml: 2, cursor: "pointer" }}
+                />
+              </>
+            </>
+          </Typography>
+        ) : (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress size={24} />
+            <Typography>{t("item.loadItems")}</Typography>
+          </Box>
+        )}
         {data?.item && (
           <IconButton
             color="primary"
