@@ -1110,7 +1110,7 @@
     "noBinderId": "未提供資料夾 ID",
     "loading": "載入資料夾中...",
     "untitled": "未命名資料夾",
-    "errorLoading": "載入資料夾失敗",
+    "errorLoading": "載入資料夾時發生錯誤",
     "images": "資料夾圖片",
     "owner": "擁有者",
     "description": "描述",
