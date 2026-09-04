@@ -28,7 +28,8 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [forcedOpen, setForcedOpen] = useState(false);
-  const verificationStep = 2;
+  const verificationStep = 1;
+  const addressStep = 2;
   const completeStep = 3;
   const isVerification = step === verificationStep;
   const isComplete = step === completeStep;
@@ -92,7 +93,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       return;
     }
 
-    setStep(completeStep);
+    setStep(addressStep);
   };
 
   const handleVerificationLater = () => {
@@ -101,7 +102,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       return;
     }
 
-    setStep(completeStep);
+    setStep(addressStep);
   };
 
   const stepCopy = [
@@ -111,14 +112,14 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       action: t("onboarding.signup.continue"),
     },
     {
-      title: t("onboarding.signup.step3.title"),
-      body: t("onboarding.signup.step3.body"),
-      action: t("onboarding.signup.continue"),
-    },
-    {
       title: t("signupOtp.emailVerification.title"),
       body: t("signupOtp.emailVerification.body"),
       action: "",
+    },
+    {
+      title: t("onboarding.signup.step3.title"),
+      body: t("onboarding.signup.step3.body"),
+      action: t("onboarding.signup.continue"),
     },
     {
       title: t("signupOtp.completeTitle"),
@@ -246,7 +247,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
               {stepCopy.action}
             </Button>
 
-            {step === 1 && (
+            {step === addressStep && (
               <Button
                 fullWidth
                 variant="text"
