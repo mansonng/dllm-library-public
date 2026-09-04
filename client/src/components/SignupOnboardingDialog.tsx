@@ -36,8 +36,6 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
   };
 
   const handleDismiss = () => {
-    // Closing signup onboarding is treated the same as deferring it. This
-    // prevents the signup-only modal from unexpectedly covering Profile later.
     clearPendingSignupOnboarding();
     closeAndReset();
   };
@@ -68,14 +66,8 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       action: t("onboarding.signup.continue"),
     },
     {
-      title: t(
-        "onboarding.signup.transactionIntro.title",
-        "Browse first, verify before a transaction",
-      ),
-      body: t(
-        "onboarding.signup.transactionIntro.body",
-        "You can browse books, open your profile, and view holdings now. BookGuide will require email verification before you start or progress a book transaction.",
-      ),
+      title: t("signupOtp.transactionIntro.title"),
+      body: t("signupOtp.transactionIntro.body"),
       action: t("onboarding.signup.continue"),
     },
     {
@@ -84,18 +76,12 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       action: t("onboarding.signup.continue"),
     },
     {
-      title: t("onboarding.signup.emailVerification.title", "Verify your email"),
-      body: t(
-        "onboarding.signup.emailVerification.body",
-        "Verify now with a 6-digit code, or do it later. You can still browse BookGuide, but email verification is required before a book transaction.",
-      ),
+      title: t("signupOtp.emailVerification.title"),
+      body: t("signupOtp.emailVerification.body"),
       action: "",
     },
     {
-      title: t(
-        "onboarding.signup.complete4.title",
-        "You're all set.",
-      ),
+      title: t("signupOtp.completeTitle"),
       body: t("onboarding.signup.complete.body"),
       action: t("onboarding.signup.browseBooks"),
     },
@@ -161,10 +147,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
               fontWeight: 600,
             }}
           >
-            {t("onboarding.signup.stepLabel4", {
-              step: step + 1,
-              defaultValue: "Step {{step}} of 4",
-            })}
+            {t("signupOtp.stepLabel", { step: step + 1 })}
           </Typography>
         )}
 
@@ -198,7 +181,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
               onClick={() => setStep(completeStep)}
               sx={{ mt: 1 }}
             >
-              Later
+              {t("emailVerification.later")}
             </Button>
           </>
         ) : (
@@ -230,7 +213,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
                 onClick={handleAddAddressNow}
                 sx={{ mt: 1 }}
               >
-                {t("onboarding.signup.addAddress", "Add exchange address")}
+                {t("onboarding.signup.addAddress")}
               </Button>
             )}
           </>
