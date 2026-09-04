@@ -9,6 +9,7 @@ import { Box } from "@mui/material";
 import { PageLoader } from "./components/LoadingState";
 import { getCookie, setCookie } from "./utils/cookies";
 import { semanticTokens } from "./styles/semanticTokens";
+import { EMAIL_VERIFICATION_COMPLETED_EVENT } from "./utils/emailVerification";
 import JSZip from "jszip";
 
 const ME_QUERY = gql`
@@ -69,6 +70,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const [showSplash, setShowSplash] = useState(false); // Changed to false by default
   const [splashCompleted, setSplashCompleted] = useState(false);
   const [isTitleCacheLoaded, setIsTitleCacheLoaded] = useState<boolean>(false);
+
   // Check if splash screen should be shown based on cookie
   useEffect(() => {
     const splashCookie = getCookie("book_guide_splash_shown");
@@ -104,6 +106,25 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
     previousUserIdRef.current = currentUserId;
   }, [user?.uid, meOutput, hostConfigOutput]);
+
+  useEffect(() => {
+    const handleVerificationCompleted = () => {
+      meOutput.refetch().catch((error) => {
+        console.error("Error refetching ME_QUERY after email verification:", error);
+      });
+    };
+
+    window.addEventListener(
+      EMAIL_VERIFICATION_COMPLETED_EVENT,
+      handleVerificationCompleted,
+    );
+
+    return () =>
+      window.removeEventListener(
+        EMAIL_VERIFICATION_COMPLETED_EVENT,
+        handleVerificationCompleted,
+      );
+  }, [meOutput]);
 
   // Handle sessionStorage redirects on component mount
   useEffect(() => {
@@ -237,16 +258,8 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
           const remoteDataJson = await jsonFile.async("text");
           const remoteData = JSON.parse(remoteDataJson);
+          console.log("Fetched and extracted remote item index JSON:", remoteData);
 
-          console.log(
-            "Fetched and extracted remote item index JSON:",
-            remoteData,
-          );
-
-          // Compare versions and update cache as before
-          console.log(
-            `Comparing lastBuildTime: local=${lastBuildTime}, remote=${Date.parse(remoteData.lastBuildTime)}`,
-          );
           if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
             console.log("Updating cache...");
             localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
