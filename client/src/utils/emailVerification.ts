@@ -4,11 +4,32 @@ import * as config from "../dllm-client-config.json";
 const graphqlUrl = String(config.graphql || "");
 const apiBaseUrl = graphqlUrl.replace(/\/graphql\/?$/, "");
 
-async function postVerification(path: string, body?: Record<string, unknown>) {
+async function getAuthToken() {
   const user = auth.currentUser;
   if (!user) throw new Error("Please sign in first");
+  return user.getIdToken();
+}
 
-  const token = await user.getIdToken();
+async function ensureUserProfile(token: string) {
+  const response = await fetch(graphqlUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ query: "query EnsureUserProfile { me { id } }" }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.errors?.length) {
+    throw new Error(
+      payload?.errors?.[0]?.message || "Unable to prepare your user profile",
+    );
+  }
+}
+
+async function postVerification(path: string, body?: Record<string, unknown>) {
+  const token = await getAuthToken();
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     headers: {
@@ -27,6 +48,8 @@ async function postVerification(path: string, body?: Record<string, unknown>) {
 }
 
 export async function requestEmailVerificationCode() {
+  const token = await getAuthToken();
+  await ensureUserProfile(token);
   return postVerification("/email-verification/request");
 }
 
