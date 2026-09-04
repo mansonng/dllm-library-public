@@ -15,7 +15,6 @@ import {
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
@@ -23,6 +22,7 @@ import { auth } from "../../firebase";
 import { useTranslation } from "react-i18next";
 import GoogleIcon from "@mui/icons-material/Google";
 import { markSignupOnboardingPending } from "../../utils/signupOnboarding";
+import { openEmailVerificationDialog } from "../../utils/emailVerification";
 
 interface AuthDialogProps {
   open: boolean;
@@ -73,27 +73,10 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
 
     try {
       if (isSignUp) {
-        // Sign Up
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password,
-        );
+        await createUserWithEmailAndPassword(auth, email, password);
         markSignupOnboardingPending();
         console.log("Account created successfully");
-
-        // Send verification email
-        await sendEmailVerification(userCredential.user);
-        console.log("Verification email sent");
-
-        alert(
-          `${t("auth.verificationEmailSent")} ${t(
-            "auth.verificationSupportHint",
-            "If you don't receive the verification email, please check your spam or junk mailbox. If you still need help, click the chat button in the bottom-right corner to contact the user group for support.",
-          )}`,
-        );
       } else {
-        // Sign In
         await signInWithEmailAndPassword(auth, email, password);
         console.log("Signed in successfully");
       }
@@ -104,6 +87,13 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
       setConfirmPassword("");
       onClose();
       if (onSuccess) onSuccess();
+
+      // Email/password sign-up uses BookGuide OTP verification instead of
+      // Firebase's default verification-link email. The user explicitly
+      // chooses when to send the code from the verification dialog.
+      if (isSignUp) {
+        setTimeout(() => openEmailVerificationDialog(), 0);
+      }
     } catch (error: any) {
       console.error(`${isSignUp ? "Sign up" : "Sign in"} error:`, error);
       setError(
@@ -139,7 +129,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     setConfirmPassword("");
   };
 
-  // Add this new handler for Google Sign-In
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoading(true);
