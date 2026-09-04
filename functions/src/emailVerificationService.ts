@@ -66,11 +66,18 @@ export class EmailVerificationService {
       },
     });
 
-    await sendEmailWithOptions({
-      to: [loginUser.email],
-      subject: "Your BookGuide verification code",
-      text: `Your BookGuide verification code is ${code}.\n\nThis code expires in 10 minutes. If you did not request this code, you can ignore this email.`,
-    });
+    try {
+      await sendEmailWithOptions({
+        to: [loginUser.email],
+        subject: "Your BookGuide verification code",
+        text: `Your BookGuide verification code is ${code}.\n\nThis code expires in 10 minutes. If you did not request this code, you can ignore this email.`,
+      });
+    } catch (error) {
+      // Do not leave the user stuck behind the resend cooldown when delivery
+      // itself failed.
+      await userRef.update({ emailVerification: FieldValue.delete() });
+      throw error;
+    }
 
     return true;
   }
