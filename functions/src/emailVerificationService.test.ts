@@ -62,14 +62,14 @@ jest.mock("./platform", () => {
   const doc = (id: string) => ({
     id,
     get: async () => {
-      const data = (global as any).__emailVerificationUsers.get(id);
+      const data = (globalThis as any).__emailVerificationUsers.get(id);
       return {
         exists: Boolean(data),
         data: () => data,
       };
     },
     update: async (patch: Record<string, any>) => {
-      const data = (global as any).__emailVerificationUsers.get(id);
+      const data = (globalThis as any).__emailVerificationUsers.get(id);
       if (!data) throw new Error("Missing test user");
       applyUpdate(data, patch);
     },
@@ -103,7 +103,8 @@ const loginUser = {
   emailVerified: false,
 };
 
-const users = () => (global as any).__emailVerificationUsers as Map<string, TestUser>;
+const users = () =>
+  (globalThis as any).__emailVerificationUsers as Map<string, TestUser>;
 const sendEmail = platform.sendEmailWithOptions as jest.Mock;
 const updateFirebaseUser = (authModule as any).__mockUpdateUser as jest.Mock;
 
@@ -116,7 +117,7 @@ function sentCode(): string {
 
 describe("EmailVerificationService", () => {
   beforeEach(() => {
-    (global as any).__emailVerificationUsers = new Map<string, TestUser>([
+    (globalThis as any).__emailVerificationUsers = new Map<string, TestUser>([
       [loginUser.uid, { isVerified: false }],
     ]);
     jest.clearAllMocks();
