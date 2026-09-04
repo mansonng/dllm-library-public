@@ -4,6 +4,9 @@ import * as config from "../dllm-client-config.json";
 const graphqlUrl = String(config.graphql || "");
 const apiBaseUrl = graphqlUrl.replace(/\/graphql\/?$/, "");
 
+export const EMAIL_VERIFICATION_COMPLETED_EVENT =
+  "bookguide:email-verification-completed";
+
 async function getAuthToken() {
   const user = auth.currentUser;
   if (!user) throw new Error("Please sign in first");
@@ -55,7 +58,9 @@ export async function requestEmailVerificationCode() {
 
 export async function confirmEmailVerificationCode(code: string) {
   await postVerification("/email-verification/confirm", { code });
+  await auth.currentUser?.reload();
   await auth.currentUser?.getIdToken(true);
+  window.dispatchEvent(new CustomEvent(EMAIL_VERIFICATION_COMPLETED_EVENT));
   return true;
 }
 
