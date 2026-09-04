@@ -6,15 +6,42 @@ import en from "./locales/en.json";
 import zhTW from "./locales/zh-TW.json";
 import zhHK from "./locales/zh-HK.json";
 
+function withOtpVerificationCopy(
+  translation: typeof en,
+  verifyEmail: string,
+  codeSent: string,
+) {
+  return {
+    ...translation,
+    auth: {
+      ...translation.auth,
+      resendVerification: verifyEmail,
+      verificationEmailSent: codeSent,
+    },
+  };
+}
+
 const resources = {
   "zh-HK": {
-    translation: zhHK,
+    translation: withOtpVerificationCopy(
+      zhHK as typeof en,
+      "驗證電郵",
+      "驗證碼已發送。",
+    ),
   },
   en: {
-    translation: en,
+    translation: withOtpVerificationCopy(
+      en,
+      "Verify Email",
+      "Verification code sent.",
+    ),
   },
   "zh-TW": {
-    translation: zhTW,
+    translation: withOtpVerificationCopy(
+      zhTW as typeof en,
+      "驗證電子郵件",
+      "驗證碼已傳送。",
+    ),
   },
 };
 
