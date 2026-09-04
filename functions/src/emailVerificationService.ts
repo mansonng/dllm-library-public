@@ -11,6 +11,7 @@ const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 
 type EmailVerificationState = {
+  requestId: string;
   codeHash: string;
   salt: string;
   expiresAt: Timestamp;
@@ -28,43 +29,56 @@ export class EmailVerificationService {
     if (!loginUser.email) throw new Error("Authenticated account has no email");
 
     const userRef = userCollection.doc(loginUser.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-      throw new Error("User profile not found");
-    }
-
-    const userData = userDoc.data() as {
-      isVerified?: boolean;
-      emailVerification?: EmailVerificationState;
-    };
-
-    if (userData.isVerified) return true;
-
-    const previous = userData.emailVerification;
-    if (
-      previous?.lastSentAt &&
-      Date.now() - previous.lastSentAt.toMillis() < OTP_RESEND_COOLDOWN_MS
-    ) {
-      throw new Error("Please wait before requesting another verification code");
-    }
-
     const code = randomInt(0, 10 ** OTP_LENGTH)
       .toString()
       .padStart(OTP_LENGTH, "0");
     const salt = randomBytes(16).toString("hex");
+    const requestId = randomBytes(16).toString("hex");
     const now = Timestamp.now();
     const expiresAt = Timestamp.fromMillis(Date.now() + OTP_TTL_MS);
     const codeHash = hashCode(code, salt).toString("hex");
 
-    await userRef.update({
-      emailVerification: {
-        codeHash,
-        salt,
-        expiresAt,
-        attempts: 0,
-        lastSentAt: now,
-      },
+    const shouldSend = await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) {
+        throw new Error("User profile not found");
+      }
+
+      const userData = userDoc.data() as {
+        isVerified?: boolean;
+        emailVerification?: EmailVerificationState;
+      };
+
+      if (userData.isVerified) return false;
+
+      const previous = userData.emailVerification;
+      if (
+        previous?.lastSentAt &&
+        Date.now() - previous.lastSentAt.toMillis() < OTP_RESEND_COOLDOWN_MS
+      ) {
+        throw new Error("Please wait before requesting another verification code");
+      }
+
+      transaction.update(userRef, {
+        emailVerification: {
+          requestId,
+          codeHash,
+          salt,
+          expiresAt,
+          attempts: 0,
+          lastSentAt: now,
+        },
+      });
+
+      return true;
     });
+
+    if (!shouldSend) {
+      // Firestore may already be verified from an earlier partial completion.
+      // Ensure Firebase Auth is repaired as well before treating this as done.
+      await getAuth().updateUser(loginUser.uid, { emailVerified: true });
+      return true;
+    }
 
     try {
       await sendEmailWithOptions({
@@ -73,9 +87,19 @@ export class EmailVerificationService {
         text: `Your BookGuide verification code is ${code}.\n\nThis code expires in 10 minutes. If you did not request this code, you can ignore this email.`,
       });
     } catch (error) {
-      // Do not leave the user stuck behind the resend cooldown when delivery
-      // itself failed.
-      await userRef.update({ emailVerification: FieldValue.delete() });
+      // Only remove the state created by this failed delivery. A newer request
+      // from another tab must never be deleted by an older failed request.
+      await db.runTransaction(async (transaction) => {
+        const latestDoc = await transaction.get(userRef);
+        const latest = latestDoc.data() as
+          | { emailVerification?: EmailVerificationState }
+          | undefined;
+        if (latest?.emailVerification?.requestId === requestId) {
+          transaction.update(userRef, {
+            emailVerification: FieldValue.delete(),
+          });
+        }
+      });
       throw error;
     }
 
@@ -100,7 +124,15 @@ export class EmailVerificationService {
       emailVerification?: EmailVerificationState;
     };
 
-    if (userData.isVerified) return true;
+    if (userData.isVerified) {
+      // Make completion idempotent. If a previous attempt updated Firestore
+      // but failed before updating Firebase Auth, retry repairs Firebase.
+      await getAuth().updateUser(loginUser.uid, { emailVerified: true });
+      if (userData.emailVerification) {
+        await userRef.update({ emailVerification: FieldValue.delete() });
+      }
+      return true;
+    }
 
     const verification = userData.emailVerification;
     if (!verification) throw new Error("No verification code has been requested");
@@ -127,14 +159,15 @@ export class EmailVerificationService {
       throw new Error("Invalid verification code");
     }
 
+    // Update Firebase first. If the following Firestore write fails, the
+    // existing me() compatibility sync can safely promote Firestore on retry.
+    // If Firebase fails, the OTP remains available so the user can retry.
+    await getAuth().updateUser(loginUser.uid, { emailVerified: true });
+
     await userRef.update({
       isVerified: true,
       emailVerification: FieldValue.delete(),
     });
-
-    // Keep Firebase Auth and the application profile aligned. The client
-    // refreshes its token after confirmation so me() observes emailVerified.
-    await getAuth().updateUser(loginUser.uid, { emailVerified: true });
 
     return true;
   }
