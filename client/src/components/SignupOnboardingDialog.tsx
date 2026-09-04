@@ -191,7 +191,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
           sx={{
             mb: 1.25,
             color: semanticTokens.color.textPrimary,
-            fontFamily: '\"Noto Serif TC\", serif',
+            fontFamily: '"Noto Serif TC", serif',
             fontWeight: 700,
           }}
         >
