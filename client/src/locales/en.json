@@ -991,7 +991,7 @@
     "noBinderId": "No binder ID provided",
     "loading": "Loading Binder...",
     "untitled": "Untitled Binder",
-    "errorLoading": "Failed to load binders",
+    "errorLoading": "Error loading binder",
     "images": "Binder Images",
     "owner": "Owner",
     "description": "Description",
