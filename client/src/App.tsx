@@ -70,7 +70,6 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const [showSplash, setShowSplash] = useState(false); // Changed to false by default
   const [splashCompleted, setSplashCompleted] = useState(false);
   const [isTitleCacheLoaded, setIsTitleCacheLoaded] = useState<boolean>(false);
-
   // Check if splash screen should be shown based on cookie
   useEffect(() => {
     const splashCookie = getCookie("book_guide_splash_shown");
@@ -258,8 +257,16 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
           const remoteDataJson = await jsonFile.async("text");
           const remoteData = JSON.parse(remoteDataJson);
-          console.log("Fetched and extracted remote item index JSON:", remoteData);
 
+          console.log(
+            "Fetched and extracted remote item index JSON:",
+            remoteData,
+          );
+
+          // Compare versions and update cache as before
+          console.log(
+            `Comparing lastBuildTime: local=${lastBuildTime}, remote=${Date.parse(remoteData.lastBuildTime)}`,
+          );
           if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
             console.log("Updating cache...");
             localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
