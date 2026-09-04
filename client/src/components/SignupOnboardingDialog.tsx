@@ -87,12 +87,6 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
   };
 
   const handleVerificationDone = () => {
-    if (forcedOpen) {
-      closeAndReset();
-      window.location.reload();
-      return;
-    }
-
     setStep(addressStep);
   };
 
