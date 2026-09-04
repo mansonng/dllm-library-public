@@ -19,13 +19,28 @@ export async function sendVerificationEmail() {
   const graphqlUrl = String(config.graphql || "");
   const apiBaseUrl = graphqlUrl.replace(/\/graphql\/?$/, "");
   const token = await user.getIdToken();
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
+  // Older Firebase-auth users may not have an application profile yet.
+  // Calling me() keeps this entry point backward-compatible with those users.
+  const profileResponse = await fetch(graphqlUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query: "query EnsureUserProfile { me { id } }" }),
+  });
+  const profilePayload = await profileResponse.json().catch(() => ({}));
+  if (!profileResponse.ok || profilePayload?.errors?.length) {
+    throw new Error(
+      profilePayload?.errors?.[0]?.message || "Unable to prepare your user profile",
+    );
+  }
 
   const response = await fetch(`${apiBaseUrl}/email-verification/request`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify({}),
   });
 
