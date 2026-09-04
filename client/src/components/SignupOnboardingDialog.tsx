@@ -20,8 +20,8 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-  const verificationStep = 3;
-  const completeStep = 4;
+  const verificationStep = 2;
+  const completeStep = 3;
   const isVerification = step === verificationStep;
   const isComplete = step === completeStep;
 
@@ -63,11 +63,6 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
     {
       title: t("onboarding.signup.step1.title"),
       body: t("onboarding.signup.step1.body"),
-      action: t("onboarding.signup.continue"),
-    },
-    {
-      title: t("signupOtp.transactionIntro.title"),
-      body: t("signupOtp.transactionIntro.body"),
       action: t("onboarding.signup.continue"),
     },
     {
@@ -120,7 +115,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
           </Box>
         ) : (
           <Box sx={{ display: "flex", gap: 0.75, mb: 2.5 }}>
-            {[0, 1, 2, 3].map((progressStep) => (
+            {[0, 1, 2].map((progressStep) => (
               <Box
                 key={progressStep}
                 sx={{
@@ -206,7 +201,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
               {stepCopy.action}
             </Button>
 
-            {step === 2 && (
+            {step === 1 && (
               <Button
                 fullWidth
                 variant="text"
