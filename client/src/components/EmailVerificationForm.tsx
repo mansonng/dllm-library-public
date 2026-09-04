@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Button, Stack, TextField, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { auth } from "../firebase";
 import {
   confirmEmailVerificationCode,
@@ -15,6 +16,7 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
   onVerified,
   description,
 }) => {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -22,7 +24,8 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const email = auth.currentUser?.email || "your email";
+  const email =
+    auth.currentUser?.email || t("emailVerification.fallbackEmail");
 
   const handleSend = async () => {
     setSending(true);
@@ -31,9 +34,9 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
     try {
       await requestEmailVerificationCode();
       setSent(true);
-      setSuccess("Verification code sent. Check your inbox.");
+      setSuccess(t("emailVerification.codeSent"));
     } catch (err: any) {
-      setError(err?.message || "Unable to send verification code");
+      setError(err?.message || t("emailVerification.sendError"));
     } finally {
       setSending(false);
     }
@@ -45,10 +48,10 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
     setSuccess(null);
     try {
       await confirmEmailVerificationCode(code.trim());
-      setSuccess("Email verified successfully.");
+      setSuccess(t("emailVerification.verifySuccess"));
       onVerified?.();
     } catch (err: any) {
-      setError(err?.message || "Unable to verify email");
+      setError(err?.message || t("emailVerification.verifyError"));
     } finally {
       setVerifying(false);
     }
@@ -57,8 +60,7 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
   return (
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
-        {description ||
-          `We'll send a 6-digit verification code to ${email}. The code expires in 10 minutes.`}
+        {description || t("emailVerification.sendDescription", { email })}
       </Typography>
 
       {error && <Alert severity="error">{error}</Alert>}
@@ -70,14 +72,14 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
         disabled={sending || verifying}
       >
         {sending
-          ? "Sending..."
+          ? t("emailVerification.sending")
           : sent
-            ? "Resend verification code"
-            : "Send verification code"}
+            ? t("emailVerification.resendCode")
+            : t("emailVerification.sendCode")}
       </Button>
 
       <TextField
-        label="6-digit verification code"
+        label={t("emailVerification.codeLabel")}
         value={code}
         onChange={(event) =>
           setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
@@ -92,7 +94,9 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
         onClick={handleVerify}
         disabled={code.length !== 6 || verifying}
       >
-        {verifying ? "Verifying..." : "Verify"}
+        {verifying
+          ? t("emailVerification.verifying")
+          : t("emailVerification.verify")}
       </Button>
     </Stack>
   );
