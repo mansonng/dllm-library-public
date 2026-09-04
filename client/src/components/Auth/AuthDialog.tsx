@@ -51,6 +51,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     setError(null);
 
     if (isSignUp) {
+      // Sign Up validation
       if (password !== confirmPassword) {
         setError(t("auth.passwordsDoNotMatch", "Passwords do not match"));
         return;
@@ -71,14 +72,17 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
 
     try {
       if (isSignUp) {
+        // Sign Up
         await createUserWithEmailAndPassword(auth, email, password);
         markSignupOnboardingPending();
         console.log("Account created successfully");
       } else {
+        // Sign In
         await signInWithEmailAndPassword(auth, email, password);
         console.log("Signed in successfully");
       }
 
+      // Reset form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -119,6 +123,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     setConfirmPassword("");
   };
 
+  // Add this new handler for Google Sign-In
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoading(true);
@@ -128,6 +133,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
       await signInWithPopup(auth, provider);
       console.log("Signed in with Google successfully");
 
+      // Reset form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -157,6 +163,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </Alert>
           )}
 
+          {/* Google Sign-In Button */}
           <Button
             fullWidth
             variant="outlined"
@@ -175,6 +182,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </Typography>
           </Divider>
 
+          {/* Sign Up / Sign In Toggle */}
           <Box
             sx={{
               display: "flex",
@@ -201,6 +209,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             />
           </Box>
 
+          {/* Email Field */}
           <TextField
             label={t("auth.email")}
             type="email"
@@ -213,6 +222,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             autoComplete="email"
           />
 
+          {/* Password Field */}
           <TextField
             label={t("auth.password")}
             type="password"
@@ -230,6 +240,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             }
           />
 
+          {/* Confirm Password Field - Only for Sign Up */}
           {isSignUp && (
             <TextField
               label={t("auth.confirmPassword", "Confirm Password")}
@@ -244,6 +255,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             />
           )}
 
+          {/* Submit Button */}
           <Button
             type="submit"
             fullWidth
@@ -259,6 +271,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
                 : t("auth.signIn")}
           </Button>
 
+          {/* Forgot Password - Only for Sign In */}
           {!isSignUp && onForgotPassword && (
             <>
               <Divider sx={{ my: 2 }}>
@@ -277,6 +290,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </>
           )}
 
+          {/* Additional Info */}
           <Box sx={{ mt: 2, textAlign: "center" }}>
             <Typography variant="caption" color="text.secondary">
               {isSignUp
