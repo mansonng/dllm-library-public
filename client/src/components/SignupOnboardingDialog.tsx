@@ -68,8 +68,14 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       action: t("onboarding.signup.continue"),
     },
     {
-      title: t("onboarding.signup.step2.title"),
-      body: t("onboarding.signup.step2.body"),
+      title: t(
+        "onboarding.signup.transactionIntro.title",
+        "Browse first, verify before a transaction",
+      ),
+      body: t(
+        "onboarding.signup.transactionIntro.body",
+        "You can browse books, open your profile, and view holdings now. BookGuide will require email verification before you start or progress a book transaction.",
+      ),
       action: t("onboarding.signup.continue"),
     },
     {
@@ -86,7 +92,10 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
       action: "",
     },
     {
-      title: t("onboarding.signup.complete.title", "You're all set."),
+      title: t(
+        "onboarding.signup.complete4.title",
+        "You're all set.",
+      ),
       body: t("onboarding.signup.complete.body"),
       action: t("onboarding.signup.browseBooks"),
     },
@@ -152,7 +161,10 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
               fontWeight: 600,
             }}
           >
-            {t("onboarding.signup.stepLabel", { step: step + 1 })}
+            {t("onboarding.signup.stepLabel4", {
+              step: step + 1,
+              defaultValue: "Step {{step}} of 4",
+            })}
           </Typography>
         )}
 
