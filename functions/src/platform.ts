@@ -57,7 +57,7 @@ async function GenerateSignedUrlForUpload(
     ? `${folder}/${userId}/${fileName}`
     : `${userId}/${fileName}`;
 
-  const expires = Date.now() + 15 * 60 * 1000;
+  const expires = Date.now() + 15 * 60 * 1000; // 15 minutes
 
   const cfg: GetSignedUrlConfig = {
     version: "v4",
@@ -121,12 +121,14 @@ async function UploadBufferToGCS(
   return `gs://${serviceAccount.bucket_name}/${uploadPath}`;
 }
 
+// compress that jsonData and upload to GCS, return the public URL
 async function UploadJsonToGCS(
   uploadPath: string,
   jsonData: any,
 ): Promise<string> {
   const bucket = admin.storage().bucket(serviceAccount.bucket_name);
   const uploadFile = bucket.file(uploadPath);
+  // zip the jsonData before uploading
   const zip = new AdmZip();
   zip.addFile("data.json", Buffer.from(JSON.stringify(jsonData), "utf-8"));
   const zipBuffer = zip.toBuffer();
@@ -167,6 +169,8 @@ async function sendNotificationViaEmail(
 ): Promise<void> {
   try {
     const transporter = createTransporter();
+
+    // Generate the full URL if subpath is provided
     const actionUrl = subpath
       ? `${serviceAccount.hosting_url}/${subpath.replace(/^\//, "")}`
       : null;
@@ -191,7 +195,14 @@ async function sendNotificationViaEmail(
                 ? `
             <div style="text-align: center; margin-top: 30px;">
               <a href="${actionUrl}" 
-                 style="display: inline-block; background-color: #1976d2; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+                 style="display: inline-block; 
+                        background-color: #1976d2; 
+                        color: white; 
+                        padding: 12px 30px; 
+                        text-decoration: none; 
+                        border-radius: 4px; 
+                        font-weight: bold;
+                        font-size: 16px;">
                 View Details
               </a>
             </div>
@@ -258,7 +269,14 @@ async function sendEmailWithOptions(options: EmailOptions): Promise<void> {
                 ? `
             <div style="text-align: center; margin-top: 30px;">
               <a href="${options.actionUrl}" 
-                 style="display: inline-block; background-color: #1976d2; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+                 style="display: inline-block; 
+                        background-color: #1976d2; 
+                        color: white; 
+                        padding: 12px 30px; 
+                        text-decoration: none; 
+                        border-radius: 4px; 
+                        font-weight: bold;
+                        font-size: 16px;">
                 ${options.actionText || "View Details"}
               </a>
             </div>
