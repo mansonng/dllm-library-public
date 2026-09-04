@@ -6,9 +6,11 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import EmailVerificationForm from "./EmailVerificationForm";
 
 const EmailVerificationDialog: React.FC = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -31,15 +33,17 @@ const EmailVerificationDialog: React.FC = () => {
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
-      <DialogTitle>Verify your email</DialogTitle>
+      <DialogTitle>{t("emailVerification.title")}</DialogTitle>
       <DialogContent sx={{ pt: 1 }}>
         <EmailVerificationForm
           onVerified={handleVerified}
-          description="Verify your email before starting or completing a book transaction."
+          description={t("emailVerification.transactionDescription")}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)}>Later</Button>
+        <Button onClick={() => setOpen(false)}>
+          {t("emailVerification.later")}
+        </Button>
       </DialogActions>
     </Dialog>
   );
