@@ -3,7 +3,7 @@ export const emailVerificationEn = {
     stepLabel: "Step {{step}} of 3",
     emailVerification: {
       title: "Verify your email",
-      body: "Verify now with a 6-digit code, or do it later. You can still browse BookGuide, open your profile, and view holdings without verification, but email verification is required before you start or progress a book transaction.",
+      body: "Confirm it's really you so other members can exchange books with more confidence. You can verify now with a 6-digit code or do it later. Without verification you can still browse BookGuide, open your profile, and view holdings, but you must verify before starting or progressing a book transaction.",
     },
     completeTitle: "You're all set.",
   },
@@ -32,13 +32,13 @@ export const emailVerificationZhHK = {
   signupOtp: {
     stepLabel: "第 {{step}} 步，共 3 步",
     emailVerification: {
-      title: "驗證你的電郵",
-      body: "你可以而家用 6 位數驗證碼完成驗證，亦可以稍後再做。未驗證仍然可以瀏覽 BookGuide、查看個人檔案同持有項目，但開始或進行書籍交易前必須完成電郵驗證。",
+      title: "驗證電郵",
+      body: "確認係你本人，令其他書友可以更放心同你交換。你可以而家用 6 位數驗證碼完成驗證，亦可以稍後再做。未驗證仍然可以瀏覽 BookGuide、查看個人檔案同持有項目，但開始或進行書籍交易前必須完成電郵驗證。",
     },
     completeTitle: "設定完成！",
   },
   emailVerification: {
-    title: "驗證你的電郵",
+    title: "驗證電郵",
     transactionDescription: "開始或完成書籍交易前，請先驗證你的電郵。",
     sendDescription: "我哋會將 6 位數驗證碼寄去 {{email}}。驗證碼會喺 10 分鐘後失效。",
     codeSent: "驗證碼已寄出，請檢查你的收件箱。",
@@ -60,13 +60,13 @@ export const emailVerificationZhTW = {
   signupOtp: {
     stepLabel: "第 {{step}} 步，共 3 步",
     emailVerification: {
-      title: "驗證你的電子郵件",
-      body: "你可以現在使用 6 位數驗證碼完成驗證，也可以稍後再做。未驗證仍可瀏覽 BookGuide、查看個人資料和持有項目，但開始或進行書籍交易前必須完成電子郵件驗證。",
+      title: "驗證電子郵件",
+      body: "確認是你本人，讓其他書友可以更安心地和你交換。你可以現在使用 6 位數驗證碼完成驗證，也可以稍後再做。未驗證仍可瀏覽 BookGuide、查看個人資料和持有項目，但開始或進行書籍交易前必須完成電子郵件驗證。",
     },
     completeTitle: "設定完成！",
   },
   emailVerification: {
-    title: "驗證你的電子郵件",
+    title: "驗證電子郵件",
     transactionDescription: "開始或完成書籍交易前，請先驗證你的電子郵件。",
     sendDescription: "我們會將 6 位數驗證碼寄到 {{email}}。驗證碼會在 10 分鐘後失效。",
     codeSent: "驗證碼已寄出，請檢查你的收件匣。",
