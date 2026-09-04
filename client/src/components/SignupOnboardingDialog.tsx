@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Dialog, DialogContent, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import CheckIcon from "@mui/icons-material/Check";
@@ -6,6 +6,13 @@ import { useTranslation } from "react-i18next";
 import { clearPendingSignupOnboarding } from "../utils/signupOnboarding";
 import { semanticTokens } from "../styles/semanticTokens";
 import EmailVerificationForm from "./EmailVerificationForm";
+
+export const OPEN_SIGNUP_EMAIL_VERIFICATION_EVENT =
+  "bookguide:open-signup-email-verification";
+
+export function openSignupEmailVerificationStep(): void {
+  window.dispatchEvent(new CustomEvent(OPEN_SIGNUP_EMAIL_VERIFICATION_EVENT));
+}
 
 interface SignupOnboardingDialogProps {
   open: boolean;
@@ -20,13 +27,34 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
+  const [forcedOpen, setForcedOpen] = useState(false);
   const verificationStep = 2;
   const completeStep = 3;
   const isVerification = step === verificationStep;
   const isComplete = step === completeStep;
+  const dialogOpen = open || forcedOpen;
+
+  useEffect(() => {
+    const handleOpenVerification = () => {
+      setStep(verificationStep);
+      setForcedOpen(true);
+    };
+
+    window.addEventListener(
+      OPEN_SIGNUP_EMAIL_VERIFICATION_EVENT,
+      handleOpenVerification,
+    );
+
+    return () =>
+      window.removeEventListener(
+        OPEN_SIGNUP_EMAIL_VERIFICATION_EVENT,
+        handleOpenVerification,
+      );
+  }, []);
 
   const closeAndReset = () => {
     setStep(0);
+    setForcedOpen(false);
     onClose();
   };
 
@@ -36,7 +64,9 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
   };
 
   const handleDismiss = () => {
-    clearPendingSignupOnboarding();
+    if (!forcedOpen) {
+      clearPendingSignupOnboarding();
+    }
     closeAndReset();
   };
 
@@ -56,6 +86,21 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
   };
 
   const handleVerificationDone = () => {
+    if (forcedOpen) {
+      closeAndReset();
+      window.location.reload();
+      return;
+    }
+
+    setStep(completeStep);
+  };
+
+  const handleVerificationLater = () => {
+    if (forcedOpen) {
+      closeAndReset();
+      return;
+    }
+
     setStep(completeStep);
   };
 
@@ -84,7 +129,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
 
   return (
     <Dialog
-      open={open}
+      open={dialogOpen}
       onClose={handleDismiss}
       maxWidth="xs"
       fullWidth
@@ -151,7 +196,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
           sx={{
             mb: 1.25,
             color: semanticTokens.color.textPrimary,
-            fontFamily: '"Noto Serif TC", serif',
+            fontFamily: '\"Noto Serif TC\", serif',
             fontWeight: 700,
           }}
         >
@@ -173,7 +218,7 @@ const SignupOnboardingDialog: React.FC<SignupOnboardingDialogProps> = ({
             <Button
               fullWidth
               variant="text"
-              onClick={() => setStep(completeStep)}
+              onClick={handleVerificationLater}
               sx={{ mt: 1 }}
             >
               {t("emailVerification.later")}
