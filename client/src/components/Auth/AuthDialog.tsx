@@ -22,7 +22,6 @@ import { auth } from "../../firebase";
 import { useTranslation } from "react-i18next";
 import GoogleIcon from "@mui/icons-material/Google";
 import { markSignupOnboardingPending } from "../../utils/signupOnboarding";
-import { openEmailVerificationDialog } from "../../utils/emailVerification";
 
 interface AuthDialogProps {
   open: boolean;
@@ -52,7 +51,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     setError(null);
 
     if (isSignUp) {
-      // Sign Up validation
       if (password !== confirmPassword) {
         setError(t("auth.passwordsDoNotMatch", "Passwords do not match"));
         return;
@@ -81,19 +79,11 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
         console.log("Signed in successfully");
       }
 
-      // Reset form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
       onClose();
       if (onSuccess) onSuccess();
-
-      // Email/password sign-up uses BookGuide OTP verification instead of
-      // Firebase's default verification-link email. The user explicitly
-      // chooses when to send the code from the verification dialog.
-      if (isSignUp) {
-        setTimeout(() => openEmailVerificationDialog(), 0);
-      }
     } catch (error: any) {
       console.error(`${isSignUp ? "Sign up" : "Sign in"} error:`, error);
       setError(
@@ -138,7 +128,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
       await signInWithPopup(auth, provider);
       console.log("Signed in with Google successfully");
 
-      // Reset form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -168,7 +157,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </Alert>
           )}
 
-          {/* Google Sign-In Button */}
           <Button
             fullWidth
             variant="outlined"
@@ -187,7 +175,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </Typography>
           </Divider>
 
-          {/* Sign Up / Sign In Toggle */}
           <Box
             sx={{
               display: "flex",
@@ -214,7 +201,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             />
           </Box>
 
-          {/* Email Field */}
           <TextField
             label={t("auth.email")}
             type="email"
@@ -227,7 +213,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             autoComplete="email"
           />
 
-          {/* Password Field */}
           <TextField
             label={t("auth.password")}
             type="password"
@@ -245,7 +230,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             }
           />
 
-          {/* Confirm Password Field - Only for Sign Up */}
           {isSignUp && (
             <TextField
               label={t("auth.confirmPassword", "Confirm Password")}
@@ -260,7 +244,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             />
           )}
 
-          {/* Submit Button */}
           <Button
             type="submit"
             fullWidth
@@ -276,7 +259,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
                 : t("auth.signIn")}
           </Button>
 
-          {/* Forgot Password - Only for Sign In */}
           {!isSignUp && onForgotPassword && (
             <>
               <Divider sx={{ my: 2 }}>
@@ -295,7 +277,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
             </>
           )}
 
-          {/* Additional Info */}
           <Box sx={{ mt: 2, textAlign: "center" }}>
             <Typography variant="caption" color="text.secondary">
               {isSignUp
