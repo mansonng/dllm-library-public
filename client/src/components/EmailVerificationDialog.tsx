@@ -28,7 +28,6 @@ const EmailVerificationDialog: React.FC = () => {
 
   const handleVerified = () => {
     setOpen(false);
-    window.location.reload();
   };
 
   return (
