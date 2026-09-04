@@ -178,6 +178,7 @@ async function startApolloServer() {
     if (isBotRequest(req)) {
       handleNewsDetailSSR(req, res);
     } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
       handleHomePageSSR(req, res, `/news/${req.params.id}`);
     }
   });
